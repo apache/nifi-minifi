@@ -90,7 +90,7 @@ public class BootstrapListener {
     }
 
     public void sendStartedStatus(boolean status) throws IOException {
-        logger.debug("Notifying Bootstrap that the status of starting NiFi is {}", status);
+        logger.debug("Notifying Bootstrap that the status of starting MiNiFi is {}", status);
         sendCommand("STARTED", new String[]{ String.valueOf(status) });
     }
 
@@ -119,7 +119,7 @@ public class BootstrapListener {
             if ("OK".equals(response)) {
                 logger.info("Successfully initiated communication with Bootstrap");
             } else {
-                logger.error("Failed to communicate with Bootstrap. Bootstrap may be unable to issue or receive commands from NiFi");
+                logger.error("Failed to communicate with Bootstrap. Bootstrap may be unable to issue or receive commands from MiNiFi");
             }
         }
     }

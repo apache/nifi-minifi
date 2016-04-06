@@ -35,7 +35,6 @@
             <excludes>
             	<exclude>minifi-bootstrap</exclude>
                 <exclude>minifi-resources</exclude>
-                <exclude>nifi-bootstrap</exclude>
                 <exclude>nifi-docs</exclude>
             </excludes>
         </dependencySet>
@@ -53,7 +52,6 @@
                 <include>slf4j-api</include>
                 <include>logback-classic</include>
                 <include>nifi-api</include>
-                <include>nifi-bootstrap</include>
                 <include>nifi-utils</include>
             </includes>
         </dependencySet>

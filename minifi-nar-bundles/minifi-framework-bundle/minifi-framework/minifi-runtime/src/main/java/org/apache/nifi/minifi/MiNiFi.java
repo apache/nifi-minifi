@@ -77,16 +77,16 @@ public class MiNiFi {
                 final int port = Integer.parseInt(bootstrapPort);
 
                 if (port < 1 || port > 65535) {
-                    throw new RuntimeException("Failed to start NiFi because system property '" + BOOTSTRAP_PORT_PROPERTY + "' is not a valid integer in the range 1 - 65535");
+                    throw new RuntimeException("Failed to start MiNiFi because system property '" + BOOTSTRAP_PORT_PROPERTY + "' is not a valid integer in the range 1 - 65535");
                 }
 
                 bootstrapListener = new BootstrapListener(this, port);
                 bootstrapListener.start();
             } catch (final NumberFormatException nfe) {
-                throw new RuntimeException("Failed to start NiFi because system property '" + BOOTSTRAP_PORT_PROPERTY + "' is not a valid integer in the range 1 - 65535");
+                throw new RuntimeException("Failed to start MiNiFi because system property '" + BOOTSTRAP_PORT_PROPERTY + "' is not a valid integer in the range 1 - 65535");
             }
         } else {
-            logger.info("NiFi started without Bootstrap Port information provided; will not listen for requests from Bootstrap");
+            logger.info("MiNiFi started without Bootstrap Port information provided; will not listen for requests from Bootstrap");
             bootstrapListener = null;
         }
 
@@ -133,7 +133,7 @@ public class MiNiFi {
         nifiServer.setExtensionMapping(extensionMapping);
 
         if (shutdown) {
-            logger.info("NiFi has been shutdown via NiFi Bootstrap. Will not start Controller");
+            logger.info("MiNiFi has been shutdown via MiNiFi Bootstrap. Will not start Controller");
         } else {
             nifiServer.start();
 
@@ -208,8 +208,8 @@ public class MiNiFi {
                 service.shutdownNow();
 
                 if (occurences.get() < minRequiredOccurrences || occurrencesOutOfRange.get() > maxOccurrencesOutOfRange) {
-                    logger.warn("NiFi has detected that this box is not responding within the expected timing interval, which may cause "
-                        + "Processors to be scheduled erratically. Please see the NiFi documentation for more information.");
+                    logger.warn("MiNiFi has detected that this box is not responding within the expected timing interval, which may cause "
+                        + "Processors to be scheduled erratically. Please see the MiNiFi documentation for more information.");
                 }
             }
         };
@@ -223,14 +223,12 @@ public class MiNiFi {
      * @param args things which are ignored
      */
     public static void main(String[] args) {
-        logger.info("Launching NiFi...");
+        logger.info("Launching MiNiFi...");
         try {
             NiFiProperties niFiProperties = NiFiProperties.getInstance();
-            System.out.println("NiFi Properties:");
-            System.out.println(niFiProperties);
             new MiNiFi(niFiProperties);
         } catch (final Throwable t) {
-            logger.error("Failure to launch NiFi due to " + t, t);
+            logger.error("Failure to launch MiNiFi due to " + t, t);
         }
     }
 }

@@ -35,9 +35,11 @@
             <excludes>
             	<exclude>minifi-bootstrap</exclude>
                 <exclude>minifi-resources</exclude>
+                <exclude>nifi-bootstrap</exclude>
+                <exclude>nifi-docs</exclude>
             </excludes>
         </dependencySet>
-        
+
         <!-- Write out the bootstrap lib component to its own dir -->
         <dependencySet>
             <scope>runtime</scope>
@@ -50,9 +52,12 @@
             	<include>minifi-bootstrap</include>
                 <include>slf4j-api</include>
                 <include>logback-classic</include>
+                <include>nifi-api</include>
+                <include>nifi-bootstrap</include>
+                <include>nifi-utils</include>
             </includes>
         </dependencySet>
-        
+
         <!-- Write out the conf directory contents -->
         <dependencySet>
             <scope>runtime</scope>
@@ -92,7 +97,25 @@
                 </includes>
             </unpackOptions>
         </dependencySet>
-
+        <!-- Writes out the docs directory contents -->
+        <dependencySet>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>docs/</outputDirectory>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <includes>
+                <include>nifi-docs</include>
+            </includes>
+            <unpack>true</unpack>
+            <unpackOptions>
+                <filtered>false</filtered>
+                <excludes>
+                    <!-- LICENSE and NOTICE both covered by top-level -->
+                    <exclude>LICENSE</exclude>
+                    <exclude>NOTICE</exclude>
+                </excludes>
+            </unpackOptions>
+        </dependencySet>
     </dependencySets>
     <files>
         <file>
@@ -101,7 +124,7 @@
             <destName>LICENSE</destName>
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
-        </file>       
+        </file>
         <file>
             <source>./NOTICE</source>
             <outputDirectory>./</outputDirectory>

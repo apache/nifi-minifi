@@ -94,6 +94,7 @@ limitations under the License.
         <inceptionYear>2016</inceptionYear>
         <org.slf4j.version>1.7.12</org.slf4j.version>
         <org.apache.nifi.version>0.6.0</org.apache.nifi.version>
+        <pippo.version>0.8.0</pippo.version>
     </properties>
 
     <dependencies>
@@ -350,6 +351,16 @@ limitations under the License.
                 <artifactId>nifi-ssl-context-service-api</artifactId>
                 <version>${org.apache.nifi.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ro.pippo</groupId>
+                <artifactId>pippo-tomcat</artifactId>
+                <version>${pippo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ro.pippo</groupId>
+                <artifactId>pippo-core</artifactId>
+                <version>${pippo.version}</version>
+            </dependency>
 
             <!-- Test Dependencies -->
             <dependency>
@@ -368,7 +379,18 @@ limitations under the License.
                 <artifactId>slf4j-simple</artifactId>
                 <version>${org.slf4j.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.squareup.okhttp</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>2.7.5</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.4</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

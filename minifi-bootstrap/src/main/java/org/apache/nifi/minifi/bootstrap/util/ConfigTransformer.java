@@ -133,11 +133,6 @@ public final class ConfigTransformer {
     // Final util classes should have private constructor
     private ConfigTransformer() {}
 
-    public static void main(String[] args) throws Exception {
-        transformConfigFile("./config.yml",
-                "./minifi-assembly/target/minifi-0.0.1-SNAPSHOT-bin/minifi-0.0.1-SNAPSHOT/conf/");
-    }
-
     public static void transformConfigFile(String sourceFile, String destPath) throws Exception {
         Yaml yaml = new Yaml();
         File ymlConfigFile = new File(sourceFile);

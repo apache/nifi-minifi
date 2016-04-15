@@ -134,27 +134,27 @@ public final class ConfigTransformer {
     private ConfigTransformer() {}
 
     public static void transformConfigFile(String sourceFile, String destPath) throws Exception {
-        Yaml yaml = new Yaml();
         File ymlConfigFile = new File(sourceFile);
         InputStream ios = new FileInputStream(ymlConfigFile);
 
-        // Parse the YAML file
-        Map<String,Object> result = (Map<String,Object>) yaml.load(ios);
-
-        // Write nifi.properties and flow.xml.gz
-        writeNiFiProperties(result, destPath);
-        writeFlowXml(result, destPath);
+        transformConfigFile(ios, destPath);
     }
 
     public static void transformConfigFile(InputStream sourceStream, String destPath) throws Exception {
-        Yaml yaml = new Yaml();
+        try {
+            Yaml yaml = new Yaml();
 
-        // Parse the YAML file
-        Map<String,Object> result = (Map<String,Object>) yaml.load(sourceStream);
+            // Parse the YAML file
+            Map<String, Object> result = (Map<String, Object>) yaml.load(sourceStream);
 
-        // Write nifi.properties and flow.xml.gz
-        writeNiFiProperties(result, destPath);
-        writeFlowXml(result, destPath);
+            // Write nifi.properties and flow.xml.gz
+            writeNiFiProperties(result, destPath);
+            writeFlowXml(result, destPath);
+        } finally {
+            if (sourceStream != null) {
+                sourceStream.close();
+            }
+        }
     }
 
     private static void writeNiFiProperties(Map<String, Object> topLevelYaml, String path) throws FileNotFoundException, UnsupportedEncodingException {

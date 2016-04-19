@@ -17,11 +17,9 @@
 
 package org.apache.nifi.minifi.bootstrap.configuration;
 
-import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -37,7 +35,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;

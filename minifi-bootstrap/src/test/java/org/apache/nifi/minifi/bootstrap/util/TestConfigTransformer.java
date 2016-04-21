@@ -63,6 +63,24 @@ public class TestConfigTransformer {
         flowXml.deleteOnExit();
     }
 
+    @Test
+    public void doesTransformOnDefaultFile() throws Exception {
+
+        ConfigTransformer.transformConfigFile("./src/test/resources/default.yml", "./target/");
+        File nifiPropertiesFile = new File("./target/nifi.properties");
+
+        assertTrue(nifiPropertiesFile.exists());
+        assertTrue(nifiPropertiesFile.canRead());
+
+        nifiPropertiesFile.deleteOnExit();
+
+        File flowXml = new File("./target/flow.xml.gz");
+        assertTrue(flowXml.exists());
+        assertTrue(flowXml.canRead());
+
+        flowXml.deleteOnExit();
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void handleTransformInvalidFile() throws Exception {
 

@@ -34,6 +34,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,6 +65,8 @@ import org.apache.nifi.stream.io.ByteArrayOutputStream;
 import org.apache.nifi.util.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * <p>
@@ -116,7 +120,6 @@ public class RunMiNiFi {
     private final Lock startedLock = new ReentrantLock();
     private final Lock lock = new ReentrantLock();
     private final Condition startupCondition = lock.newCondition();
-
     private final File bootstrapConfigFile;
 
     // used for logging initial info; these will be logged to console by default when the app is started
@@ -131,6 +134,9 @@ public class RunMiNiFi {
 
     private Set<ConfigurationChangeNotifier> changeNotifiers;
     private ConfigurationChangeListener changeListener;
+
+    // Is set to true after the MiNiFi instance shuts down in preparation to be reloaded. Will be set to false after MiNiFi is successfully started again.
+    private AtomicBoolean reloading = new AtomicBoolean(false);
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 
@@ -273,11 +279,20 @@ public class RunMiNiFi {
         final File confDir = bootstrapConfigFile.getParentFile();
         final File nifiHome = confDir.getParentFile();
         final File bin = new File(nifiHome, "bin");
-        final File lockFile = new File(bin, "minifi.reload.lock");
+        final File reloadFile = new File(bin, "minifi.reload.lock");
 
-        logger.debug("Reload File: {}", lockFile);
-        return lockFile;
+        logger.debug("Reload File: {}", reloadFile);
+        return reloadFile;
     }
+
+    public File getSwapFile(final Logger logger) {
+        final File confDir = bootstrapConfigFile.getParentFile();
+        final File swapFile = new File(confDir, "swap.yml");
+
+        logger.debug("Swap File: {}", swapFile);
+        return swapFile;
+    }
+
 
     private Properties loadProperties(final Logger logger) throws IOException {
         final Properties props = new Properties();
@@ -663,7 +678,8 @@ public class RunMiNiFi {
                         }
                     }
 
-                    logger.info("MiNiFi has finished shutting down.");
+                    reloading.set(true);
+                    logger.info("MiNiFi has finished shutting down and will be reloaded.");
                 }
             } else {
                 logger.error("When sending RELOAD command to MiNiFi, got unexpected response {}", response);
@@ -1054,6 +1070,22 @@ public class RunMiNiFi {
             if (alive) {
                 try {
                     Thread.sleep(1000L);
+
+                    if (reloading.get() && getNifiStarted()) {
+                        final File swapConfigFile = getSwapFile(defaultLogger);
+                        if (swapConfigFile.exists()) {
+                            defaultLogger.info("MiNiFi has finished reloading successfully and swap file exists. Deleting old configuration.");
+
+                            if (swapConfigFile.delete()) {
+                                defaultLogger.info("Swap file was successfully deleted.");
+                            } else {
+                                defaultLogger.info("Swap file was not deleted.");
+                            }
+                        }
+
+                        reloading.set(false);
+                    }
+
                 } catch (final InterruptedException ie) {
                 }
             } else {
@@ -1064,7 +1096,6 @@ public class RunMiNiFi {
                     // happens when already shutting down
                 }
 
-                String now = sdf.format(System.currentTimeMillis());
                 if (autoRestartNiFi) {
                     final File statusFile = getStatusFile(defaultLogger);
                     if (!statusFile.exists()) {
@@ -1080,15 +1111,31 @@ public class RunMiNiFi {
 
                     final File reloadFile = getReloadFile(defaultLogger);
                     if (reloadFile.exists()) {
-                        defaultLogger.info("Currently reloading configuration.  Will not restart MiNiFi.");
+                        defaultLogger.info("Currently reloading configuration. Will wait to restart MiNiFi.");
                         Thread.sleep(5000L);
                         continue;
                     }
 
                     final boolean previouslyStarted = getNifiStarted();
                     if (!previouslyStarted) {
-                        defaultLogger.info("MiNiFi never started. Will not restart MiNiFi");
-                        return;
+                        final File swapConfigFile = getSwapFile(defaultLogger);
+                        if(swapConfigFile.exists()){
+                            defaultLogger.info("Swap file exists, MiNiFi failed trying to change configuration. Reverting to old configuration.");
+
+                            final String confDir = getBootstrapProperties().getProperty(CONF_DIR_KEY);
+                            ((MiNiFiConfigurationChangeListener) changeListener).performTransformation(new FileInputStream(swapConfigFile), confDir);
+
+                            Files.copy(swapConfigFile.toPath(), Paths.get(getBootstrapProperties().getProperty(MINIFI_CONFIG_FILE_KEY)), REPLACE_EXISTING);
+
+                            defaultLogger.info("Replacing config file with swap file and deleting swap file");
+                            if (!swapConfigFile.delete()){
+                                defaultLogger.warn("The swap file failed to delete. It should be cleaned up manually.");
+                            }
+                            reloading.set(false);
+                        } else {
+                            defaultLogger.info("MiNiFi either never started or failed to restart. Will not attempt to restart MiNiFi");
+                            return;
+                        }
                     } else {
                         setNiFiStarted(false);
                     }
@@ -1110,7 +1157,7 @@ public class RunMiNiFi {
                     final boolean started = waitForStart();
 
                     if (started) {
-                        defaultLogger.info("Successfully started Apache MiNiFi{}", (pid == null ? "" : " with PID " + pid));
+                        defaultLogger.info("Successfully spawned the thread to start Apache MiNiFi{}", (pid == null ? "" : " with PID " + pid));
                     } else {
                         defaultLogger.error("Apache MiNiFi does not appear to have started");
                     }
@@ -1255,7 +1302,7 @@ public class RunMiNiFi {
             defaultLogger.warn("Apache MiNiFi has started but failed to persist MiNiFi Port information to {} due to {}", new Object[]{statusFile.getAbsolutePath(), ioe});
         }
 
-        defaultLogger.info("Apache MiNiFi now running and listening for Bootstrap requests on port {}", port);
+        defaultLogger.info("The thread to run Apache MiNiFi is now running and listening for Bootstrap requests on port {}", port);
     }
 
     int getNiFiCommandControlPort() {
@@ -1346,6 +1393,10 @@ public class RunMiNiFi {
                 final ByteArrayInputStream newConfigBais = new ByteArrayInputStream(bufferedConfigOs.toByteArray());
                 newConfigBais.mark(-1);
 
+                final File swapConfigFile = runner.getSwapFile(logger);
+                logger.info("Persisting old configuration to {}", swapConfigFile.getAbsolutePath());
+                Files.copy(new FileInputStream(configFile), swapConfigFile.toPath(), REPLACE_EXISTING);
+
                 logger.info("Persisting changes to {}", configFile.getAbsolutePath());
                 saveFile(newConfigBais, configFile);
 
@@ -1353,7 +1404,7 @@ public class RunMiNiFi {
                 newConfigBais.reset();
 
                 final String confDir = bootstrapProperties.getProperty(CONF_DIR_KEY);
-                logger.info("Performing transformation for input and saving outputs to {}", configFile);
+                logger.info("Performing transformation for input and saving outputs to {}", confDir);
                 performTransformation(newConfigBais, confDir);
 
                 logger.info("Reloading instance with new configuration");
@@ -1379,7 +1430,7 @@ public class RunMiNiFi {
             }
         }
 
-        private void performTransformation(InputStream configIs, String configDestinationPath) {
+        public void performTransformation(InputStream configIs, String configDestinationPath) {
             try {
                 ConfigTransformer.transformConfigFile(configIs, configDestinationPath);
             } catch (Exception e) {
@@ -1389,7 +1440,6 @@ public class RunMiNiFi {
         }
 
         private void restartInstance() {
-            logger.info("Restarting MiNiFi with new configuration");
             try {
                 runner.reload();
             } catch (IOException e) {

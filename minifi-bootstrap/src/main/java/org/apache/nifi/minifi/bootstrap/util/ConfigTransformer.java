@@ -304,8 +304,8 @@ public final class ConfigTransformer {
             final Element rootNode = doc.createElement("flowController");
             doc.appendChild(rootNode);
             Map<String, Object> processorConfig = (Map<String, Object>) topLevelYaml.get(PROCESSOR_CONFIG_KEY);
-            addTextElement(rootNode, "maxTimerDrivenThreadCount", getValueString(processorConfig, MAX_CONCURRENT_TASKS_KEY));
-            addTextElement(rootNode, "maxEventDrivenThreadCount", getValueString(processorConfig, MAX_CONCURRENT_TASKS_KEY));
+            addTextElement(rootNode, "maxTimerDrivenThreadCount", getValueString(processorConfig, MAX_CONCURRENT_TASKS_KEY, "1"));
+            addTextElement(rootNode, "maxEventDrivenThreadCount", getValueString(processorConfig, MAX_CONCURRENT_TASKS_KEY, "1"));
             addProcessGroup(rootNode, topLevelYaml, "rootGroup");
 
             Map<String, Object> securityProps = (Map<String, Object>) topLevelYaml.get(SECURITY_PROPS_KEY);
@@ -317,8 +317,10 @@ public final class ConfigTransformer {
             }
 
             final Element reportingTasksNode = doc.createElement("reportingTasks");
-            rootNode.appendChild(reportingTasksNode);
-            addProvenanceReportingTask(reportingTasksNode, topLevelYaml);
+            if (reportingTasksNode.getFirstChild() != null) {
+                rootNode.appendChild(reportingTasksNode);
+                addProvenanceReportingTask(reportingTasksNode, topLevelYaml);
+            }
 
             final DOMSource domSource = new DOMSource(doc);
             final OutputStream fileOut = Files.newOutputStream(Paths.get(path, "flow.xml.gz"));
@@ -343,6 +345,11 @@ public final class ConfigTransformer {
     private static <K> String getValueString(Map<K,Object> map, K key){
         Object value = map.get(key);
         return value == null ? "" : value.toString();
+    }
+
+    private static <K> String getValueString(Map<K,Object> map, K key, String theDefault){
+        Object value = map.get(key);
+        return value == null ? theDefault : value.toString();
     }
 
     private static void addSSLControllerService(final Element element, Map<String, Object> securityProperties) {
@@ -389,6 +396,11 @@ public final class ConfigTransformer {
     }
 
     private static void addProcessor(final Element parentElement, Map<String, Object> processorConfig) {
+
+        if (processorConfig.get(CLASS_KEY) == null){
+            // Only add a processor if it has a class
+            return;
+        }
 
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement("processor");
@@ -474,6 +486,11 @@ public final class ConfigTransformer {
 
     private static void addRemoteProcessGroup(final Element parentElement, Map<String, Object> remoteProcessingGroup) {
 
+        if (remoteProcessingGroup.get(URL_KEY) == null) {
+            // Only add an an RPG if it has a URL
+            return;
+        }
+
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement("remoteProcessGroup");
         parentElement.appendChild(element);
@@ -493,6 +510,12 @@ public final class ConfigTransformer {
     }
 
     private static void addRemoteGroupPort(final Element parentElement, Map<String, Object> inputPort, final String elementName) {
+
+        if (inputPort.get(ID_KEY) == null){
+            // Only add an input port if it has an ID
+            return;
+        }
+
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement(elementName);
         parentElement.appendChild(element);
@@ -511,6 +534,13 @@ public final class ConfigTransformer {
         Map<String,Object> connectionProperties = (Map<String, Object>) topLevelYaml.get(CONNECTION_PROPS_KEY);
         Map<String,Object> remoteProcessingGroup = (Map<String, Object>) topLevelYaml.get(REMOTE_PROCESSING_GROUP_KEY);
         Map<String,Object> inputPort = (Map<String, Object>) remoteProcessingGroup.get(INPUT_PORT_KEY);
+        Map<String,Object> processorConfig = (Map<String, Object>) topLevelYaml.get(PROCESSOR_CONFIG_KEY);
+
+        if (inputPort.get(ID_KEY) == null || processorConfig.get(CLASS_KEY) == null){
+            // Only add the connection if the input port and processor config are created
+            return;
+        }
+
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement("connection");
         parentElement.appendChild(element);

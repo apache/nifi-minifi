@@ -133,7 +133,7 @@ public class RunMiNiFi {
     private volatile int gracefulShutdownSeconds;
 
     private Set<ConfigurationChangeNotifier> changeNotifiers;
-    private ConfigurationChangeListener changeListener;
+    private MiNiFiConfigurationChangeListener changeListener;
 
     // Is set to true after the MiNiFi instance shuts down in preparation to be reloaded. Will be set to false after MiNiFi is successfully started again.
     private AtomicBoolean reloading = new AtomicBoolean(false);
@@ -1123,7 +1123,7 @@ public class RunMiNiFi {
                             defaultLogger.info("Swap file exists, MiNiFi failed trying to change configuration. Reverting to old configuration.");
 
                             final String confDir = getBootstrapProperties().getProperty(CONF_DIR_KEY);
-                            ((MiNiFiConfigurationChangeListener) changeListener).performTransformation(new FileInputStream(swapConfigFile), confDir);
+                            changeListener.performTransformation(new FileInputStream(swapConfigFile), confDir);
 
                             Files.copy(swapConfigFile.toPath(), Paths.get(getBootstrapProperties().getProperty(MINIFI_CONFIG_FILE_KEY)), REPLACE_EXISTING);
 
@@ -1430,7 +1430,7 @@ public class RunMiNiFi {
             }
         }
 
-        public void performTransformation(InputStream configIs, String configDestinationPath) {
+        void performTransformation(InputStream configIs, String configDestinationPath) {
             try {
                 ConfigTransformer.transformConfigFile(configIs, configDestinationPath);
             } catch (Exception e) {

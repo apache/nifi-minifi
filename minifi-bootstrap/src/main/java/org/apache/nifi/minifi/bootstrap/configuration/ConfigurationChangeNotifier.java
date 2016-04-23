@@ -52,6 +52,5 @@ public interface ConfigurationChangeNotifier extends Closeable {
     /**
      * Provide the mechanism by which listeners are notified
      */
-    void notifyListeners();
-
+    ListenerHandleResult[] notifyListeners();
 }

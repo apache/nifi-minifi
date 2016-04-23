@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.configuration;
+package org.apache.nifi.minifi.bootstrap.configuration.notifiers;
 
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
+import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -51,7 +55,6 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
     public static final String GET_TEXT = "This is a config change listener for an Apache NiFi - MiNiFi instance.\n" +
             "Use this rest server to upload a conf.yml to configure the MiNiFi instance.\n" +
             "Send a POST http request to '/' to upload the file.";
-    public static final String POST_TEXT ="Configuration received, notifying listeners.\n";
     public static final String OTHER_TEXT ="This is not a support HTTP operation. Please use GET to get more information or POST to upload a new config.yml file.\n";
 
 
@@ -91,7 +94,6 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
         jetty.setHandler(handlerCollection);
     }
 
-
     @Override
     public Set<ConfigurationChangeListener> getChangeListeners() {
         return configurationChangeListeners;
@@ -103,20 +105,26 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
     }
 
     @Override
-    public void notifyListeners() {
+    public ListenerHandleResult[] notifyListeners() {
         if (configFile == null){
             throw new IllegalStateException("Attempting to notify listeners when there is no new config file.");
         }
 
+        ListenerHandleResult[] listenerHandleResults = new ListenerHandleResult[configurationChangeListeners.size()];
+        int count = 0;
         for (final ConfigurationChangeListener listener : getChangeListeners()) {
-            try (final ByteArrayInputStream fis = new ByteArrayInputStream(configFile.getBytes());) {
+            try (final ByteArrayInputStream fis = new ByteArrayInputStream(configFile.getBytes())) {
                 listener.handleChange(fis);
-            } catch (IOException ex) {
-                throw new IllegalStateException("Unable to read the changed file " + configFile, ex);
+                listenerHandleResults[count] = new ListenerHandleResult(listener);
+            } catch (IOException | ConfigurationChangeException ex) {
+                listenerHandleResults[count] = new ListenerHandleResult(listener, ex);
             }
+            logger.info("Listener notification result:" + listenerHandleResults[count].toString());
+            count ++;
         }
 
         configFile = null;
+        return listenerHandleResults;
     }
 
     @Override
@@ -227,13 +235,25 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
                     }
                 }
                 setConfigFile(configBuilder.substring(0,configBuilder.length()-1));
-                notifyListeners();
-                writeOutput(response, POST_TEXT, 200);
+                ListenerHandleResult[] listenerHandleResults = notifyListeners();
+
+                writeOutput(response, getPostText(listenerHandleResults), 200);
             } else if(GET.equals(request.getMethod())) {
                 writeOutput(response, GET_TEXT, 200);
             } else {
                 writeOutput(response, OTHER_TEXT, 404);
             }
+        }
+
+        private String getPostText(ListenerHandleResult[] listenerHandleResults){
+            StringBuilder postResult = new StringBuilder("The result of notifying listeners:\n");
+
+            for (ListenerHandleResult result : listenerHandleResults) {
+                postResult.append(result.toString());
+                postResult.append("\n");
+            }
+
+            return postResult.toString();
         }
 
         private void writeOutput(HttpServletResponse response, String responseText, int responseCode) throws IOException {

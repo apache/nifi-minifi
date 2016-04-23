@@ -14,7 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.minifi.bootstrap.configuration;
+package org.apache.nifi.minifi.bootstrap.configuration.notifiers;
+
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
+import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static org.apache.nifi.minifi.bootstrap.RunMiNiFi.NOTIFIER_PROPERTY_PREFIX;
@@ -48,6 +55,7 @@ public class FileChangeNotifier implements Runnable, ConfigurationChangeNotifier
     private WatchService watchService;
     private long pollingSeconds;
 
+    private final static Logger logger = LoggerFactory.getLogger(FileChangeNotifier.class);
     private ScheduledExecutorService executorService;
     private final Set<ConfigurationChangeListener> configurationChangeListeners = new HashSet<>();
 
@@ -63,15 +71,23 @@ public class FileChangeNotifier implements Runnable, ConfigurationChangeNotifier
     }
 
     @Override
-    public void notifyListeners() {
+    public ListenerHandleResult[] notifyListeners() {
+        logger.info("Notifying Listeners of a change");
         final File fileToRead = configFile.toFile();
+
+        ListenerHandleResult[] listenerHandleResults = new ListenerHandleResult[configurationChangeListeners.size()];
+        int count = 0;
         for (final ConfigurationChangeListener listener : getChangeListeners()) {
             try (final FileInputStream fis = new FileInputStream(fileToRead);) {
                 listener.handleChange(fis);
-            } catch (IOException ex) {
-                throw new IllegalStateException("Unable to read the changed file " + configFile, ex);
+                listenerHandleResults[count] = new ListenerHandleResult(listener);
+            } catch (IOException | ConfigurationChangeException ex) {
+                listenerHandleResults[count] = new ListenerHandleResult(listener, ex);
             }
+            logger.info("Listener notification result:" + listenerHandleResults[count].toString());
+            count ++;
         }
+        return new ListenerHandleResult[0];
     }
 
     @Override
@@ -121,6 +137,7 @@ public class FileChangeNotifier implements Runnable, ConfigurationChangeNotifier
 
     @Override
     public void run() {
+        logger.debug("Checking for a change");
         if (targetChanged()) {
             notifyListeners();
         }

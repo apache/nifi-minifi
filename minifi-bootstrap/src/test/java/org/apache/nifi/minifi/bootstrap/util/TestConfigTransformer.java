@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -85,6 +86,14 @@ public class TestConfigTransformer {
     public void handleTransformInvalidFile() throws Exception {
 
         ConfigTransformer.transformConfigFile("./src/test/resources/config-invalid.yml", "./target/");
+
+        Assert.fail("Invalid configuration file was not detected.");
+    }
+
+    @Test(expected = ConfigurationChangeException.class)
+    public void handleTransformEmptyFile() throws Exception {
+
+        ConfigTransformer.transformConfigFile("./src/test/resources/config-empty.yml", "./target/");
 
         Assert.fail("Invalid configuration file was not detected.");
     }

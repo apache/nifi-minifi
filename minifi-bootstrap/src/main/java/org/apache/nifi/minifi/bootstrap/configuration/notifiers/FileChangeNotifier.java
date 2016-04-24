@@ -35,6 +35,8 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
@@ -71,23 +73,23 @@ public class FileChangeNotifier implements Runnable, ConfigurationChangeNotifier
     }
 
     @Override
-    public ListenerHandleResult[] notifyListeners() {
+    public Collection<ListenerHandleResult> notifyListeners() {
         logger.info("Notifying Listeners of a change");
         final File fileToRead = configFile.toFile();
 
-        ListenerHandleResult[] listenerHandleResults = new ListenerHandleResult[configurationChangeListeners.size()];
-        int count = 0;
+        Collection<ListenerHandleResult> listenerHandleResults = new ArrayList<>(configurationChangeListeners.size());
         for (final ConfigurationChangeListener listener : getChangeListeners()) {
+            ListenerHandleResult result;
             try (final FileInputStream fis = new FileInputStream(fileToRead);) {
                 listener.handleChange(fis);
-                listenerHandleResults[count] = new ListenerHandleResult(listener);
+                result = new ListenerHandleResult(listener);
             } catch (IOException | ConfigurationChangeException ex) {
-                listenerHandleResults[count] = new ListenerHandleResult(listener, ex);
+                result =  new ListenerHandleResult(listener, ex);
             }
-            logger.info("Listener notification result:" + listenerHandleResults[count].toString());
-            count ++;
+            listenerHandleResults.add(result);
+            logger.info("Listener notification result:" + result.toString());
         }
-        return new ListenerHandleResult[0];
+        return listenerHandleResults;
     }
 
     @Override

@@ -39,6 +39,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -105,22 +107,22 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
     }
 
     @Override
-    public ListenerHandleResult[] notifyListeners() {
+    public Collection<ListenerHandleResult> notifyListeners() {
         if (configFile == null){
             throw new IllegalStateException("Attempting to notify listeners when there is no new config file.");
         }
 
-        ListenerHandleResult[] listenerHandleResults = new ListenerHandleResult[configurationChangeListeners.size()];
-        int count = 0;
+        Collection<ListenerHandleResult> listenerHandleResults = new ArrayList<>(configurationChangeListeners.size());
         for (final ConfigurationChangeListener listener : getChangeListeners()) {
+            ListenerHandleResult result;
             try (final ByteArrayInputStream fis = new ByteArrayInputStream(configFile.getBytes())) {
                 listener.handleChange(fis);
-                listenerHandleResults[count] = new ListenerHandleResult(listener);
+                result = new ListenerHandleResult(listener);
             } catch (IOException | ConfigurationChangeException ex) {
-                listenerHandleResults[count] = new ListenerHandleResult(listener, ex);
+                result = new ListenerHandleResult(listener, ex);
             }
-            logger.info("Listener notification result:" + listenerHandleResults[count].toString());
-            count ++;
+            listenerHandleResults.add(result);
+            logger.info("Listener notification result:" + result.toString());
         }
 
         configFile = null;
@@ -235,9 +237,17 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
                     }
                 }
                 setConfigFile(configBuilder.substring(0,configBuilder.length()-1));
-                ListenerHandleResult[] listenerHandleResults = notifyListeners();
+                Collection<ListenerHandleResult> listenerHandleResults = notifyListeners();
 
-                writeOutput(response, getPostText(listenerHandleResults), 200);
+                int statusCode = 200;
+                for (ListenerHandleResult result: listenerHandleResults){
+                    if(!result.succeeded()){
+                        statusCode = 500;
+                        break;
+                    }
+                }
+
+                writeOutput(response, getPostText(listenerHandleResults), statusCode);
             } else if(GET.equals(request.getMethod())) {
                 writeOutput(response, GET_TEXT, 200);
             } else {
@@ -245,7 +255,7 @@ public class RestChangeNotifier implements ConfigurationChangeNotifier {
             }
         }
 
-        private String getPostText(ListenerHandleResult[] listenerHandleResults){
+        private String getPostText(Collection<ListenerHandleResult> listenerHandleResults){
             StringBuilder postResult = new StringBuilder("The result of notifying listeners:\n");
 
             for (ListenerHandleResult result : listenerHandleResults) {

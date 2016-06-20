@@ -1,0 +1,253 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the \"License\"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an \"AS IS\" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+Flow Controller:
+  name: Working with Logs
+  comment: ''
+Core Properties:
+  flow controller graceful shutdown period: 10 sec
+  flow service write delay interval: 500 ms
+  administrative yield duration: 30 sec
+  bored yield duration: 10 millis
+  max concurrent threads: 1
+FlowFile Repository:
+  partitions: 256
+  checkpoint interval: 2 mins
+  always sync: false
+  Swap:
+    threshold: 20000
+    in period: 5 sec
+    in threads: 1
+    out period: 5 sec
+    out threads: 4
+Content Repository:
+  content claim max appendable size: 10 MB
+  content claim max flow files: 100
+  always sync: false
+Provenance Repository:
+  provenance rollover time: 1 min
+Component Status Repository:
+  buffer size: 1440
+  snapshot frequency: 1 min
+Security Properties:
+  keystore:
+  keystore type:
+  key password:
+  truststore:
+  truststore type:
+  truststore password:
+  ssl protocol:
+  Sensitive Props:
+    key:
+    algorithm: PBEWITHMD5AND256BITAES-CBC-OPENSSL
+    provider: BC
+Processors:
+- name: MergeContent
+  class: org.apache.nifi.processors.standard.MergeContent
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list:
+  - failure
+  - original
+  Properties:
+    Attribute Strategy: Keep Only Common Attributes
+    Compression Level: '1'
+    Correlation Attribute Name: log.type
+    Delimiter Strategy: Text
+    Demarcator File: |2+
+
+    Footer File:
+    Header File:
+    Keep Path: 'false'
+    Max Bin Age: 5 mins
+    Maximum Group Size: 128 MB
+    Maximum Number of Entries:
+    Maximum number of Bins: '100'
+    Merge Format: Binary Concatenation
+    Merge Strategy: Bin-Packing Algorithm
+    Minimum Group Size: 64 MB
+    Minimum Number of Entries: '1'
+- name: PutHDFS
+  class: org.apache.nifi.processors.hadoop.PutHDFS
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list:
+  - success
+  Properties:
+    Block Size:
+    Compression codec: NONE
+    Conflict Resolution Strategy: fail
+    Directory: /logs/${log.type}/${now():format('yyyy/MM/dd')}
+    Hadoop Configuration Resources: conf/core-site.xml
+    IO Buffer Size:
+    Kerberos Keytab:
+    Kerberos Principal:
+    Kerberos Relogin Period: 4 hours
+    Permissions umask:
+    Remote Group:
+    Remote Owner:
+    Replication:
+- name: Tail App Log
+  class: org.apache.nifi.processors.standard.TailFile
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list: []
+  Properties:
+    File to Tail: logs/nifi-app.log
+    Initial Start Position: Current Time
+    Rolling Filename Pattern: nifi-app*
+    State File: ./conf/state/737672eb-3f71-4ef9-bc86-dbc3645833d9
+- name: Tail User Log
+  class: org.apache.nifi.processors.standard.TailFile
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list: []
+  Properties:
+    File to Tail: logs/nifi-user.log
+    Initial Start Position: Beginning of File
+    Rolling Filename Pattern: nifi-user*
+    State File: ./conf/state/e2bdd4b4-386c-47be-a72c-ce2491df31e6
+- name: UpdateAttribute
+  class: org.apache.nifi.processors.attributes.UpdateAttribute
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list: []
+  Properties:
+    Delete Attributes Expression:
+    log.type: nifi-user-logs
+- name: UpdateAttribute
+  class: org.apache.nifi.processors.attributes.UpdateAttribute
+  max concurrent tasks: 1
+  scheduling strategy: TIMER_DRIVEN
+  scheduling period: 0 sec
+  penalization period: 30 sec
+  yield period: 1 sec
+  run duration nanos: 0
+  auto-terminated relationships list: []
+  Properties:
+    Delete Attributes Expression:
+    log.type: nifi-app-logs
+Connections:
+- name: ''
+  source name: MergeContent
+  source relationship name: merged
+  destination name: PutHDFS
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: app logs
+  source relationship name:
+  destination name: UpdateAttribute
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: Tail User Log
+  source relationship name: success
+  destination name: user logs
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: UpdateAttribute
+  source relationship name: success
+  destination name: MergeContent
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: Tail App Log
+  source relationship name: success
+  destination name: app logs
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: UpdateAttribute
+  source relationship name: success
+  destination name: MergeContent
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: PutHDFS
+  source relationship name: failure
+  destination name: PutHDFS
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+- name: ''
+  source name: user logs
+  source relationship name:
+  destination name: UpdateAttribute
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class:
+Remote Processing Groups:
+- name: NiFi Flow
+  url: http://localhost:8080/nifi
+  comment: ''
+  timeout: 30 sec
+  yield period: 10 sec
+  Input Ports:
+  - id: f8c66751-0d14-43ea-ac68-1b5491c8f41b
+    name: user logs
+    comment: ''
+    max concurrent tasks: 1
+    use compression: false
+  - id: 70f8fe07-ecff-4ed4-b050-5c8e4e419eec
+    name: app logs
+    comment: ''
+    max concurrent tasks: 1
+    use compression: false
+Provenance Reporting:
+  comment:
+  scheduling strategy:
+  scheduling period:
+  destination url:
+  port name:
+  originating url: http://${hostname(true)}:8080/nifi
+  use compression: true
+  timeout: 30 secs
+  batch size: 1000

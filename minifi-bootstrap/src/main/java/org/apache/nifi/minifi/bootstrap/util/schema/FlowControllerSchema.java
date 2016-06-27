@@ -32,7 +32,7 @@ public class FlowControllerSchema extends BaseSchema {
     private String name;
     private String comment = "";
 
-    public FlowControllerSchema() {
+    private FlowControllerSchema() {
     }
 
     public FlowControllerSchema(Map map) {

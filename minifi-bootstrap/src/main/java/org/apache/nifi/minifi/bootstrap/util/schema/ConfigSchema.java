@@ -52,7 +52,7 @@ public class ConfigSchema extends BaseSchema {
 
     private ProvenanceRepositorySchema provenanceRepositorySchema;
 
-    public ConfigSchema() {
+    private ConfigSchema() {
     }
 
     public ConfigSchema(Map map) {
@@ -81,7 +81,7 @@ public class ConfigSchema extends BaseSchema {
             transformListToType(remoteProcessingGroups, "remote processing group", RemoteProcessingGroupSchema.class, REMOTE_PROCESSING_GROUPS_KEY);
         }
 
-        provenanceReportingProperties = getMapAsType(map, PROVENANCE_REPORTING_KEY, ProvenanceReportingSchema.class, TOP_LEVEL_NAME, false);
+        provenanceReportingProperties = getMapAsType(map, PROVENANCE_REPORTING_KEY, ProvenanceReportingSchema.class, TOP_LEVEL_NAME, false, false);
 
         addIssuesIfNotNull(flowControllerProperties);
         addIssuesIfNotNull(coreProperties);

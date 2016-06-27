@@ -52,7 +52,7 @@ public class ProcessorSchema extends BaseSchema {
     private List<String> autoTerminatedRelationshipsList = Collections.emptyList();
     private Map<String, Object> properties = Collections.emptyMap();
 
-    public ProcessorSchema() {
+    private ProcessorSchema() {
     }
 
     public ProcessorSchema(Map map) {

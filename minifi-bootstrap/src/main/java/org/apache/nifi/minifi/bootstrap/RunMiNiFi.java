@@ -234,7 +234,11 @@ public class RunMiNiFi {
                 runMiNiFi.env();
                 break;
             case "flowstatus":
-                runMiNiFi.statusReport(args[1]);
+                if(args.length == 2) {
+                    runMiNiFi.statusReport(args[1]);
+                } else {
+                    System.out.println("The 'flowStatus' command requires input. See the System Admin Guide 'FlowStatus Query Options' section for complete details.");
+                }
                 break;
         }
     }

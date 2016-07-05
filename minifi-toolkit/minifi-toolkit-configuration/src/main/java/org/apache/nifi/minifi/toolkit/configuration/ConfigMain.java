@@ -62,6 +62,7 @@ public class ConfigMain {
 
     public static final String TRANSFORM = "transform";
     public static final String VALIDATE = "validate";
+    public static final String NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE = "No validation errors found in template.";
 
     private final Map<String, Command> commandMap;
     private final PathInputStreamFactory pathInputStreamFactory;
@@ -102,6 +103,8 @@ public class ConfigMain {
                     configSchema.getValidationIssues().forEach(s -> System.out.println(s));
                     System.out.println();
                     return ERR_INVALID_CONFIG;
+                } else {
+                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
                 }
             } catch (IOException|SchemaLoaderException e) {
                 System.out.println("Unable to load configuration. (" + e + ")");
@@ -235,7 +238,7 @@ public class ConfigMain {
                         }
                         System.out.println();
                     } else {
-                        System.out.println("No validation errors found in template.");
+                        System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
                     }
                     SchemaSaver.saveConfigSchema(configSchema, fileOutputStream);
                 } catch (JAXBException e) {

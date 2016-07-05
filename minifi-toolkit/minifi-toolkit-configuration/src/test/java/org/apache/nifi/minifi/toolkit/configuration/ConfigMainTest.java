@@ -130,7 +130,7 @@ public class ConfigMainTest {
     @Test
     public void testTransformErrorTransformingTemplate() throws FileNotFoundException {
         when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
-                ConfigMainTest.class.getClassLoader().getResourceAsStream("Working_with_Logs.xml"));
+                ConfigMainTest.class.getClassLoader().getResourceAsStream("CsvToJson.xml"));
         when(pathOutputStreamFactory.create(testOutput)).thenAnswer(invocation -> new OutputStream() {
             @Override
             public void write(int b) throws IOException {
@@ -143,14 +143,34 @@ public class ConfigMainTest {
     @Test
     public void testTransformSuccess() throws FileNotFoundException {
         when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
-                ConfigMainTest.class.getClassLoader().getResourceAsStream("Working_with_Logs.xml"));
+                ConfigMainTest.class.getClassLoader().getResourceAsStream("CsvToJson.xml"));
         when(pathOutputStreamFactory.create(testOutput)).thenAnswer(invocation -> new ByteArrayOutputStream());
         assertEquals(ConfigMain.SUCCESS, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
     }
 
     @Test
-    public void testTransformRoundTripWorkingWithLogs() throws IOException, JAXBException, SchemaLoaderException {
-        transformRoundTrip("Working_with_Logs");
+    public void testTransformRoundTripCsvToJson() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("CsvToJson");
+    }
+
+    @Test
+    public void testTransformRoundTripDecompression() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("DecompressionCircularFlow");
+    }
+
+    @Test
+    public void testTransformRoundTripInvokeHttp() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("InvokeHttpMiNiFiTemplateTest");
+    }
+
+    @Test
+    public void testTransformRoundTripReplaceText() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("ReplaceTextExpressionLanguageCSVReformatting");
+    }
+
+    @Test
+    public void testTransformRoundTripStressTestFramework() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("StressTestFramework");
     }
 
     private void transformRoundTrip(String name) throws JAXBException, IOException, SchemaLoaderException {

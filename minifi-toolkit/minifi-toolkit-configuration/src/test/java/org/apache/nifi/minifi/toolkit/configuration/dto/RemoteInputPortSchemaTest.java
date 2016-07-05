@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
+import org.apache.nifi.minifi.commons.schema.RemoteInputPortSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupPortDTO;
 import org.junit.Before;
@@ -35,7 +36,7 @@ public class RemoteInputPortSchemaTest extends BaseSchemaTester<RemoteInputPortS
     private boolean testUseCompression = false;
 
     public RemoteInputPortSchemaTest() {
-        super(RemoteInputPortSchema::new, RemoteInputPortSchema::new);
+        super(new RemoteInputPortSchemaFunction(), RemoteInputPortSchema::new);
     }
 
     @Before

@@ -17,12 +17,8 @@
 
 package org.apache.nifi.minifi.commons.schema;
 
-import org.apache.nifi.controller.Template;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.web.api.dto.FlowSnippetDTO;
-import org.apache.nifi.web.api.dto.TemplateDTO;
 
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,45 +59,6 @@ public class ConfigSchema extends BaseSchema {
     private ProvenanceReportingSchema provenanceReportingProperties;
 
     private ProvenanceRepositorySchema provenanceRepositorySchema;
-
-    public ConfigSchema(Template template) {
-        flowControllerProperties = new FlowControllerSchema(template.getDetails());
-        coreProperties = new CorePropertiesSchema();
-        flowfileRepositoryProperties = new FlowFileRepositorySchema();
-        contentRepositoryProperties = new ContentRepositorySchema();
-        componentStatusRepositoryProperties = new ComponentStatusRepositorySchema();
-        securityProperties = new SecurityPropertiesSchema();
-
-        TemplateDTO templateDTO = template.getDetails();
-        FlowSnippetDTO templateDTOSnippet = templateDTO.getSnippet();
-
-        this.processors = nullToEmpty(templateDTOSnippet.getProcessors()).stream()
-                .map(ProcessorSchema::new)
-                .sorted(Comparator.comparing(ProcessorSchema::getName))
-                .collect(Collectors.toList());
-
-        this.connections = nullToEmpty(templateDTOSnippet.getConnections()).stream()
-                .map(ConnectionSchema::new)
-                .sorted(Comparator.comparing(ConnectionSchema::getName))
-                .collect(Collectors.toList());
-
-        this.remoteProcessingGroups = nullToEmpty(templateDTOSnippet.getRemoteProcessGroups()).stream()
-                .map(RemoteProcessingGroupSchema::new)
-                .sorted(Comparator.comparing(RemoteProcessingGroupSchema::getName))
-                .collect(Collectors.toList());
-
-        provenanceReportingProperties = null;
-        provenanceRepositorySchema = new ProvenanceRepositorySchema();
-
-        addIssuesIfNotNull(flowControllerProperties);
-        addIssuesIfNotNull(securityProperties);
-        checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processors.stream().map(ProcessorSchema::getName).collect(Collectors.toList()));
-        this.processors.forEach(this::addIssuesIfNotNull);
-        checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES, connections.stream().map(ConnectionSchema::getName).collect(Collectors.toList()));
-        this.connections.forEach(this::addIssuesIfNotNull);
-        checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES, remoteProcessingGroups.stream().map(RemoteProcessingGroupSchema::getName).collect(Collectors.toList()));
-        this.remoteProcessingGroups.forEach(this::addIssuesIfNotNull);
-    }
 
     public ConfigSchema(Map map) {
         flowControllerProperties = getMapAsType(map, FLOW_CONTROLLER_PROPS_KEY, FlowControllerSchema.class, TOP_LEVEL_NAME, true);

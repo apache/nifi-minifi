@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
 import org.apache.nifi.connectable.ConnectableType;
+import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
@@ -42,7 +43,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     private String testQueuePrioritizerClass = "testQueuePrioritizerClass";
 
     public ConnectionSchemaTest() {
-        super(ConnectionSchema::new, ConnectionSchema::new);
+        super(new ConnectionSchemaFunction(), ConnectionSchema::new);
     }
 
     @Before
@@ -91,7 +92,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Test
     public void testDtoMultipleSourceRelationships() {
         dto.setSelectedRelationships(Arrays.asList("one", "two").stream().collect(Collectors.toSet()));
-        assertEquals(1, new ConnectionSchema(dto).validationIssues.size());
+        assertEquals(1, dtoSchemaFunction.apply(dto).validationIssues.size());
     }
 
     @Test
@@ -144,7 +145,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Test
     public void testFunnelValidationMessage() {
         dto.getSource().setType(ConnectableType.FUNNEL.name());
-        assertEquals(1, new ConnectionSchema(dto).validationIssues.size());
+        assertEquals(1, dtoSchemaFunction.apply(dto).validationIssues.size());
     }
 
     @Override

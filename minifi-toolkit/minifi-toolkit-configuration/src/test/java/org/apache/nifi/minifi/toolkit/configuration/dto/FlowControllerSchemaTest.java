@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
+import org.apache.nifi.minifi.commons.schema.FlowControllerSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.junit.Before;
@@ -31,7 +32,7 @@ public class FlowControllerSchemaTest extends BaseSchemaTester<FlowControllerSch
     private String testComment = "testComment";
 
     public FlowControllerSchemaTest() {
-        super(FlowControllerSchema::new, FlowControllerSchema::new);
+        super(new FlowControllerSchemaFunction(), FlowControllerSchema::new);
     }
 
     @Before

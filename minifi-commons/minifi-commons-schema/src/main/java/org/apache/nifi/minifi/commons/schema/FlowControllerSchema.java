@@ -18,10 +18,8 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.web.api.dto.TemplateDTO;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMMENT_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.FLOW_CONTROLLER_PROPS_KEY;
@@ -33,11 +31,6 @@ import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NA
 public class FlowControllerSchema extends BaseSchema {
     private String name;
     private String comment;
-
-    public FlowControllerSchema(TemplateDTO templateDTO) {
-        this.name = getAndValidateNotNull(templateDTO::getName, NAME_KEY, FLOW_CONTROLLER_PROPS_KEY);
-        this.comment = Optional.ofNullable(templateDTO.getDescription()).orElse("");
-    }
 
     public FlowControllerSchema(Map map) {
         name = getRequiredKeyAsType(map, NAME_KEY, String.class, FLOW_CONTROLLER_PROPS_KEY);

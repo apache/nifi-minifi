@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
+import org.apache.nifi.minifi.commons.schema.RemoteInputPortSchema;
+import org.apache.nifi.minifi.commons.schema.RemoteProcessingGroupSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupContentsDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
@@ -42,7 +44,7 @@ public class RemoteProcessingGroupSchemaTest extends BaseSchemaTester<RemoteProc
     private String testYieldPeriod = "22 s";
 
     public RemoteProcessingGroupSchemaTest() {
-        super(RemoteProcessingGroupSchema::new, RemoteProcessingGroupSchema::new);
+        super(new RemoteProcessingGroupSchemaFunction(new RemoteInputPortSchemaFunction()), RemoteProcessingGroupSchema::new);
         remoteInputPortSchemaTest = new RemoteInputPortSchemaTest();
     }
 

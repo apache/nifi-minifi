@@ -32,14 +32,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-framework-core</artifactId>
-            <exclusions>
-                <!-- excluding for IDE purposes, this jar doesn't wind up in the lib/bootstrap folder so isn't safe to use in bootstrap project -->
-                <exclusion>
-                    <groupId>org.apache.nifi</groupId>
-                    <artifactId>nifi-properties</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>nifi-api</artifactId>
         </dependency>
     </dependencies>
 </project>

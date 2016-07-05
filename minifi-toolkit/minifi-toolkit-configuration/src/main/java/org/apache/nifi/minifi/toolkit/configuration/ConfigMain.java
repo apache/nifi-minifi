@@ -17,12 +17,12 @@
 
 package org.apache.nifi.minifi.toolkit.configuration;
 
-import org.apache.nifi.controller.Template;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaSaver;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
+import org.apache.nifi.minifi.toolkit.configuration.dto.ConfigSchemaFunction;
 import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
@@ -191,7 +191,7 @@ public class ConfigMain {
         try {
             TemplateDTO templateDTO = (TemplateDTO) JAXBContext.newInstance(TemplateDTO.class).createUnmarshaller().unmarshal(source);
             enrichTemplateDTO(templateDTO);
-            ConfigSchema configSchema = new ConfigSchema(new Template(templateDTO));
+            ConfigSchema configSchema = new ConfigSchemaFunction().apply(templateDTO);
             return configSchema;
         } finally {
             source.close();

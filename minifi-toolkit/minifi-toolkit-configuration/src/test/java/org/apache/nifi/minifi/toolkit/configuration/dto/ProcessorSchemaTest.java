@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
+import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.web.api.dto.ProcessorConfigDTO;
@@ -46,7 +47,7 @@ public class ProcessorSchemaTest extends BaseSchemaTester<ProcessorSchema, Proce
     private ProcessorConfigDTO config;
 
     public ProcessorSchemaTest() {
-        super(ProcessorSchema::new, ProcessorSchema::new);
+        super(new ProcessorSchemaFunction(), ProcessorSchema::new);
     }
 
     @Before

@@ -17,14 +17,9 @@
 
 package org.apache.nifi.minifi.commons.schema;
 
-import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.web.api.dto.ConnectionDTO;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CONNECTIONS_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NAME_KEY;
@@ -54,36 +49,6 @@ public class ConnectionSchema extends BaseSchema {
     private String maxWorkQueueDataSize = DEFAULT_MAX_QUEUE_DATA_SIZE;
     private String flowfileExpiration = DEFAULT_FLOWFILE_EXPIRATION;
     private String queuePrioritizerClass;
-
-    public ConnectionSchema(ConnectionDTO connectionDTO) {
-        this.name = getAndValidateNotNull(connectionDTO::getName, NAME_KEY, CONNECTIONS_KEY);
-        this.sourceName = getAndValidateNotNull(() -> connectionDTO.getSource().getName(), SOURCE_NAME_KEY, CONNECTIONS_KEY);
-        this.sourceRelationshipName = getAndValidateNotNull(() -> {
-            Set<String> selectedRelationships = connectionDTO.getSelectedRelationships();
-            if (selectedRelationships == null || selectedRelationships.size() == 0) {
-                return null;
-            }
-            return selectedRelationships.iterator().next();
-        }, SOURCE_RELATIONSHIP_NAME_KEY, CONNECTIONS_KEY);
-        if (sourceRelationshipName != null && connectionDTO.getSelectedRelationships().size() > 1) {
-            addValidationIssue(SOURCE_RELATIONSHIP_NAME_KEY, CONNECTIONS_KEY, " has more than one selected relationship");
-        }
-        this.destinationName = getAndValidateNotNull(() -> connectionDTO.getDestination().getName(), DESTINATION_NAME_KEY, CONNECTIONS_KEY);
-
-        this.maxWorkQueueSize = Optional.ofNullable(connectionDTO.getBackPressureObjectThreshold()).orElse(DEFAULT_MAX_WORK_QUEUE_SIZE);
-        this.maxWorkQueueDataSize = Optional.ofNullable(connectionDTO.getBackPressureDataSizeThreshold()).orElse(DEFAULT_MAX_QUEUE_DATA_SIZE);
-        this.flowfileExpiration = Optional.ofNullable(connectionDTO.getFlowFileExpiration()).orElse(DEFAULT_FLOWFILE_EXPIRATION);
-        this.queuePrioritizerClass = getAndValidate(() -> {
-            List<String> prioritizers = connectionDTO.getPrioritizers();
-            if (prioritizers == null || prioritizers.size() == 0) {
-                return "";
-            }
-            return prioritizers.get(0);
-        }, s -> "".equals(s) || connectionDTO.getPrioritizers().size() == 1, QUEUE_PRIORITIZER_CLASS_KEY, CONNECTIONS_KEY, " has more than one prioritizer");
-        if (ConnectableType.FUNNEL.name().equals(connectionDTO.getSource().getType())) {
-            validationIssues.add("Connection " + name + " has type " + ConnectableType.FUNNEL.name() + " which is not supported by MiNiFi");
-        }
-    }
 
     public ConnectionSchema(Map map) {
         name = getRequiredKeyAsType(map, NAME_KEY, String.class, CONNECTIONS_KEY);

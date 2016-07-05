@@ -18,15 +18,9 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.web.api.dto.RemoteProcessGroupContentsDTO;
-import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
-import org.apache.nifi.web.api.dto.RemoteProcessGroupPortDTO;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMMENT_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.INPUT_PORTS_KEY;
@@ -52,26 +46,6 @@ public class RemoteProcessingGroupSchema extends BaseSchema {
     private String comment = DEFAULT_COMMENT;
     private String timeout = DEFAULT_TIMEOUT;
     private String yieldPeriod = DEFAULT_YIELD_PERIOD;
-
-    public RemoteProcessingGroupSchema(RemoteProcessGroupDTO remoteProcessGroupDTO) {
-        this.name = getAndValidateNotNull(remoteProcessGroupDTO::getName, NAME_KEY, REMOTE_PROCESSING_GROUPS_KEY);
-        this.url = getAndValidateNotNull(remoteProcessGroupDTO::getTargetUri, URL_KEY, REMOTE_PROCESSING_GROUPS_KEY);
-        RemoteProcessGroupContentsDTO remoteProcessGroupContentsDTO = getAndValidateNotNull(remoteProcessGroupDTO::getContents, INPUT_PORTS_KEY, REMOTE_PROCESSING_GROUPS_KEY);
-        if (remoteProcessGroupContentsDTO != null) {
-            this.inputPorts = getAndValidateNotNull(() -> {
-                Set<RemoteProcessGroupPortDTO> inputPorts = remoteProcessGroupContentsDTO.getInputPorts();
-                if (inputPorts == null) {
-                    return null;
-                }
-                return remoteProcessGroupContentsDTO.getInputPorts().stream()
-                        .map(RemoteInputPortSchema::new).collect(Collectors.toList());
-            }, INPUT_PORTS_KEY, REMOTE_PROCESSING_GROUPS_KEY);
-        }
-
-        this.comment = Optional.ofNullable(remoteProcessGroupDTO.getComments()).orElse(DEFAULT_COMMENT);
-        this.timeout = Optional.ofNullable(remoteProcessGroupDTO.getCommunicationsTimeout()).orElse(DEFAULT_TIMEOUT);
-        this.yieldPeriod = Optional.ofNullable(remoteProcessGroupDTO.getYieldDuration()).orElse(DEFAULT_YIELD_PERIOD);
-    }
 
     public RemoteProcessingGroupSchema(Map map) {
         name = getRequiredKeyAsType(map, NAME_KEY, String.class, REMOTE_PROCESSING_GROUPS_KEY);

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.commons.schema;
+package org.apache.nifi.minifi.toolkit.configuration.dto;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.junit.Test;
@@ -26,8 +26,8 @@ import java.util.function.Function;
 import static org.junit.Assert.assertEquals;
 
 public abstract class BaseSchemaTester<Schema extends BaseSchema, DTO> {
-    private final Function<DTO, Schema> dtoSchemaFunction;
-    private final Function<Map, Schema> mapSchemaFunction;
+    protected final Function<DTO, Schema> dtoSchemaFunction;
+    protected final Function<Map, Schema> mapSchemaFunction;
     protected DTO dto;
     protected Map<String, Object> map;
 

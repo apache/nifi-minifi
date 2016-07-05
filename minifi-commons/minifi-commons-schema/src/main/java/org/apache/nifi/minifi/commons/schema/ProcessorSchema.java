@@ -19,17 +19,11 @@ package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.scheduling.SchedulingStrategy;
-import org.apache.nifi.web.api.dto.ProcessorConfigDTO;
-import org.apache.nifi.web.api.dto.ProcessorDTO;
-import org.apache.nifi.web.api.dto.RelationshipDTO;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.MAX_CONCURRENT_TASKS_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NAME_KEY;
@@ -65,29 +59,6 @@ public class ProcessorSchema extends BaseSchema {
     private Number runDurationNanos = DEFAULT_RUN_DURATION_NANOS;
     private List<String> autoTerminatedRelationshipsList = DEFAULT_AUTO_TERMINATED_RELATIONSHIPS_LIST;
     private Map<String, Object> properties = DEFAULT_PROPERTIES;
-
-    public ProcessorSchema(ProcessorDTO processorDTO) {
-        ProcessorConfigDTO processorDTOConfig = processorDTO.getConfig();
-
-        this.name = getAndValidateNotNull(processorDTO::getName, NAME_KEY, PROCESSORS_KEY);
-        this.processorClass = getAndValidateNotNull(processorDTO::getType, CLASS_KEY, PROCESSORS_KEY);
-        this.schedulingStrategy = getAndValidateNotNull(processorDTOConfig::getSchedulingStrategy, SCHEDULING_STRATEGY_KEY, PROCESSORS_KEY);
-        if (schedulingStrategy != null && !isSchedulingStrategy(schedulingStrategy)) {
-            addValidationIssue(SCHEDULING_STRATEGY_KEY, PROCESSORS_KEY, IT_IS_NOT_A_VALID_SCHEDULING_STRATEGY);
-        }
-        this.schedulingPeriod = getAndValidateNotNull(processorDTOConfig::getSchedulingPeriod, SCHEDULING_PERIOD_KEY, PROCESSORS_KEY);
-
-        this.maxConcurrentTasks = Optional.ofNullable(processorDTOConfig.getConcurrentlySchedulableTaskCount()).orElse(DEFAULT_MAX_CONCURRENT_TASKS);
-        this.penalizationPeriod = Optional.ofNullable(processorDTOConfig.getPenaltyDuration()).orElse(DEFAULT_PENALIZATION_PERIOD);
-        this.yieldPeriod = Optional.ofNullable(processorDTOConfig.getYieldDuration()).orElse(DEFAULT_YIELD_DURATION);
-        Long runDurationMillis = processorDTOConfig.getRunDurationMillis();
-        this.runDurationNanos = runDurationMillis != null ? runDurationMillis * 1000 : DEFAULT_RUN_DURATION_NANOS;
-        this.autoTerminatedRelationshipsList = nullToEmpty(processorDTO.getRelationships()).stream()
-                .filter(RelationshipDTO::isAutoTerminate)
-                .map(RelationshipDTO::getName)
-                .collect(Collectors.toList());
-        this.properties = new HashMap<>(nullToEmpty(processorDTOConfig.getProperties()));
-    }
 
     public ProcessorSchema(Map map) {
         name = getRequiredKeyAsType(map, NAME_KEY, String.class, PROCESSORS_KEY);

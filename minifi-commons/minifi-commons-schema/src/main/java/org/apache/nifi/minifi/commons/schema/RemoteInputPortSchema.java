@@ -18,10 +18,8 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.web.api.dto.RemoteProcessGroupPortDTO;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMMENT_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.ID_KEY;
@@ -44,15 +42,6 @@ public class RemoteInputPortSchema extends BaseSchema {
     private String comment = DEFAULT_COMMENT;
     private Number maxConcurrentTasks = DEFAULT_MAX_CONCURRENT_TASKS;
     private Boolean useCompression = DEFAULT_USE_COMPRESSION;
-
-    public RemoteInputPortSchema(RemoteProcessGroupPortDTO remoteProcessGroupPortDTO) {
-        this.id = getAndValidateNotNull(remoteProcessGroupPortDTO::getId, ID_KEY, INPUT_PORTS_KEY);
-        this.name = getAndValidateNotNull(remoteProcessGroupPortDTO::getName, NAME_KEY, INPUT_PORTS_KEY);
-
-        this.comment = Optional.ofNullable(remoteProcessGroupPortDTO.getComments()).orElse(DEFAULT_COMMENT);
-        this.maxConcurrentTasks = Optional.ofNullable(remoteProcessGroupPortDTO.getConcurrentlySchedulableTaskCount()).orElse(DEFAULT_MAX_CONCURRENT_TASKS);
-        this.useCompression = Optional.ofNullable(remoteProcessGroupPortDTO.getUseCompression()).orElse(DEFAULT_USE_COMPRESSION);
-    }
 
     public RemoteInputPortSchema(Map map) {
         id = getRequiredKeyAsType(map, ID_KEY, String.class, INPUT_PORTS_KEY);

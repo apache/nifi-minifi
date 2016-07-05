@@ -27,7 +27,6 @@ import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
 import org.apache.nifi.web.api.dto.NiFiComponentDTO;
-import org.apache.nifi.web.api.dto.PortDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupContentsDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
@@ -151,9 +150,6 @@ public class ConfigMain {
                 connectableNameMap.putAll(processorDTOs.stream().collect(Collectors.toMap(NiFiComponentDTO::getId, ProcessorDTO::getName)));
             }
 
-            addPortDTOs(connectableNameMap, flowSnippetDTO.getInputPorts());
-            addPortDTOs(connectableNameMap, flowSnippetDTO.getOutputPorts());
-
             if (remoteProcessGroups != null) {
                 for (RemoteProcessGroupDTO remoteProcessGroupDTO : remoteProcessGroups) {
                     RemoteProcessGroupContentsDTO contents = remoteProcessGroupDTO.getContents();
@@ -207,12 +203,8 @@ public class ConfigMain {
         }
     }
 
-    private static void addPortDTOs(Map<String, String> connectableNameMap, Collection<PortDTO> ports) {
-        addConnectables(connectableNameMap, ports, NiFiComponentDTO::getId, PortDTO::getName);
-    }
-
     private static void addRemoteProcessGroupPortDTOs(Map<String, String> connectableNameMap, Collection<RemoteProcessGroupPortDTO> ports) {
-        addConnectables(connectableNameMap, ports, RemoteProcessGroupPortDTO::getId, RemoteProcessGroupPortDTO::getName);
+        addConnectables(connectableNameMap, ports, RemoteProcessGroupPortDTO::getId, RemoteProcessGroupPortDTO::getId);
     }
 
     private static <T> void addConnectables(Map<String, String> connectableNameMap, Collection<T> hasIdAndNames, Function<T, String> idGetter, Function<T, String> nameGetter) {

@@ -161,6 +161,14 @@ Processors:
     Delete Attributes Expression:
     log.type: nifi-app-logs
 Connections:
+- name: 70f8fe07-ecff-4ed4-b050-5c8e4e419eec//UpdateAttribute
+  source name: 70f8fe07-ecff-4ed4-b050-5c8e4e419eec
+  source relationship name:
+  destination name: UpdateAttribute
+  max work queue size: 0
+  max work queue data size: 0 MB
+  flowfile expiration: 0 sec
+  queue prioritizer class: ''
 - name: MergeContent/merged/PutHDFS
   source name: MergeContent
   source relationship name: merged
@@ -177,18 +185,18 @@ Connections:
   max work queue data size: 0 MB
   flowfile expiration: 0 sec
   queue prioritizer class: ''
-- name: Tail App Log/success/app logs
+- name: Tail App Log/success/70f8fe07-ecff-4ed4-b050-5c8e4e419eec
   source name: Tail App Log
   source relationship name: success
-  destination name: app logs
+  destination name: 70f8fe07-ecff-4ed4-b050-5c8e4e419eec
   max work queue size: 0
   max work queue data size: 0 MB
   flowfile expiration: 0 sec
   queue prioritizer class: ''
-- name: Tail User Log/success/user logs
+- name: Tail User Log/success/f8c66751-0d14-43ea-ac68-1b5491c8f41b
   source name: Tail User Log
   source relationship name: success
-  destination name: user logs
+  destination name: f8c66751-0d14-43ea-ac68-1b5491c8f41b
   max work queue size: 0
   max work queue data size: 0 MB
   flowfile expiration: 0 sec
@@ -209,16 +217,8 @@ Connections:
   max work queue data size: 0 MB
   flowfile expiration: 0 sec
   queue prioritizer class: ''
-- name: app logs//UpdateAttribute
-  source name: app logs
-  source relationship name:
-  destination name: UpdateAttribute
-  max work queue size: 0
-  max work queue data size: 0 MB
-  flowfile expiration: 0 sec
-  queue prioritizer class: ''
-- name: user logs//UpdateAttribute
-  source name: user logs
+- name: f8c66751-0d14-43ea-ac68-1b5491c8f41b//UpdateAttribute
+  source name: f8c66751-0d14-43ea-ac68-1b5491c8f41b
   source relationship name:
   destination name: UpdateAttribute
   max work queue size: 0

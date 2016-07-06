@@ -44,12 +44,6 @@ Perspectives of the role of MiNiFi should be from the perspective of the agent a
 
 ## Getting Started
 
-- Read through the [quickstart guide for development](http://nifi.apache.org/quickstart.html).
-  It will include information on getting a local copy of the source, give pointers on issue
-  tracking, and provide some warnings about common problems with development environments.
-- For a more comprehensive guide to development and information about contributing to the project
-  read through the [NiFi Developer's Guide](http://nifi.apache.org/developer-guide.html).
-
 To build:
 - Execute `mvn clean install` or for parallel build execute `mvn -T 2.0C clean install`. On a
   modest development laptop that is a couple of years old, the latter build takes a bit under ten

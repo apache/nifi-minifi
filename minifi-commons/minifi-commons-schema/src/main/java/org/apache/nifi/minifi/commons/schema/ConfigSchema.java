@@ -49,7 +49,7 @@ public class ConfigSchema extends BaseSchema {
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES = "Found the following duplicate remote processing group names: ";
     public static final int CONFIG_VERSION = 2;
     public static String TOP_LEVEL_NAME = "top level";
-    public static final String VERSION = "YAML Version";
+    public static final String VERSION = "MiNiFi Config Version";
 
     private FlowControllerSchema flowControllerProperties;
     private CorePropertiesSchema coreProperties;

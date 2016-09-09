@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MiNiFi Config Version: 2
 Flow Controller:
   name: ReplaceTextExpressionLanguageCSVReformatting
   comment: ''
@@ -120,6 +121,7 @@ Processors:
       2009,8-8-2008,10aug2008
 Connections:
 - name: Generate Empty File/success/Set CSV Content
+  id: ca71a875-0ff5-41ef-bbe0-da5de0ca1e08
   source name: Generate Empty File
   source relationship name: success
   destination name: Set CSV Content
@@ -128,6 +130,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Reformat Date Column/success/No-Op Termination
+  id: 7fe8e5c6-6d9b-4b8f-af89-5d543bcc0199
   source name: Reformat Date Column
   source relationship name: success
   destination name: No-Op Termination
@@ -136,6 +139,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Set CSV Content/success/Reformat Date Column
+  id: 1b327d4e-918f-43bc-97cf-043efed7ffbc
   source name: Set CSV Content
   source relationship name: success
   destination name: Reformat Date Column

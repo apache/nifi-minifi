@@ -18,12 +18,14 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
+import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMPONENT_STATUS_REPO_KEY;
@@ -43,9 +45,11 @@ import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SE
  */
 public class ConfigSchema extends BaseSchema {
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES = "Found the following duplicate processor names: ";
-    public static final String FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES = "Found the following duplicate connection names: ";
+    public static final String FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS = "Found the following duplicate connection ids: ";
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES = "Found the following duplicate remote processing group names: ";
+    public static final int CONFIG_VERSION = 2;
     public static String TOP_LEVEL_NAME = "top level";
+    public static final String VERSION = "MiNiFi Config Version";
 
     private FlowControllerSchema flowControllerProperties;
     private CorePropertiesSchema coreProperties;
@@ -70,20 +74,12 @@ public class ConfigSchema extends BaseSchema {
         componentStatusRepositoryProperties = getMapAsType(map, COMPONENT_STATUS_REPO_KEY, ComponentStatusRepositorySchema.class, TOP_LEVEL_NAME, false);
         securityProperties = getMapAsType(map, SECURITY_PROPS_KEY, SecurityPropertiesSchema.class, TOP_LEVEL_NAME, false);
 
-        processors = getOptionalKeyAsType(map, PROCESSORS_KEY, List.class, TOP_LEVEL_NAME, null);
-        if (processors != null) {
-            transformListToType(processors, "processor", ProcessorSchema.class, PROCESSORS_KEY);
-        }
+        processors = convertListToType(getOptionalKeyAsType(map, PROCESSORS_KEY, List.class, TOP_LEVEL_NAME, null), "processor", ProcessorSchema.class, PROCESSORS_KEY);
 
-        connections = getOptionalKeyAsType(map, CONNECTIONS_KEY, List.class, TOP_LEVEL_NAME, null);
-        if (connections != null) {
-            transformListToType(connections, "connection", ConnectionSchema.class, CONNECTIONS_KEY);
-        }
+        connections = getConnectionSchemas(getOptionalKeyAsType(map, CONNECTIONS_KEY, List.class, TOP_LEVEL_NAME, null));
 
-        remoteProcessingGroups = getOptionalKeyAsType(map, REMOTE_PROCESSING_GROUPS_KEY, List.class, TOP_LEVEL_NAME, null);
-        if (remoteProcessingGroups != null) {
-            transformListToType(remoteProcessingGroups, "remote processing group", RemoteProcessingGroupSchema.class, REMOTE_PROCESSING_GROUPS_KEY);
-        }
+        remoteProcessingGroups = convertListToType(getOptionalKeyAsType(map, REMOTE_PROCESSING_GROUPS_KEY, List.class, TOP_LEVEL_NAME, null), "remote processing group",
+                RemoteProcessingGroupSchema.class, REMOTE_PROCESSING_GROUPS_KEY);
 
         provenanceReportingProperties = getMapAsType(map, PROVENANCE_REPORTING_KEY, ProvenanceReportingSchema.class, TOP_LEVEL_NAME, false, false);
 
@@ -97,50 +93,60 @@ public class ConfigSchema extends BaseSchema {
         addIssuesIfNotNull(provenanceRepositorySchema);
 
         if (processors != null) {
-            checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processors.stream().map(ProcessorSchema::getName).collect(Collectors.toList()));
+            checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processors.stream().map(ProcessorSchema::getName).collect(Collectors.toList()));
             for (ProcessorSchema processorSchema : processors) {
                 addIssuesIfNotNull(processorSchema);
             }
         }
 
         if (connections != null) {
-            checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES, connections.stream().map(ConnectionSchema::getName).collect(Collectors.toList()));
+            List<String> idList = connections.stream().map(ConnectionSchema::getId).filter(s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toList());
+            checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS, idList);
             for (ConnectionSchema connectionSchema : connections) {
                 addIssuesIfNotNull(connectionSchema);
             }
         }
 
         if (remoteProcessingGroups != null) {
-            checkForDuplicateNames(FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES, remoteProcessingGroups.stream().map(RemoteProcessingGroupSchema::getName).collect(Collectors.toList()));
+            checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES,
+                    remoteProcessingGroups.stream().map(RemoteProcessingGroupSchema::getName).collect(Collectors.toList()));
             for (RemoteProcessingGroupSchema remoteProcessingGroupSchema : remoteProcessingGroups) {
                 addIssuesIfNotNull(remoteProcessingGroupSchema);
             }
         }
     }
 
-    private void checkForDuplicateNames(String errorMessagePrefix, List<String> names) {
-        if (names != null) {
-            Set<String> seenNames = new HashSet<>();
-            Set<String> duplicateNames = new TreeSet<>();
-            for (String name : names) {
-                if (!seenNames.add(name)) {
-                    duplicateNames.add(name);
+    protected List<ConnectionSchema> getConnectionSchemas(List<Map> connectionMaps) {
+        if (connectionMaps != null) {
+            return convertListToType(connectionMaps, "connection", ConnectionSchema.class, CONNECTIONS_KEY);
+        }
+        return null;
+    }
+
+    protected static void checkForDuplicates(Consumer<String> duplicateMessageConsumer, String errorMessagePrefix, List<String> strings) {
+        if (strings != null) {
+            Set<String> seen = new HashSet<>();
+            Set<String> duplicates = new TreeSet<>();
+            for (String string : strings) {
+                if (!seen.add(string)) {
+                    duplicates.add(String.valueOf(string));
                 }
             }
-            if (duplicateNames.size() > 0) {
+            if (duplicates.size() > 0) {
                 StringBuilder errorMessage = new StringBuilder(errorMessagePrefix);
-                for (String duplicateName : duplicateNames) {
+                for (String duplicateName : duplicates) {
                     errorMessage.append(duplicateName);
                     errorMessage.append(", ");
                 }
                 errorMessage.setLength(errorMessage.length() - 2);
-                validationIssues.add(errorMessage.toString());
+                duplicateMessageConsumer.accept(errorMessage.toString());
             }
         }
     }
 
     public Map<String, Object> toMap() {
         Map<String, Object> result = mapSupplier.get();
+        result.put(VERSION, getVersion());
         result.put(FLOW_CONTROLLER_PROPS_KEY, flowControllerProperties.toMap());
         putIfNotNull(result, CORE_PROPS_KEY, coreProperties);
         putIfNotNull(result, FLOWFILE_REPO_KEY, flowfileRepositoryProperties);
@@ -197,5 +203,9 @@ public class ConfigSchema extends BaseSchema {
 
     public ProvenanceRepositorySchema getProvenanceRepositorySchema() {
         return provenanceRepositorySchema;
+    }
+
+    public int getVersion() {
+        return CONFIG_VERSION;
     }
 }

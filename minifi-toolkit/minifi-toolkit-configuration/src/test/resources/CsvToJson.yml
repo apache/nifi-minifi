@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MiNiFi Config Version: 2
 Flow Controller:
   name: CsvToJsonWorking
   comment: ''
@@ -144,6 +145,7 @@ Processors:
     Delete Attributes Expression:
 Connections:
 - name: ExtractText/matched/ReplaceText2
+  id: 56ef3e2e-ee35-4598-9fbe-ae86050960b0
   source name: ExtractText
   source relationship name: matched
   destination name: ReplaceText2
@@ -152,6 +154,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GenerateFlowFile/success/ReplaceText
+  id: 0cc34e0a-0ae9-44ba-838f-792ed393a301
   source name: GenerateFlowFile
   source relationship name: success
   destination name: ReplaceText
@@ -160,6 +163,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: ReplaceText/success/ExtractText
+  id: e32e19cb-6c4c-4c6c-a8db-408447ba2ca2
   source name: ReplaceText
   source relationship name: success
   destination name: ExtractText
@@ -168,6 +172,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: ReplaceText2/success/UpdateAttribute
+  id: b061c170-19da-4e84-9709-327303fef579
   source name: ReplaceText2
   source relationship name: success
   destination name: UpdateAttribute

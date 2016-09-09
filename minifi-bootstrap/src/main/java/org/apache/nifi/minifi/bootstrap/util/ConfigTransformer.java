@@ -373,6 +373,7 @@ public final class ConfigTransformer {
             final Document doc = parentElement.getOwnerDocument();
             final Element element = doc.createElement("processor");
             parentElement.appendChild(element);
+
             addTextElement(element, "id", processorConfig.getName());
             addTextElement(element, "name", processorConfig.getName());
 
@@ -508,7 +509,8 @@ public final class ConfigTransformer {
             final Document doc = parentElement.getOwnerDocument();
             final Element element = doc.createElement("connection");
             parentElement.appendChild(element);
-            addTextElement(element, "id", connectionProperties.getName());
+
+            addTextElement(element, "id", connectionProperties.getId());
             addTextElement(element, "name", connectionProperties.getName());
 
             final Element bendPointsElement = doc.createElement("bendPoints");

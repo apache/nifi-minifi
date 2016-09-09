@@ -22,6 +22,7 @@ import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import java.util.Map;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CONNECTIONS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.ID_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NAME_KEY;
 
 /**
@@ -40,6 +41,7 @@ public class ConnectionSchema extends BaseSchema {
     public static final String DEFAULT_MAX_QUEUE_DATA_SIZE = "0 MB";
     public static final String DEFAULT_FLOWFILE_EXPIRATION = "0 sec";
 
+    private String id;
     private String name;
     private String sourceName;
     private String sourceRelationshipName;
@@ -56,16 +58,22 @@ public class ConnectionSchema extends BaseSchema {
         sourceRelationshipName = getRequiredKeyAsType(map, SOURCE_RELATIONSHIP_NAME_KEY, String.class, CONNECTIONS_KEY);
         destinationName = getRequiredKeyAsType(map, DESTINATION_NAME_KEY, String.class, CONNECTIONS_KEY);
 
+        id = getId(map);
         maxWorkQueueSize = getOptionalKeyAsType(map, MAX_WORK_QUEUE_SIZE_KEY, Number.class, CONNECTIONS_KEY, DEFAULT_MAX_WORK_QUEUE_SIZE);
         maxWorkQueueDataSize = getOptionalKeyAsType(map, MAX_WORK_QUEUE_DATA_SIZE_KEY, String.class, CONNECTIONS_KEY, DEFAULT_MAX_QUEUE_DATA_SIZE);
         flowfileExpiration = getOptionalKeyAsType(map, FLOWFILE_EXPIRATION__KEY, String.class, CONNECTIONS_KEY, DEFAULT_FLOWFILE_EXPIRATION);
         queuePrioritizerClass = getOptionalKeyAsType(map, QUEUE_PRIORITIZER_CLASS_KEY, String.class, CONNECTIONS_KEY, "");
     }
 
+    protected String getId(Map map) {
+        return getRequiredKeyAsType(map, ID_KEY, String.class, CONNECTIONS_KEY);
+    }
+
     @Override
     public Map<String, Object> toMap() {
         Map<String, Object> result = mapSupplier.get();
         result.put(NAME_KEY, name);
+        result.put(ID_KEY, id);
         result.put(SOURCE_NAME_KEY, sourceName);
         result.put(SOURCE_RELATIONSHIP_NAME_KEY, sourceRelationshipName);
         result.put(DESTINATION_NAME_KEY, destinationName);
@@ -75,6 +83,14 @@ public class ConnectionSchema extends BaseSchema {
         result.put(FLOWFILE_EXPIRATION__KEY, flowfileExpiration);
         result.put(QUEUE_PRIORITIZER_CLASS_KEY, queuePrioritizerClass);
         return result;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    protected void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

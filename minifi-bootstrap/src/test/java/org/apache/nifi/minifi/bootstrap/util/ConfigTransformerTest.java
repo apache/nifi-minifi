@@ -20,7 +20,6 @@ package org.apache.nifi.minifi.bootstrap.util;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
-import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +51,7 @@ public class ConfigTransformerTest {
 
     @Test
     public void testNullQueuePrioritizerNotWritten() throws ConfigurationChangeException, XPathExpressionException {
-        ConfigTransformer.addConnection(config, new ConnectionSchema(Collections.emptyMap()), new ConfigSchema(Collections.emptyMap()), new HashMap<>());
+        ConfigTransformer.addConnection(config, new ConnectionSchema(Collections.emptyMap()), new ConfigSchema(Collections.emptyMap()));
         XPath xpath = xPathFactory.newXPath();
         String expression = "connection/queuePrioritizerClass";
         assertNull(xpath.evaluate(expression, config, XPathConstants.NODE));
@@ -63,7 +62,7 @@ public class ConfigTransformerTest {
         Map<String, Object> map = new HashMap<>();
         map.put(ConnectionSchema.QUEUE_PRIORITIZER_CLASS_KEY, "");
 
-        ConfigTransformer.addConnection(config, new ConnectionSchema(map), new ConfigSchema(Collections.emptyMap()), new HashMap<>());
+        ConfigTransformer.addConnection(config, new ConnectionSchema(map), new ConfigSchema(Collections.emptyMap()));
         XPath xpath = xPathFactory.newXPath();
         String expression = "connection/queuePrioritizerClass";
         assertNull(xpath.evaluate(expression, config, XPathConstants.NODE));
@@ -74,46 +73,9 @@ public class ConfigTransformerTest {
         Map<String, Object> map = new HashMap<>();
         map.put(ConnectionSchema.QUEUE_PRIORITIZER_CLASS_KEY, FirstInFirstOutPrioritizer.class.getCanonicalName());
 
-        ConfigTransformer.addConnection(config, new ConnectionSchema(map), new ConfigSchema(Collections.emptyMap()), new HashMap<>());
+        ConfigTransformer.addConnection(config, new ConnectionSchema(map), new ConfigSchema(Collections.emptyMap()));
         XPath xpath = xPathFactory.newXPath();
         String expression = "connection/queuePrioritizerClass/text()";
         assertEquals(FirstInFirstOutPrioritizer.class.getCanonicalName(), xpath.evaluate(expression, config, XPathConstants.STRING));
-    }
-
-    @Test
-    public void testGetConnectionNameNotNullOrEmpty() {
-        Map<String, String> map = new HashMap<>();
-        String testName = "testName";
-        map.put(CommonPropertyKeys.NAME_KEY, testName);
-        assertEquals(testName, ConfigTransformer.getConnectionName(new ConnectionSchema(map)));
-    }
-
-    @Test
-    public void testGetConnectionNameNull() {
-        assertEquals(ConfigTransformer.EMPTY_NAME, ConfigTransformer.getConnectionName(new ConnectionSchema(new HashMap<>())));
-    }
-
-    @Test
-    public void testGetConnectionNameEmpty() {
-        Map<String, String> map = new HashMap<>();
-        map.put(CommonPropertyKeys.NAME_KEY, "");
-        assertEquals(ConfigTransformer.EMPTY_NAME, ConfigTransformer.getConnectionName(new ConnectionSchema(map)));
-    }
-
-    @Test
-    public void testGetUniqueIdEmptySet() {
-        String testId = "testId";
-        assertEquals(testId + "___", ConfigTransformer.getUniqueId(new HashMap<>(), testId + "/ $"));
-    }
-
-    @Test
-    public void testGetUniqueIdConflicts() {
-        Map<String, Integer> ids = new HashMap<>();
-        assertEquals("test_id", ConfigTransformer.getUniqueId(ids, "test/id"));
-        assertEquals("test_id_2", ConfigTransformer.getUniqueId(ids, "test$id"));
-        assertEquals("test_id_3", ConfigTransformer.getUniqueId(ids, "test$id"));
-        assertEquals("test_id_4", ConfigTransformer.getUniqueId(ids, "test$id"));
-        assertEquals("test_id_5", ConfigTransformer.getUniqueId(ids, "test$id"));
-        assertEquals("test_id_2_2", ConfigTransformer.getUniqueId(ids, "test_id_2"));
     }
 }

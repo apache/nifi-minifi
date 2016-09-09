@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+YAML Version: 2
 Flow Controller:
   name: StressTestFramework
   comment: ''
@@ -96,6 +97,7 @@ Processors:
     property 2: value 2 ${nextInt()}
 Connections:
 - name: GenerateFlowFile/success/UpdateAttribute
+  id: 0e6873cc-cb9d-4e98-92aa-a3319f4c1b02
   source name: GenerateFlowFile
   source relationship name: success
   destination name: UpdateAttribute
@@ -104,6 +106,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: UpdateAttribute/success/RouteOnAttribute
+  id: 4c53556e-eb46-458c-9e98-8329a8cf70fd
   source name: UpdateAttribute
   source relationship name: success
   destination name: RouteOnAttribute

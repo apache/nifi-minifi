@@ -18,6 +18,7 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
+import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -44,14 +45,20 @@ public class ConfigSchemaTest {
 
     @Test
     public void testConnectionDuplicateValidationNegativeCase() {
-        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithNames("testName1", "testName2")));
-        assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES);
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithKeyValues(CommonPropertyKeys.ID_KEY, "testId1", "testId2")));
+        assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS);
+    }
+
+    @Test
+    public void testConnectionNameDuplicateNoValidationErrors() {
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithKeyValues(CommonPropertyKeys.NAME_KEY, "testName1", "testName1")));
+        assertMessageDoesNotExist(configSchema, ConfigSchemaV1.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES);
     }
 
     @Test
     public void testConnectionDuplicateValidationPositiveCase() {
-        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithNames("testName1", "testName1")));
-        assertMessageDoesExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES);
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithKeyValues(CommonPropertyKeys.ID_KEY, "testId1", "testId1")));
+        assertMessageDoesExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS);
     }
 
     @Test
@@ -67,21 +74,25 @@ public class ConfigSchemaTest {
     }
 
     private List<Map<String, Object>> getListWithNames(String... names) {
-        List<Map<String, Object>> result = new ArrayList<>(names.length);
-        for (String name : names) {
-            result.add(Collections.singletonMap(CommonPropertyKeys.NAME_KEY, name));
+        return getListWithKeyValues(CommonPropertyKeys.NAME_KEY, names);
+    }
+
+    public static List<Map<String, Object>> getListWithKeyValues(String key, String... values) {
+        List<Map<String, Object>> result = new ArrayList<>(values.length);
+        for (String value : values) {
+            result.add(Collections.singletonMap(key, value));
         }
         return result;
     }
 
-    private void assertMessageDoesNotExist(ConfigSchema configSchema, String message) {
-        for (String validationIssue : configSchema.validationIssues) {
+    public static void assertMessageDoesNotExist(ConfigSchema configSchema, String message) {
+        for (String validationIssue : configSchema.getValidationIssues()) {
             assertFalse("Did not expect to find message: " + validationIssue, validationIssue.startsWith(message));
         }
     }
 
-    private void assertMessageDoesExist(ConfigSchema configSchema, String message) {
-        for (String validationIssue : configSchema.validationIssues) {
+    public static void assertMessageDoesExist(ConfigSchema configSchema, String message) {
+        for (String validationIssue : configSchema.getValidationIssues()) {
             if (validationIssue.startsWith(message)) {
                 return;
             }

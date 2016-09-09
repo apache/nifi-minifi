@@ -33,14 +33,15 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 
 public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, ConnectionDTO> {
-    private String testName = "testName";
-    private String testSourceName = "testSourceName";
-    private String testSelectedRelationship = "testSelectedRelationship";
-    private String testDestinationName = "testDestinationName";
-    private long testMaxWorkQueueSize = 101L;
-    private String testMaxWorkQueueDataSize = "120 GB";
-    private String testFlowfileExpiration = "1 day";
-    private String testQueuePrioritizerClass = "testQueuePrioritizerClass";
+    private final String testId = "testId";
+    private final String testName = "testName";
+    private final String testSourceName = "testSourceName";
+    private final String testSelectedRelationship = "testSelectedRelationship";
+    private final String testDestinationName = "testDestinationName";
+    private final long testMaxWorkQueueSize = 101L;
+    private final String testMaxWorkQueueDataSize = "120 GB";
+    private final String testFlowfileExpiration = "1 day";
+    private final String testQueuePrioritizerClass = "testQueuePrioritizerClass";
 
     public ConnectionSchemaTest() {
         super(new ConnectionSchemaFunction(), ConnectionSchema::new);
@@ -55,6 +56,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
         destination.setName(testDestinationName);
 
         dto = new ConnectionDTO();
+        dto.setId(testId);
         dto.setName(testName);
         dto.setSource(source);
         dto.setSelectedRelationships(Arrays.asList(testSelectedRelationship).stream().collect(Collectors.toSet()));
@@ -65,6 +67,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
         dto.setPrioritizers(Arrays.asList(testQueuePrioritizerClass));
 
         map = new HashMap<>();
+        map.put(CommonPropertyKeys.ID_KEY, testId);
         map.put(CommonPropertyKeys.NAME_KEY, testName);
         map.put(ConnectionSchema.SOURCE_NAME_KEY, testSourceName);
         map.put(ConnectionSchema.SOURCE_RELATIONSHIP_NAME_KEY, testSelectedRelationship);
@@ -83,6 +86,13 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     }
 
     @Test
+    public void testNoId() {
+        dto.setId(null);
+        map.remove(CommonPropertyKeys.ID_KEY);
+        assertDtoAndMapConstructorAreSame(1);
+    }
+
+    @Test
     public void testNoSourceName() {
         dto.setSource(new ConnectableDTO());
         map.remove(ConnectionSchema.SOURCE_NAME_KEY);
@@ -92,7 +102,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Test
     public void testDtoMultipleSourceRelationships() {
         dto.setSelectedRelationships(Arrays.asList("one", "two").stream().collect(Collectors.toSet()));
-        assertEquals(1, dtoSchemaFunction.apply(dto).validationIssues.size());
+        assertEquals(1, dtoSchemaFunction.apply(dto).getValidationIssues().size());
     }
 
     @Test
@@ -145,12 +155,13 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Test
     public void testFunnelValidationMessage() {
         dto.getSource().setType(ConnectableType.FUNNEL.name());
-        assertEquals(1, dtoSchemaFunction.apply(dto).validationIssues.size());
+        assertEquals(1, dtoSchemaFunction.apply(dto).getValidationIssues().size());
     }
 
     @Override
     public void assertSchemaEquals(ConnectionSchema one, ConnectionSchema two) {
         assertEquals(one.getName(), two.getName());
+        assertEquals(one.getId(), two.getId());
         assertEquals(one.getSourceName(), two.getSourceName());
         assertEquals(one.getSourceRelationshipName(), two.getSourceRelationshipName());
         assertEquals(one.getDestinationName(), two.getDestinationName());

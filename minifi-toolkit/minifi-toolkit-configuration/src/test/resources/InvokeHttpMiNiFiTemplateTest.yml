@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+YAML Version: 2
 Flow Controller:
   name: InvokeHttpMiNiFiTemplateTest2
   comment: ''
@@ -161,6 +162,7 @@ Processors:
     q: nifi
 Connections:
 - name: Route On Status Code/200/LogAttribute
+  id: 3039718a-bb40-4811-9b74-ecbe926daae8
   source name: Route On Status Code
   source relationship name: '200'
   destination name: LogAttribute
@@ -169,6 +171,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Route On Status Code/200/b23a4621-cf19-42e6-967c-ffd3716e6a24
+  id: 4a7bdaf1-eba0-4317-92f2-93cef6240c28
   source name: Route On Status Code
   source relationship name: '200'
   destination name: b23a4621-cf19-42e6-967c-ffd3716e6a24
@@ -177,6 +180,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Route On Status Code/unmatched/LogAttribute2
+  id: 9f948a25-afb4-4598-9a01-cfb7e3aa5920
   source name: Route On Status Code
   source relationship name: unmatched
   destination name: LogAttribute2
@@ -185,6 +189,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Route On Status Code/unmatched/b23a4621-cf19-42e6-967c-ffd3716e6a24
+  id: 7299c143-46f6-4a94-aa24-ec47db16f73e
   source name: Route On Status Code
   source relationship name: unmatched
   destination name: b23a4621-cf19-42e6-967c-ffd3716e6a24
@@ -193,6 +198,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Search Google/Failure/Route On Status Code
+  id: 451b153a-8a4e-4bed-99ab-5159e499bcf1
   source name: Search Google
   source relationship name: Failure
   destination name: Route On Status Code
@@ -201,6 +207,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Search Google/No Retry/Route On Status Code
+  id: ddbc1711-8cda-4418-b6ee-895763ef1a97
   source name: Search Google
   source relationship name: No Retry
   destination name: Route On Status Code
@@ -209,6 +216,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Search Google/Original/Route On Status Code
+  id: b97044aa-3401-49df-86ab-bc440cd8f6c8
   source name: Search Google
   source relationship name: Original
   destination name: Route On Status Code
@@ -217,6 +225,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Search Google/Response/Route On Status Code
+  id: c6a06d31-51fb-488f-bcde-495102f8c93f
   source name: Search Google
   source relationship name: Response
   destination name: Route On Status Code
@@ -225,6 +234,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Search Google/Retry/Route On Status Code
+  id: 3172a4b6-c35b-4d2f-a7c1-68eb16cc1b37
   source name: Search Google
   source relationship name: Retry
   destination name: Route On Status Code
@@ -233,6 +243,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Source/success/q=nifi
+  id: 2ef71cd8-eb24-4653-8526-34ab84e79328
   source name: Source
   source relationship name: success
   destination name: q=nifi
@@ -241,6 +252,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: q=nifi/success/Search Google
+  id: ee5ee5bf-a552-43cf-9514-c14d40350bff
   source name: q=nifi
   source relationship name: success
   destination name: Search Google

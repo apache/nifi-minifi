@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+YAML Version: 2
 Flow Controller:
   name: DecompressionCircularFlow2
   comment: ''
@@ -179,6 +180,7 @@ Processors:
     Update Filename:
 Connections:
 - name: Compressed?/gzip/Uncompress GZIP
+  id: 5de215d5-9f7e-414b-98aa-2edaa0514d99
   source name: Compressed?
   source relationship name: gzip
   destination name: Uncompress GZIP
@@ -187,6 +189,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Compressed?/unmatched/LogAttribute
+  id: a72e8727-9a5c-44dd-a4f5-cf94b3422c1a
   source name: Compressed?
   source relationship name: unmatched
   destination name: LogAttribute
@@ -195,6 +198,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent/failure/GZIP CompressContent
+  id: 4f98618d-2443-465d-9856-bbf7c1ee49e1
   source name: GZIP CompressContent
   source relationship name: failure
   destination name: GZIP CompressContent
@@ -203,6 +207,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent/success/GZIP CompressContent2
+  id: 5cdc2e79-ec8c-4f7d-a3ab-d284c80e3afe
   source name: GZIP CompressContent
   source relationship name: success
   destination name: GZIP CompressContent2
@@ -211,6 +216,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent2/failure/GZIP CompressContent2
+  id: f6ff74cf-a30b-4916-86b3-e269266666ff
   source name: GZIP CompressContent2
   source relationship name: failure
   destination name: GZIP CompressContent2
@@ -219,6 +225,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent2/success/GZIP CompressContent3
+  id: ac822b4f-7d0d-462a-8ac0-03e9032ebefb
   source name: GZIP CompressContent2
   source relationship name: success
   destination name: GZIP CompressContent3
@@ -227,6 +234,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent3/failure/GZIP CompressContent3
+  id: bdfdb568-682d-4d3b-b87b-99199c15505c
   source name: GZIP CompressContent3
   source relationship name: failure
   destination name: GZIP CompressContent3
@@ -235,6 +243,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent3/success/GZIP CompressContent4
+  id: 645ec08f-3d6d-4255-b4d9-0f6d61708974
   source name: GZIP CompressContent3
   source relationship name: success
   destination name: GZIP CompressContent4
@@ -243,6 +252,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent4/failure/GZIP CompressContent4
+  id: 42bd2967-d74a-4e22-9b16-9e0a51024658
   source name: GZIP CompressContent4
   source relationship name: failure
   destination name: GZIP CompressContent4
@@ -251,6 +261,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GZIP CompressContent4/success/Uncompress GZIP
+  id: 6eeca4aa-04c7-4774-aee5-bb6340c3a7b6
   source name: GZIP CompressContent4
   source relationship name: success
   destination name: Uncompress GZIP
@@ -259,6 +270,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: GenerateFlowFile/success/GZIP CompressContent
+  id: 299f7d1f-e216-43a3-ad0b-7a6d6680dacc
   source name: GenerateFlowFile
   source relationship name: success
   destination name: GZIP CompressContent
@@ -267,6 +279,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: IdentifyMimeType/success/Compressed?
+  id: ded9891b-4433-4f56-9fc0-1a240146835f
   source name: IdentifyMimeType
   source relationship name: success
   destination name: Compressed?
@@ -275,6 +288,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Uncompress GZIP/failure/Uncompress GZIP
+  id: 37f15fde-d463-41b1-9fe7-28c72cd6c871
   source name: Uncompress GZIP
   source relationship name: failure
   destination name: Uncompress GZIP
@@ -283,6 +297,7 @@ Connections:
   flowfile expiration: 5 sec
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 - name: Uncompress GZIP/success/IdentifyMimeType
+  id: bb250fb4-0b15-418f-83f9-83a43bd3de9c
   source name: Uncompress GZIP
   source relationship name: success
   destination name: IdentifyMimeType

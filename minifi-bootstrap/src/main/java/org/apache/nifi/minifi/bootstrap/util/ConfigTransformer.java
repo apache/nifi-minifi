@@ -74,7 +74,6 @@ import java.util.zip.GZIPOutputStream;
 public final class ConfigTransformer {
     // Underlying version of NIFI will be using
     public static final String NIFI_VERSION = "0.6.1";
-    public static final String EMPTY_NAME = "empty_name";
 
     // Final util classes should have private constructor
     private ConfigTransformer() {
@@ -358,9 +357,8 @@ public final class ConfigTransformer {
 
             List<ConnectionSchema> connections = configSchema.getConnections();
             if (connections != null) {
-                Map<String, Integer> ids = new HashMap<>();
                 for (ConnectionSchema connectionConfig : connections) {
-                    addConnection(element, connectionConfig, configSchema, ids);
+                    addConnection(element, connectionConfig, configSchema);
                 }
             }
         } catch (ConfigurationChangeException e) {
@@ -375,6 +373,7 @@ public final class ConfigTransformer {
             final Document doc = parentElement.getOwnerDocument();
             final Element element = doc.createElement("processor");
             parentElement.appendChild(element);
+
             addTextElement(element, "id", processorConfig.getName());
             addTextElement(element, "name", processorConfig.getName());
 
@@ -505,15 +504,14 @@ public final class ConfigTransformer {
         }
     }
 
-    protected static void addConnection(final Element parentElement, ConnectionSchema connectionProperties, ConfigSchema configSchema, Map<String, Integer> ids) throws ConfigurationChangeException {
+    protected static void addConnection(final Element parentElement, ConnectionSchema connectionProperties, ConfigSchema configSchema) throws ConfigurationChangeException {
         try {
             final Document doc = parentElement.getOwnerDocument();
             final Element element = doc.createElement("connection");
             parentElement.appendChild(element);
 
-            String connectionName = getConnectionName(connectionProperties);
-            addTextElement(element, "id", getUniqueId(ids, connectionName));
-            addTextElement(element, "name", connectionName);
+            addTextElement(element, "id", connectionProperties.getId());
+            addTextElement(element, "name", connectionProperties.getName());
 
             final Element bendPointsElement = doc.createElement("bendPoints");
             element.appendChild(bendPointsElement);
@@ -548,37 +546,6 @@ public final class ConfigTransformer {
         } catch (Exception e) {
             throw new ConfigurationChangeException("Failed to parse the config YAML while trying to add the connection from the Processor to the input port of the Remote Process Group", e);
         }
-    }
-
-    protected static String getConnectionName(ConnectionSchema connectionProperties) {
-        String connectionName = connectionProperties.getName();
-        if (StringUtil.isNullOrEmpty(connectionName)) {
-            return EMPTY_NAME;
-        }
-        return connectionName;
-    }
-
-    /**
-     * Will replace all characters not in [A-Za-z0-9_] with _
-     *
-     * This has potential for collisions so it will also append numbers as necessary to prevent that
-     *
-     * @param ids id map of already incremented numbers
-     * @param name the name
-     * @return a unique filesystem-friendly id
-     */
-    protected static String getUniqueId(Map<String, Integer> ids, String name) {
-        String baseId = name.replaceAll("[^A-Za-z0-9_]", "_");
-        String id = baseId;
-        Integer idNum = ids.get(baseId);
-        while (ids.containsKey(id)) {
-            id = baseId + "_" + idNum++;
-        }
-        if (id != baseId) {
-            ids.put(baseId, idNum);
-        }
-        ids.put(id, 2);
-        return id;
     }
 
     // Locate the associated parent group for a given input port by its id

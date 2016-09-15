@@ -19,6 +19,7 @@ package org.apache.nifi.minifi.commons.schema.serialization;
 
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
+import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
@@ -69,16 +70,28 @@ public class SchemaLoaderTest {
         assertEquals(1, connections.size());
         assertNull(connections.get(0).getId());
         List<String> validationIssues = configSchema.getValidationIssues();
-        assertEquals(1, validationIssues.size());
-        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(0));
+        assertEquals(6, validationIssues.size());
+        assertEquals(ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_IDS + "null", validationIssues.get(0));
+        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.PROCESSORS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(1));
+        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.PROCESSORS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(2));
+        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(3));
+        assertEquals(BaseSchema.getIssueText(ConnectionSchema.SOURCE_ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(4));
+        assertEquals(BaseSchema.getIssueText(ConnectionSchema.DESTINATION_ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(5));
     }
 
     private void validateMinimalConfigVersion1Parse(ConfigSchema configSchema) {
         assertTrue(configSchema instanceof ConfigSchemaV1);
+
         List<ConnectionSchema> connections = configSchema.getConnections();
         assertNotNull(connections);
         assertEquals(1, connections.size());
         assertNotNull(connections.get(0).getId());
+
+        List<ProcessorSchema> processors = configSchema.getProcessors();
+        assertNotNull(processors);
+        assertEquals(2, processors.size());
+        processors.forEach(p -> assertNotNull(p.getId()));
+
         assertEquals(0, configSchema.getValidationIssues().size());
     }
 }

@@ -374,7 +374,7 @@ public final class ConfigTransformer {
             final Element element = doc.createElement("processor");
             parentElement.appendChild(element);
 
-            addTextElement(element, "id", processorConfig.getName());
+            addTextElement(element, "id", processorConfig.getId());
             addTextElement(element, "name", processorConfig.getName());
 
             addPosition(element);
@@ -519,11 +519,11 @@ public final class ConfigTransformer {
             addTextElement(element, "labelIndex", "1");
             addTextElement(element, "zIndex", "0");
 
-            addTextElement(element, "sourceId", connectionProperties.getSourceName());
+            addTextElement(element, "sourceId", connectionProperties.getSourceId());
             addTextElement(element, "sourceGroupId", "Root-Group");
             addTextElement(element, "sourceType", "PROCESSOR");
 
-            final String connectionDestinationId = connectionProperties.getDestinationName();
+            final String connectionDestinationId = connectionProperties.getDestinationId();
             addTextElement(element, "destinationId", connectionDestinationId);
             final Optional<String> parentGroup = findInputPortParentGroup(connectionDestinationId, configSchema);
             if (parentGroup.isPresent()) {

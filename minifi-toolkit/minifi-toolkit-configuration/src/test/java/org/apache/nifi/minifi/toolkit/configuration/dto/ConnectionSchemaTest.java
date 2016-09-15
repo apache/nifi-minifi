@@ -35,9 +35,9 @@ import static org.junit.Assert.assertEquals;
 public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, ConnectionDTO> {
     private final String testId = "testId";
     private final String testName = "testName";
-    private final String testSourceName = "testSourceName";
+    private final String testSourceId = "testSourceId";
     private final String testSelectedRelationship = "testSelectedRelationship";
-    private final String testDestinationName = "testDestinationName";
+    private final String testDestinationId = "testDestinationId";
     private final long testMaxWorkQueueSize = 101L;
     private final String testMaxWorkQueueDataSize = "120 GB";
     private final String testFlowfileExpiration = "1 day";
@@ -50,10 +50,10 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Before
     public void setup() {
         ConnectableDTO source = new ConnectableDTO();
-        source.setName(testSourceName);
+        source.setId(testSourceId);
 
         ConnectableDTO destination = new ConnectableDTO();
-        destination.setName(testDestinationName);
+        destination.setId(testDestinationId);
 
         dto = new ConnectionDTO();
         dto.setId(testId);
@@ -69,9 +69,9 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
         map = new HashMap<>();
         map.put(CommonPropertyKeys.ID_KEY, testId);
         map.put(CommonPropertyKeys.NAME_KEY, testName);
-        map.put(ConnectionSchema.SOURCE_NAME_KEY, testSourceName);
+        map.put(ConnectionSchema.SOURCE_ID_KEY, testSourceId);
         map.put(ConnectionSchema.SOURCE_RELATIONSHIP_NAME_KEY, testSelectedRelationship);
-        map.put(ConnectionSchema.DESTINATION_NAME_KEY, testDestinationName);
+        map.put(ConnectionSchema.DESTINATION_ID_KEY, testDestinationId);
         map.put(ConnectionSchema.MAX_WORK_QUEUE_SIZE_KEY, testMaxWorkQueueSize);
         map.put(ConnectionSchema.MAX_WORK_QUEUE_DATA_SIZE_KEY, testMaxWorkQueueDataSize);
         map.put(ConnectionSchema.FLOWFILE_EXPIRATION__KEY, testFlowfileExpiration);
@@ -93,9 +93,9 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     }
 
     @Test
-    public void testNoSourceName() {
+    public void testNoSourceId() {
         dto.setSource(new ConnectableDTO());
-        map.remove(ConnectionSchema.SOURCE_NAME_KEY);
+        map.remove(ConnectionSchema.SOURCE_ID_KEY);
         assertDtoAndMapConstructorAreSame(1);
     }
 
@@ -118,7 +118,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     @Test
     public void testNoDestinationName() {
         dto.setDestination(new ConnectableDTO());
-        map.remove(ConnectionSchema.DESTINATION_NAME_KEY);
+        map.remove(ConnectionSchema.DESTINATION_ID_KEY);
         assertDtoAndMapConstructorAreSame(1);
     }
 
@@ -162,9 +162,9 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     public void assertSchemaEquals(ConnectionSchema one, ConnectionSchema two) {
         assertEquals(one.getName(), two.getName());
         assertEquals(one.getId(), two.getId());
-        assertEquals(one.getSourceName(), two.getSourceName());
+        assertEquals(one.getSourceId(), two.getSourceId());
         assertEquals(one.getSourceRelationshipName(), two.getSourceRelationshipName());
-        assertEquals(one.getDestinationName(), two.getDestinationName());
+        assertEquals(one.getDestinationId(), two.getDestinationId());
         assertEquals(one.getMaxWorkQueueSize(), two.getMaxWorkQueueSize());
         assertEquals(one.getMaxWorkQueueDataSize(), two.getMaxWorkQueueDataSize());
         assertEquals(one.getFlowfileExpiration(), two.getFlowfileExpiration());

@@ -32,17 +32,57 @@ import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.ID
  *
  */
 public class ConnectionSchemaV1 extends ConnectionSchema {
+    public static final String SOURCE_NAME_KEY = "source name";
+    public static final String DESTINATION_NAME_KEY = "destination name";
+
+    private String sourceName;
+    private String destinationName;
+
     public ConnectionSchemaV1(Map map) {
         super(map);
+        if (StringUtil.isNullOrEmpty(getSourceId())) {
+            sourceName = getRequiredKeyAsType(map, SOURCE_NAME_KEY, String.class, CONNECTIONS_KEY);
+        }
+        if (StringUtil.isNullOrEmpty(getDestinationId())) {
+            destinationName = getRequiredKeyAsType(map, DESTINATION_NAME_KEY, String.class, CONNECTIONS_KEY);
+        }
     }
 
     @Override
-    protected String getId(Map map) {
-        return getOptionalKeyAsType(map, ID_KEY, String.class, CONNECTIONS_KEY, "");
+    public void setSourceId(String sourceId) {
+        super.setSourceId(sourceId);
+    }
+
+    @Override
+    public void setDestinationId(String destinationId) {
+        super.setDestinationId(destinationId);
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
+    }
+
+    @Override
+    public String getId(Map map, String wrapperName) {
+        return getOptionalKeyAsType(map, ID_KEY, String.class, wrapperName, "");
     }
 
     public void setId(String id) {
         super.setId(id);
+    }
+
+    @Override
+    protected String getSourceId(Map map) {
+        return getOptionalKeyAsType(map, DESTINATION_ID_KEY, String.class, CONNECTIONS_KEY, "");
+    }
+
+    @Override
+    protected String getDestinationId(Map map) {
+        return getOptionalKeyAsType(map, SOURCE_ID_KEY, String.class, CONNECTIONS_KEY, "");
     }
 
     @Override

@@ -33,14 +33,14 @@ public class ConfigSchemaTest {
 
     @Test
     public void testProcessorDuplicateValidationNegativeCase() {
-        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithNames("testName1", "testName2")));
-        assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES);
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithKeyValues(CommonPropertyKeys.ID_KEY, "testId1", "testId2")));
+        assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_IDS);
     }
 
     @Test
     public void testProcessorDuplicateValidationPositiveCase() {
-        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithNames("testName1", "testName1")));
-        assertMessageDoesExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES);
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithKeyValues(CommonPropertyKeys.ID_KEY, "testId1", "testId1")));
+        assertMessageDoesExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_IDS);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ConfigSchemaTest {
         assertMessageDoesExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES);
     }
 
-    private List<Map<String, Object>> getListWithNames(String... names) {
+    public static List<Map<String, Object>> getListWithNames(String... names) {
         return getListWithKeyValues(CommonPropertyKeys.NAME_KEY, names);
     }
 

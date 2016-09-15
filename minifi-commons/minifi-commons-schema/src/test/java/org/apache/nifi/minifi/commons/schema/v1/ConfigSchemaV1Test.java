@@ -30,6 +30,7 @@ import java.util.Map;
 import static org.apache.nifi.minifi.commons.schema.ConfigSchemaTest.assertMessageDoesExist;
 import static org.apache.nifi.minifi.commons.schema.ConfigSchemaTest.assertMessageDoesNotExist;
 import static org.apache.nifi.minifi.commons.schema.ConfigSchemaTest.getListWithKeyValues;
+import static org.apache.nifi.minifi.commons.schema.ConfigSchemaTest.getListWithNames;
 import static org.junit.Assert.assertEquals;
 
 public class ConfigSchemaV1Test {
@@ -37,6 +38,18 @@ public class ConfigSchemaV1Test {
     public void testGetUniqueIdEmptySet() {
         String testId = "testId";
         assertEquals(testId + "___", ConfigSchemaV1.getUniqueId(new HashMap<>(), testId + "/ $"));
+    }
+
+    @Test
+    public void testProcessorNameDuplicateValidationNegativeCase() {
+        ConfigSchemaV1 configSchema = new ConfigSchemaV1(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithNames("testName1", "testName2")));
+        assertMessageDoesNotExist(configSchema, ConfigSchemaV1.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES);
+    }
+
+    @Test
+    public void testProcessorNameDuplicateValidationPositiveCase() {
+        ConfigSchemaV1 configSchema = new ConfigSchemaV1(Collections.singletonMap(CommonPropertyKeys.PROCESSORS_KEY, getListWithNames("testName1", "testName1")));
+        assertMessageDoesExist(configSchema, ConfigSchemaV1.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES);
     }
 
     @Test

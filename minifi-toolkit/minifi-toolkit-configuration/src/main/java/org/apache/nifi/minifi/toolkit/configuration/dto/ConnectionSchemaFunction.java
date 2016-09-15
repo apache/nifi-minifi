@@ -38,12 +38,12 @@ public class ConnectionSchemaFunction implements Function<ConnectionDTO, Connect
         Map<String, Object> map = new HashMap<>();
         map.put(ID_KEY, connectionDTO.getId());
         map.put(NAME_KEY, connectionDTO.getName());
-        map.put(ConnectionSchema.SOURCE_NAME_KEY, connectionDTO.getSource().getName());
+        map.put(ConnectionSchema.SOURCE_ID_KEY, connectionDTO.getSource().getId());
         Set<String> selectedRelationships = BaseSchema.nullToEmpty(connectionDTO.getSelectedRelationships());
         if (selectedRelationships.size() > 0) {
             map.put(ConnectionSchema.SOURCE_RELATIONSHIP_NAME_KEY, selectedRelationships.iterator().next());
         }
-        map.put(ConnectionSchema.DESTINATION_NAME_KEY, connectionDTO.getDestination().getName());
+        map.put(ConnectionSchema.DESTINATION_ID_KEY, connectionDTO.getDestination().getId());
 
         map.put(ConnectionSchema.MAX_WORK_QUEUE_SIZE_KEY, connectionDTO.getBackPressureObjectThreshold());
         map.put(ConnectionSchema.MAX_WORK_QUEUE_DATA_SIZE_KEY, connectionDTO.getBackPressureDataSizeThreshold());

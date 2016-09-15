@@ -19,22 +19,30 @@ package org.apache.nifi.minifi.commons.schema.v1;
 
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
+import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
+import org.apache.nifi.minifi.commons.schema.RemoteInputPortSchema;
+import org.apache.nifi.minifi.commons.schema.RemoteProcessingGroupSchema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CONNECTIONS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROCESSORS_KEY;
 
 /**
  *
  */
 public class ConfigSchemaV1 extends ConfigSchema {
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES = "Found the following duplicate connection names: ";
+    public static final String FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES = "Found the following duplicate processor names: ";
     public static final String EMPTY_NAME = "empty_name";
     public static final int CONFIG_VERSION = 1;
 
@@ -71,10 +79,55 @@ public class ConfigSchemaV1 extends ConfigSchema {
             List<ConnectionSchemaV1> connections = convertListToType(connectionMaps, "connection", ConnectionSchemaV1.class, CONNECTIONS_KEY);
             Map<String, Integer> idMap = connections.stream().map(ConnectionSchema::getId).filter(s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2));
 
+            Map<String, String> processorNameToIdMap = new HashMap<>();
+            List<ProcessorSchema> processors = getProcessors();
+            if (processors != null) {
+                processorNameToIdMap.putAll(processors.stream().collect(Collectors.toMap(ProcessorSchema::getName, ProcessorSchema::getId)));
+            }
+
+            Set<String> remoteInputPortIds = new HashSet<>();
+            List<RemoteProcessingGroupSchema> remoteProcessingGroups = getRemoteProcessingGroups();
+            if (remoteProcessingGroups != null) {
+                remoteInputPortIds.addAll(remoteProcessingGroups.stream().filter(r -> r.getInputPorts() != null)
+                        .flatMap(r -> r.getInputPorts().stream()).map(RemoteInputPortSchema::getId).collect(Collectors.toSet()));
+            }
+
             // Set unset ids
             connections.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getId())).forEachOrdered(connection -> connection.setId(getUniqueId(idMap, connection.getName())));
+            connections.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getSourceId())).forEach(connection -> {
+                String sourceName = connection.getSourceName();
+                if (remoteInputPortIds.contains(sourceName)) {
+                    connection.setSourceId(sourceName);
+                } else {
+                    connection.setSourceId(processorNameToIdMap.get(sourceName));
+                }
+            });
+            connections.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getDestinationId()))
+                    .forEach(connection -> {
+                        String destinationName = connection.getDestinationName();
+                        if (remoteInputPortIds.contains(destinationName)) {
+                            connection.setDestinationId(destinationName);
+                        } else {
+                            connection.setDestinationId(processorNameToIdMap.get(destinationName));
+                        }
+                    });
+
 
             return new ArrayList<>(connections);
+        }
+        return null;
+    }
+
+    @Override
+    protected List<ProcessorSchema> getProcessorSchemas(List<Map> processorMaps) {
+        if (processorMaps != null) {
+            List<ProcessorSchemaV1> processors = convertListToType(processorMaps, "processor", ProcessorSchemaV1.class, PROCESSORS_KEY);
+            Map<String, Integer> idMap = processors.stream().map(ProcessorSchema::getId).filter(s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2));
+
+            // Set unset ids
+            processors.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getId())).forEachOrdered(processor -> processor.setId(getUniqueId(idMap, processor.getName())));
+
+            return new ArrayList<>(processors);
         }
         return null;
     }
@@ -85,6 +138,10 @@ public class ConfigSchemaV1 extends ConfigSchema {
         List<ConnectionSchema> connections = getConnections();
         if (connections != null) {
             checkForDuplicates(validationIssues::add, FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES, connections.stream().map(ConnectionSchema::getName).collect(Collectors.toList()));
+        }
+        List<ProcessorSchema> processors = getProcessors();
+        if (processors != null) {
+            checkForDuplicates(validationIssues::add, FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processors.stream().map(ProcessorSchema::getName).collect(Collectors.toList()));
         }
         return Collections.unmodifiableList(validationIssues);
     }

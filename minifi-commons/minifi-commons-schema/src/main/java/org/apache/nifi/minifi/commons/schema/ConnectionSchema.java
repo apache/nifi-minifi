@@ -20,7 +20,6 @@ package org.apache.nifi.minifi.commons.schema;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchemaWithIdAndName;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

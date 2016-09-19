@@ -147,7 +147,8 @@ public class ConfigSchema extends BaseSchema {
         }
         List<ProcessorSchema> processors = convertListToType(processorMaps, "processor", ProcessorSchema.class, PROCESSORS_KEY);
 
-        Map<String, Integer> idMap = processors.stream().map(ProcessorSchema::getId).filter(s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2, Integer::compareTo));
+        Map<String, Integer> idMap = processors.stream().map(ProcessorSchema::getId).filter(
+                s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2, Integer::compareTo));
 
         // Set unset ids
         processors.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getId())).forEachOrdered(processor -> processor.setId(getUniqueId(idMap, processor.getName())));
@@ -160,7 +161,8 @@ public class ConfigSchema extends BaseSchema {
             return null;
         }
         List<ConnectionSchema> connections = convertListToType(connectionMaps, "connection", ConnectionSchema.class, CONNECTIONS_KEY);
-        Map<String, Integer> idMap = connections.stream().map(ConnectionSchema::getId).filter(s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2, Integer::compareTo));
+        Map<String, Integer> idMap = connections.stream().map(ConnectionSchema::getId).filter(
+                s -> !StringUtil.isNullOrEmpty(s)).collect(Collectors.toMap(Function.identity(), s -> 2, Integer::compareTo));
 
         Map<String, String> processorNameToIdMap = new HashMap<>();
 

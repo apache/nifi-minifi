@@ -20,8 +20,6 @@ package org.apache.nifi.minifi.commons.schema.serialization;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
 import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
-import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
-import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.junit.Test;
 

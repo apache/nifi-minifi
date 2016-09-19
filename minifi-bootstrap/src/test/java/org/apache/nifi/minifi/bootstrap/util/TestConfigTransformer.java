@@ -18,6 +18,8 @@
 package org.apache.nifi.minifi.bootstrap.util;
 
 import org.apache.nifi.minifi.bootstrap.exception.InvalidConfigurationException;
+import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
+import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.junit.Test;
 
@@ -197,7 +199,8 @@ public class TestConfigTransformer {
             fail("Invalid configuration file was not detected.");
         } catch (InvalidConfigurationException e){
             assertEquals("Failed to transform config file due to:['scheduling strategy' in section 'Provenance Reporting' because it is not a valid scheduling strategy], ['class' in section " +
-                    "'Processors' because it was not found and it is required], ['source name' in section 'Connections' because it was not found and it is required]", e.getMessage());
+                    "'Processors' because it was not found and it is required], ['source name' in section 'Connections' because it was not found and it is required], ["
+                    + BaseSchema.getIssueText(ConnectionSchema.SOURCE_ID_KEY, "Connections", BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED) + "]", e.getMessage());
         }
     }
 }

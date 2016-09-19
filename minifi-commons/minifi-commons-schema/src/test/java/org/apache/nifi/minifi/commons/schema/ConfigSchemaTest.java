@@ -18,18 +18,57 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
-import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 public class ConfigSchemaTest {
+    @Test
+    public void testGetUniqueIdEmptySet() {
+        String testId = "testId";
+        assertEquals(testId + "___", ConfigSchema.getUniqueId(new HashMap<>(), testId + "/ $"));
+    }
+
+    @Test
+    public void testConnectionGeneratedIds() {
+        List<Map<String, Object>> listWithKeyValues = getListWithKeyValues(CommonPropertyKeys.NAME_KEY, "test", "test", "test_2");
+
+        // These ids should be honored even though they're last
+        listWithKeyValues.addAll(getListWithKeyValues(CommonPropertyKeys.ID_KEY, "test", "test_2"));
+
+        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, listWithKeyValues));
+        assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS);
+        List<ConnectionSchema> connections = configSchema.getConnections();
+        assertEquals(5, connections.size());
+
+        // Generated unique ids
+        assertEquals("test_3", connections.get(0).getId());
+        assertEquals("test_4", connections.get(1).getId());
+        assertEquals("test_2_2", connections.get(2).getId());
+
+        // Specified ids
+        assertEquals("test", connections.get(3).getId());
+        assertEquals("test_2", connections.get(4).getId());
+    }
+
+    @Test
+    public void testGetUniqueIdConflicts() {
+        Map<String, Integer> ids = new HashMap<>();
+        assertEquals("test_id", ConfigSchema.getUniqueId(ids, "test/id"));
+        assertEquals("test_id_2", ConfigSchema.getUniqueId(ids, "test$id"));
+        assertEquals("test_id_3", ConfigSchema.getUniqueId(ids, "test$id"));
+        assertEquals("test_id_4", ConfigSchema.getUniqueId(ids, "test$id"));
+        assertEquals("test_id_5", ConfigSchema.getUniqueId(ids, "test$id"));
+        assertEquals("test_id_2_2", ConfigSchema.getUniqueId(ids, "test_id_2"));
+    }
 
     @Test
     public void testProcessorDuplicateValidationNegativeCase() {
@@ -47,12 +86,6 @@ public class ConfigSchemaTest {
     public void testConnectionDuplicateValidationNegativeCase() {
         ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithKeyValues(CommonPropertyKeys.ID_KEY, "testId1", "testId2")));
         assertMessageDoesNotExist(configSchema, ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_IDS);
-    }
-
-    @Test
-    public void testConnectionNameDuplicateNoValidationErrors() {
-        ConfigSchema configSchema = new ConfigSchema(Collections.singletonMap(CommonPropertyKeys.CONNECTIONS_KEY, getListWithKeyValues(CommonPropertyKeys.NAME_KEY, "testName1", "testName1")));
-        assertMessageDoesNotExist(configSchema, ConfigSchemaV1.FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES);
     }
 
     @Test

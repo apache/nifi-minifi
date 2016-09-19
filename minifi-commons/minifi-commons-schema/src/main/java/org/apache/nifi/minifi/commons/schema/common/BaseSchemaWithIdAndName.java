@@ -19,29 +19,36 @@
 
 package org.apache.nifi.minifi.commons.schema.common;
 
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.ID_KEY;
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NAME_KEY;
 
 public abstract class BaseSchemaWithIdAndName extends BaseSchema {
+    public static final Pattern VALID_ID_PATTERN = Pattern.compile("[A-Za-z0-9_-]+");
+    public static final String ID_DOES_NOT_MATCH_VALID_ID_PATTERN = "Id does not match valid pattern (" + VALID_ID_PATTERN + "): ";
+
+    private final String wrapperName;
     private String id;
     private String name;
 
     public BaseSchemaWithIdAndName(Map map, String wrapperName) {
         id = getId(map, wrapperName);
         name = getName(map, wrapperName);
+        this.wrapperName = wrapperName;
     }
 
     protected String getName(Map map, String wrapperName) {
-        return getRequiredKeyAsType(map, NAME_KEY, String.class, wrapperName);
+        return getOptionalKeyAsType(map, NAME_KEY, String.class, wrapperName, "");
     }
 
     protected String getId(Map map, String wrapperName) {
-        return getRequiredKeyAsType(map, ID_KEY, String.class, wrapperName);
+        return getOptionalKeyAsType(map, ID_KEY, String.class, wrapperName, "");
     }
 
-    protected void setId(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -63,5 +70,16 @@ public abstract class BaseSchemaWithIdAndName extends BaseSchema {
         map.put(NAME_KEY, name);
         map.put(ID_KEY, id);
         return map;
+    }
+
+    @Override
+    public List<String> getValidationIssues() {
+        List<String> validationIssues = super.getValidationIssues();
+        if (StringUtil.isNullOrEmpty(id)) {
+            validationIssues.add(getIssueText(CommonPropertyKeys.ID_KEY, wrapperName, IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED));
+        } else if (!VALID_ID_PATTERN.matcher(id).matches()) {
+            validationIssues.add(ID_DOES_NOT_MATCH_VALID_ID_PATTERN + id);
+        }
+        return validationIssues;
     }
 }

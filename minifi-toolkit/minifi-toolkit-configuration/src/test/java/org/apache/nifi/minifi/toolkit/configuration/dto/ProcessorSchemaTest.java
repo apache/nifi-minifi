@@ -93,7 +93,7 @@ public class ProcessorSchemaTest extends BaseSchemaTester<ProcessorSchema, Proce
     public void testNoName() {
         dto.setName(null);
         map.remove(CommonPropertyKeys.NAME_KEY);
-        assertDtoAndMapConstructorAreSame(1);
+        assertDtoAndMapConstructorAreSame(0);
     }
 
     @Test

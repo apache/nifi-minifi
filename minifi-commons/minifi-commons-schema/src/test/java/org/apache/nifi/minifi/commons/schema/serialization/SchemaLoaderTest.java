@@ -23,7 +23,6 @@ import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
-import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,7 +31,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class SchemaLoaderTest {
@@ -53,34 +51,13 @@ public class SchemaLoaderTest {
     @Test
     public void testMinimalConfigV1Version() throws IOException, SchemaLoaderException {
         Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal.yml"));
-        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchemaV1.CONFIG_VERSION);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
         ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
         validateMinimalConfigVersion1Parse(configSchema);
     }
 
-    @Test
-    public void testMinimalConfigCurrentVersion() throws IOException, SchemaLoaderException {
-        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal.yml"));
-        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
-        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
-        assertEquals(ConfigSchema.class, configSchema.getClass());
-
-        List<ConnectionSchema> connections = configSchema.getConnections();
-        assertNotNull(connections);
-        assertEquals(1, connections.size());
-        assertNull(connections.get(0).getId());
-        List<String> validationIssues = configSchema.getValidationIssues();
-        assertEquals(6, validationIssues.size());
-        assertEquals(ConfigSchema.FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_IDS + "null", validationIssues.get(0));
-        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.PROCESSORS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(1));
-        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.PROCESSORS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(2));
-        assertEquals(BaseSchema.getIssueText(CommonPropertyKeys.ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(3));
-        assertEquals(BaseSchema.getIssueText(ConnectionSchema.SOURCE_ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(4));
-        assertEquals(BaseSchema.getIssueText(ConnectionSchema.DESTINATION_ID_KEY, CommonPropertyKeys.CONNECTIONS_KEY, BaseSchema.IT_WAS_NOT_FOUND_AND_IT_IS_REQUIRED), validationIssues.get(5));
-    }
-
     private void validateMinimalConfigVersion1Parse(ConfigSchema configSchema) {
-        assertTrue(configSchema instanceof ConfigSchemaV1);
+        assertTrue(configSchema instanceof ConfigSchema);
 
         List<ConnectionSchema> connections = configSchema.getConnections();
         assertNotNull(connections);
@@ -92,6 +69,6 @@ public class SchemaLoaderTest {
         assertEquals(2, processors.size());
         processors.forEach(p -> assertNotNull(p.getId()));
 
-        assertEquals(0, configSchema.getValidationIssues().size());
+        assertEquals("Expected no errors, got: " + configSchema.getValidationIssues(), 0, configSchema.getValidationIssues().size());
     }
 }

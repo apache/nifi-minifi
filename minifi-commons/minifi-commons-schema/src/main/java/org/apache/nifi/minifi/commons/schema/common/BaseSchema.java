@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public abstract class BaseSchema {
     }
 
     public List<String> getValidationIssues() {
-        return Collections.unmodifiableList(validationIssues);
+        return new ArrayList<>(validationIssues);
     }
 
     public String getValidationIssuesAsString() {

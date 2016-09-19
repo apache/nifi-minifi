@@ -82,7 +82,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     public void testNoName() {
         dto.setName(null);
         map.remove(CommonPropertyKeys.NAME_KEY);
-        assertDtoAndMapConstructorAreSame(1);
+        assertDtoAndMapConstructorAreSame(0);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     public void testNoSourceId() {
         dto.setSource(new ConnectableDTO());
         map.remove(ConnectionSchema.SOURCE_ID_KEY);
-        assertDtoAndMapConstructorAreSame(1);
+        assertDtoAndMapConstructorAreSame(2);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class ConnectionSchemaTest extends BaseSchemaTester<ConnectionSchema, Con
     public void testNoDestinationName() {
         dto.setDestination(new ConnectableDTO());
         map.remove(ConnectionSchema.DESTINATION_ID_KEY);
-        assertDtoAndMapConstructorAreSame(1);
+        assertDtoAndMapConstructorAreSame(2);
     }
 
     @Test

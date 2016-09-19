@@ -31,6 +31,6 @@ Processors:
 
 Connections:
     - name: TailToSplit
-      source name: RouteErrors
+      source name: TailAppLog
       source relationship name: success
       destination name: PutFile

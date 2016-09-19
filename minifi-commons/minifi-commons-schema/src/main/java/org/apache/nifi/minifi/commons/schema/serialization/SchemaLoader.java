@@ -19,7 +19,6 @@ package org.apache.nifi.minifi.commons.schema.serialization;
 
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
-import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -35,9 +34,8 @@ public class SchemaLoader {
 
     private static Map<String, Function<Map, ConfigSchema>> initConfigSchemaFactories() {
         Map<String, Function<Map, ConfigSchema>> result = new HashMap<>();
-        result.put(String.valueOf((Object)null), ConfigSchemaV1::new);
-        result.put("", ConfigSchemaV1::new);
-        result.put(Integer.toString(ConfigSchemaV1.CONFIG_VERSION), ConfigSchemaV1::new);
+        result.put(String.valueOf((Object)null), ConfigSchema::new);
+        result.put("", ConfigSchema::new);
         result.put(Integer.toString(ConfigSchema.CONFIG_VERSION), ConfigSchema::new);
         return result;
     }

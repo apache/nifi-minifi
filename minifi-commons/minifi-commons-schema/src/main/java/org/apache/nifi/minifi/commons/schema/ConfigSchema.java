@@ -54,6 +54,7 @@ public class ConfigSchema extends BaseSchema {
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_IDS = "Found the following ids that occur both in Processors and Remote Input Ports: ";
     public static final String CANNOT_LOOK_UP_PROCESSOR_ID_FROM_PROCESSOR_NAME_DUE_TO_DUPLICATE_PROCESSOR_NAMES = "Cannot look up Processor id from Processor name due to duplicate Processor names: ";
     public static final int CONFIG_VERSION = 1;
+    public static final String CONNECTIONS_REFER_TO_PROCESSOR_NAMES_THAT_DONT_EXIST = "Connection(s) refer to Processor names that don't exist: ";
     public static String TOP_LEVEL_NAME = "top level";
     public static final String VERSION = "MiNiFi Config Version";
     public static final String EMPTY_NAME = "empty_name";
@@ -189,6 +190,7 @@ public class ConfigSchema extends BaseSchema {
         }
 
         Set<String> problematicDuplicateNames = new HashSet<>();
+        Set<String> missingProcessorNames = new HashSet<>();
         // Set unset ids
         connections.stream().filter(connection -> StringUtil.isNullOrEmpty(connection.getId())).forEachOrdered(connection -> connection.setId(getUniqueId(idMap, connection.getName())));
 
@@ -200,7 +202,12 @@ public class ConfigSchema extends BaseSchema {
                 if (duplicateProcessorNames.contains(sourceName)) {
                     problematicDuplicateNames.add(sourceName);
                 }
-                connection.setSourceId(processorNameToIdMap.get(sourceName));
+                String sourceId = processorNameToIdMap.get(sourceName);
+                if (StringUtil.isNullOrEmpty(sourceId)) {
+                    missingProcessorNames.add(sourceName);
+                } else {
+                    connection.setSourceId(sourceId);
+                }
             }
         });
 
@@ -213,13 +220,21 @@ public class ConfigSchema extends BaseSchema {
                         if (duplicateProcessorNames.contains(destinationName)) {
                             problematicDuplicateNames.add(destinationName);
                         }
-                        connection.setDestinationId(processorNameToIdMap.get(destinationName));
+                        String destinationId = processorNameToIdMap.get(destinationName);
+                        if (StringUtil.isNullOrEmpty(destinationId)) {
+                            missingProcessorNames.add(destinationName);
+                        } else {
+                            connection.setDestinationId(destinationId);
+                        }
                     }
                 });
 
         if (problematicDuplicateNames.size() > 0) {
             addValidationIssue(CANNOT_LOOK_UP_PROCESSOR_ID_FROM_PROCESSOR_NAME_DUE_TO_DUPLICATE_PROCESSOR_NAMES
                     + problematicDuplicateNames.stream().collect(Collectors.joining(", ")));
+        }
+        if (missingProcessorNames.size() > 0) {
+            addValidationIssue(CONNECTIONS_REFER_TO_PROCESSOR_NAMES_THAT_DONT_EXIST + missingProcessorNames.stream().sorted().collect(Collectors.joining(", ")));
         }
         return connections;
     }
@@ -326,6 +341,7 @@ public class ConfigSchema extends BaseSchema {
         while (ids.containsKey(id)) {
             id = baseId + "_" + idNum++;
         }
+        // Using != on a string comparison here is intentional.  The two will be reference equal iff the body of the while loop was never executed.
         if (id != baseId) {
             ids.put(baseId, idNum);
         }

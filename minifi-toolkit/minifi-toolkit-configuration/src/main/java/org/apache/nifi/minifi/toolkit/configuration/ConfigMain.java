@@ -186,9 +186,26 @@ public class ConfigMain {
         }
     }
 
-    public static ConfigSchema transformTemplateToSchema(InputStream source) throws JAXBException, IOException {
+    public static ConfigSchema transformTemplateToSchema(InputStream source) throws JAXBException, IOException, SchemaLoaderException {
         try {
             TemplateDTO templateDTO = (TemplateDTO) JAXBContext.newInstance(TemplateDTO.class).createUnmarshaller().unmarshal(source);
+
+            if (templateDTO.getSnippet().getProcessGroups().size() != 0){
+                throw new SchemaLoaderException("Process Groups are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            }
+
+            if (templateDTO.getSnippet().getOutputPorts().size() != 0){
+                throw new SchemaLoaderException("Output Ports are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            }
+
+            if (templateDTO.getSnippet().getInputPorts().size() != 0){
+                throw new SchemaLoaderException("Input Ports are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            }
+
+            if (templateDTO.getSnippet().getFunnels().size() != 0){
+                throw new SchemaLoaderException("Funnels are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            }
+
             enrichTemplateDTO(templateDTO);
             ConfigSchema configSchema = new ConfigSchemaFunction().apply(templateDTO);
             return configSchema;
@@ -250,6 +267,10 @@ public class ConfigMain {
                     System.out.println("Error transforming template to YAML. (" + e + ")");
                     System.out.println();
                     printTransformUsage();
+                    return ERR_UNABLE_TO_TRANFORM_TEMPLATE;
+                } catch (SchemaLoaderException e) {
+                    System.out.println("Error transforming template to YAML. (" + e.getMessage() + ")");
+                    System.out.println();
                     return ERR_UNABLE_TO_TRANFORM_TEMPLATE;
                 }
             } catch (FileNotFoundException e) {

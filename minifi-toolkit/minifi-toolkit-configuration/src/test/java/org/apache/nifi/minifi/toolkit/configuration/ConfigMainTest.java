@@ -20,7 +20,6 @@ package org.apache.nifi.minifi.toolkit.configuration;
 import org.apache.commons.io.Charsets;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -138,7 +137,7 @@ public class ConfigMainTest {
                 throw new IOException();
             }
         });
-        assertEquals(ConfigMain.ERR_UNABLE_TO_TRANFORM_TEMPLATE, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
+        assertEquals(ConfigMain.ERR_UNABLE_TO_TRANSFORM_TEMPLATE, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
     }
 
     @Test
@@ -174,44 +173,24 @@ public class ConfigMainTest {
         transformRoundTrip("StressTestFramework");
     }
 
-    @Test
+    @Test(expected = SchemaLoaderException.class)
     public void testFailToTransformProcessGroup() throws IOException, JAXBException, SchemaLoaderException {
-        try {
-            ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithProcessGroup.xml")).toMap();
-            Assert.fail("Should have thrown a SchemaLoaderException due to the template having a Process Group");
-        } catch (SchemaLoaderException e) {
-            // Properly threw SchemaLoaderException due to template having a Process Group
-        }
+        ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithProcessGroup.xml")).toMap();
     }
 
-    @Test
+    @Test(expected = SchemaLoaderException.class)
     public void testFailToTransformInputPort() throws IOException, JAXBException, SchemaLoaderException {
-        try {
-            ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithOutputPort.xml")).toMap();
-            Assert.fail("Should have thrown a SchemaLoaderException due to the template having an Output Port");
-        } catch (SchemaLoaderException e) {
-            // Properly threw SchemaLoaderException due to template having an Output Port
-        }
+        ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithOutputPort.xml")).toMap();
     }
 
-    @Test
+    @Test(expected = SchemaLoaderException.class)
     public void testFailToTransformOutputPort() throws IOException, JAXBException, SchemaLoaderException {
-        try {
-            ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithInputPort.xml")).toMap();
-            Assert.fail("Should have thrown a SchemaLoaderException due to the template having an Input Port");
-        } catch (SchemaLoaderException e) {
-            // Properly threw SchemaLoaderException due to template having an Input Port
-        }
+        ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithInputPort.xml")).toMap();
     }
 
-    @Test
+    @Test(expected = SchemaLoaderException.class)
     public void testFailToTransformFunnel() throws IOException, JAXBException, SchemaLoaderException {
-        try {
-            ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithFunnel.xml")).toMap();
-            Assert.fail("Should have thrown a SchemaLoaderException due to the template having a Funnel");
-        } catch (SchemaLoaderException e) {
-            // Properly threw SchemaLoaderException due to template having a Funnel
-        }
+        ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithFunnel.xml")).toMap();
     }
 
     private void transformRoundTrip(String name) throws JAXBException, IOException, SchemaLoaderException {

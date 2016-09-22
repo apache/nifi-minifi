@@ -54,7 +54,7 @@ public class ConfigMain {
     public static final int ERR_UNABLE_TO_OPEN_OUTPUT = 2;
     public static final int ERR_UNABLE_TO_OPEN_INPUT = 3;
     public static final int ERR_UNABLE_TO_READ_TEMPLATE = 4;
-    public static final int ERR_UNABLE_TO_TRANFORM_TEMPLATE = 5;
+    public static final int ERR_UNABLE_TO_TRANSFORM_TEMPLATE = 5;
     public static final int ERR_UNABLE_TO_PARSE_CONFIG = 6;
     public static final int ERR_INVALID_CONFIG = 7;
 
@@ -267,11 +267,11 @@ public class ConfigMain {
                     System.out.println("Error transforming template to YAML. (" + e + ")");
                     System.out.println();
                     printTransformUsage();
-                    return ERR_UNABLE_TO_TRANFORM_TEMPLATE;
+                    return ERR_UNABLE_TO_TRANSFORM_TEMPLATE;
                 } catch (SchemaLoaderException e) {
                     System.out.println("Error transforming template to YAML. (" + e.getMessage() + ")");
                     System.out.println();
-                    return ERR_UNABLE_TO_TRANFORM_TEMPLATE;
+                    return ERR_UNABLE_TO_TRANSFORM_TEMPLATE;
                 }
             } catch (FileNotFoundException e) {
                 System.out.println("Unable to open file " + args[2] + " for writing. (" + e + ")");

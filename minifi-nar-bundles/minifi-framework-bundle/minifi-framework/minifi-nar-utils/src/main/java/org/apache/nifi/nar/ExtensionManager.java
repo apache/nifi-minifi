@@ -24,7 +24,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import org.apache.nifi.authentication.LoginIdentityProvider;
 
-import org.apache.nifi.authorization.AuthorityProvider;
+import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.repository.ContentRepository;
 import org.apache.nifi.controller.repository.FlowFileRepository;
@@ -58,7 +58,7 @@ public class ExtensionManager {
         definitionMap.put(FlowFilePrioritizer.class, new HashSet<Class>());
         definitionMap.put(ReportingTask.class, new HashSet<Class>());
         definitionMap.put(ControllerService.class, new HashSet<Class>());
-        definitionMap.put(AuthorityProvider.class, new HashSet<Class>());
+        definitionMap.put(Authorizer.class, new HashSet<Class>());
         definitionMap.put(LoginIdentityProvider.class, new HashSet<Class>());
         definitionMap.put(ProvenanceEventRepository.class, new HashSet<Class>());
         definitionMap.put(ComponentStatusRepository.class, new HashSet<Class>());

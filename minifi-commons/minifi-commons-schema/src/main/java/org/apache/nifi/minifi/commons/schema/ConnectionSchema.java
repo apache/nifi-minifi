@@ -71,7 +71,13 @@ public class ConnectionSchema extends BaseSchemaWithIdAndName {
                 addValidationIssue(getIssueText(SOURCE_RELATIONSHIP_NAMES_KEY, CONNECTIONS_KEY, "expected at least one relationship to be specified"));
             }
         } else {
-            sourceRelationshipNames = getOptionalKeyAsType(map, SOURCE_RELATIONSHIP_NAMES_KEY, List.class, CONNECTIONS_KEY, new ArrayList<>(Arrays.asList(sourceRelationshipName)));
+            if (map.containsKey(SOURCE_RELATIONSHIP_NAMES_KEY)) {
+                addValidationIssue("only one of " + SOURCE_RELATIONSHIP_NAME_KEY + ", " + SOURCE_RELATIONSHIP_NAMES_KEY + " should be set per connection.  Found both on "
+                        + (StringUtil.isNullOrEmpty(getName()) ? getId() : getName()));
+                sourceRelationshipNames = getRequiredKeyAsType(map, SOURCE_RELATIONSHIP_NAMES_KEY, List.class, CONNECTIONS_KEY);
+            } else {
+                sourceRelationshipNames = new ArrayList<>(Arrays.asList(sourceRelationshipName));
+            }
         }
 
         destinationId = getOptionalKeyAsType(map, DESTINATION_ID_KEY, String.class, CONNECTIONS_KEY, "");

@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.configuration;
+package org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces;
 
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Set;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 
-public interface ConfigurationChangeNotifier {
+import java.io.IOException;
+import java.util.Properties;
 
-    Set<ConfigurationChangeListener> getChangeListeners();
+public interface Differentiator <T> {
+    void initialize(Properties properties, ConfigurationFileHolder configurationFileHolder);
 
-    Collection<ListenerHandleResult> notifyListeners(ByteBuffer is);
+    boolean isNew(T input) throws IOException;
 }

@@ -15,37 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.configuration.notifiers.util;
+package org.apache.nifi.minifi.bootstrap.configuration.mocks;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
+import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
-public class MockChangeListener implements ConfigurationChangeListener {
-    String confFile;
-
-    @Override
-    public void handleChange(InputStream inputStream) {
-        try {
-            confFile = IOUtils.toString(inputStream, "UTF-8");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+public class MockConfigurationChangeNotifier implements ConfigurationChangeNotifier {
+    MockChangeListener mockChangeListener = new MockChangeListener();
 
     @Override
-    public String getDescriptor() {
-        return "MockChangeListener";
+    public Set<ConfigurationChangeListener> getChangeListeners() {
+        return Collections.singleton(mockChangeListener);
     }
 
-    public String getConfFile() {
-        return confFile;
+    @Override
+    public Collection<ListenerHandleResult> notifyListeners(ByteBuffer is) {
+        return Collections.singleton(new ListenerHandleResult(mockChangeListener));
     }
-
-    public void setConfFile(String confFile) {
-        this.confFile = confFile;
-    }
-
 }

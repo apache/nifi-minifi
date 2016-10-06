@@ -15,15 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.configuration;
+package org.apache.nifi.minifi.bootstrap.configuration.mocks;
 
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Set;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces.Differentiator;
 
-public interface ConfigurationChangeNotifier {
+import java.io.IOException;
+import java.util.Properties;
 
-    Set<ConfigurationChangeListener> getChangeListeners();
+public class MockDifferentiator<T> implements Differentiator<T> {
 
-    Collection<ListenerHandleResult> notifyListeners(ByteBuffer is);
+    private volatile boolean isNew = false;
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
+    }
+
+    @Override
+    public void initialize(Properties properties, ConfigurationFileHolder configurationFileHolder) {
+
+    }
+
+    @Override
+    public boolean isNew(T response) throws IOException {
+        return isNew;
+    }
 }

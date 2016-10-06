@@ -15,15 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.configuration;
+package org.apache.nifi.minifi.bootstrap.configuration.mocks;
+
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Set;
 
-public interface ConfigurationChangeNotifier {
+public class MockConfigurationFileHolder implements ConfigurationFileHolder {
 
-    Set<ConfigurationChangeListener> getChangeListeners();
+    private volatile ByteBuffer configFile;
 
-    Collection<ListenerHandleResult> notifyListeners(ByteBuffer is);
+    public MockConfigurationFileHolder(ByteBuffer configFile) {
+        this.configFile = configFile;
+    }
+
+    @Override
+    public ByteBuffer getConfigFile() {
+        return configFile;
+    }
+
+    public void setConfigFile(ByteBuffer configFile) {
+        this.configFile = configFile;
+    }
+
 }

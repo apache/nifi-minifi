@@ -33,7 +33,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -112,14 +114,14 @@ public class NarUnpackerTest {
     @Test
     public void testUnpackNarsFromEmptyDir() throws IOException {
 
-        NiFiProperties properties = loadSpecifiedProperties("/NarUnpacker/conf/nifi.properties");
-
         final File emptyDir = new File("./target/empty/dir");
         emptyDir.delete();
         emptyDir.deleteOnExit();
         assertTrue(emptyDir.mkdirs());
 
-        properties.setProperty("nifi.nar.library.directory.alt", emptyDir.toString());
+        final Map<String, String> others = new HashMap<>();
+        others.put("nifi.nar.library.directory.alt", emptyDir.toString());
+        NiFiProperties properties = loadSpecifiedProperties("/NarUnpacker/conf/nifi.properties", others);
 
         final ExtensionMapping extensionMapping = NarUnpacker.unpackNars(properties);
 
@@ -173,7 +175,7 @@ public class NarUnpackerTest {
         assertNull(extensionMapping);
     }
 
-    private NiFiProperties loadSpecifiedProperties(String propertiesFile) {
+    private NiFiProperties loadSpecifiedProperties(final String propertiesFile, final Map<String, String> others) {
         String filePath;
         try {
             filePath = NarUnpackerTest.class.getResource(propertiesFile).toURI().getPath();
@@ -181,34 +183,6 @@ public class NarUnpackerTest {
             throw new RuntimeException("Cannot load properties file due to "
                     + ex.getLocalizedMessage(), ex);
         }
-        System.setProperty(NiFiProperties.PROPERTIES_FILE_PATH, filePath);
-
-        NiFiProperties properties = NiFiProperties.getInstance();
-
-        // clear out existing properties
-        for (String prop : properties.stringPropertyNames()) {
-            properties.remove(prop);
-        }
-
-        InputStream inStream = null;
-        try {
-            inStream = new BufferedInputStream(new FileInputStream(filePath));
-            properties.load(inStream);
-        } catch (final Exception ex) {
-            throw new RuntimeException("Cannot load properties file due to "
-                    + ex.getLocalizedMessage(), ex);
-        } finally {
-            if (null != inStream) {
-                try {
-                    inStream.close();
-                } catch (final Exception ex) {
-                    /**
-                     * do nothing *
-                     */
-                }
-            }
-        }
-
-        return properties;
+        return NiFiProperties.createBasicNiFiProperties(filePath, others);
     }
 }

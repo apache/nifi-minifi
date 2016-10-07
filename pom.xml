@@ -168,12 +168,6 @@ limitations under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi.minifi</groupId>
-                <artifactId>minifi-provenance-reporting-nar</artifactId>
-                <version>0.1.0-SNAPSHOT</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi.minifi</groupId>
                 <artifactId>minifi-resources</artifactId>
                 <classifier>resources</classifier>
                 <type>zip</type>

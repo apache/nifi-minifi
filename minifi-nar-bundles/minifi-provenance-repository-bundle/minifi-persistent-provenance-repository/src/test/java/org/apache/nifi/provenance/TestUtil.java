@@ -39,18 +39,23 @@ public class TestUtil {
             }
 
             @Override
-            public Set<String> getLineageIdentifiers() {
-                return new HashSet<String>();
-            }
-
-            @Override
             public long getLineageStartDate() {
                 return System.currentTimeMillis();
             }
 
             @Override
+            public long getLineageStartIndex() {
+                return 0;
+            }
+
+            @Override
             public Long getLastQueueDate() {
                 return System.currentTimeMillis();
+            }
+
+            @Override
+            public long getQueueDateIndex() {
+                return 0;
             }
 
             @Override

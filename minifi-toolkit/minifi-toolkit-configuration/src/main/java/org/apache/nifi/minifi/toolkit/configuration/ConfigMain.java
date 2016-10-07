@@ -18,6 +18,7 @@
 package org.apache.nifi.minifi.toolkit.configuration;
 
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
+import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaSaver;
@@ -63,6 +64,8 @@ public class ConfigMain {
     public static final String TRANSFORM = "transform";
     public static final String VALIDATE = "validate";
     public static final String NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE = "No validation errors found in template.";
+    public static final String OLD_VERSION_WAS_VALID_AS_PARSED_BUT_WHEN_CONVERTING_TO_NEW_VERSION_FOUND_THE_FOLLOWING_ERRORS =
+            "Old version was valid as parsed but when converting to new version, found the following errors:";
 
     private final Map<String, Command> commandMap;
     private final PathInputStreamFactory pathInputStreamFactory;
@@ -96,13 +99,21 @@ public class ConfigMain {
         }
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
-                ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(inputStream);
+                ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream);
                 if (!configSchema.isValid()) {
                     configSchema.getValidationIssues().forEach(s -> System.out.println(s));
                     System.out.println();
                     return ERR_INVALID_CONFIG;
                 } else {
-                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
+                    ConfigSchema currentSchema = configSchema.convert();
+                    if (currentSchema.isValid()) {
+                        System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
+                    } else {
+                        System.out.println(OLD_VERSION_WAS_VALID_AS_PARSED_BUT_WHEN_CONVERTING_TO_NEW_VERSION_FOUND_THE_FOLLOWING_ERRORS);
+                        currentSchema.getValidationIssues().forEach(s -> System.out.println(s));
+                        System.out.println();
+                        return ERR_INVALID_CONFIG;
+                    }
                 }
             } catch (IOException|SchemaLoaderException e) {
                 System.out.println("Unable to load configuration. (" + e + ")");

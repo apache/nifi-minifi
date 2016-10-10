@@ -37,6 +37,7 @@
                 <exclude>minifi-resources</exclude>
                 <!-- Filter items introduced via transitive dependencies that are provided in associated NARs -->
                 <exclude>spring-aop</exclude>
+                <exclude>zookeeper</exclude>
                 <exclude>spring-context</exclude>
                 <exclude>spring-security-core</exclude>
                 <exclude>spring-beans</exclude>
@@ -49,6 +50,7 @@
                 <exclude>mail</exclude>
                 <exclude>log4j</exclude>
                 <exclude>lucene-queryparser</exclude>
+                <exclude>lucene-core</exclude>
                 <exclude>commons-net</exclude>
             </excludes>
         </dependencySet>

@@ -49,6 +49,7 @@
                 <exclude>jaxb-impl</exclude>
                 <exclude>mail</exclude>
                 <exclude>log4j</exclude>
+                <exclude>lucene-analyzers-common</exclude>
                 <exclude>lucene-queryparser</exclude>
                 <exclude>lucene-core</exclude>
                 <exclude>commons-net</exclude>

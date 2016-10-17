@@ -502,6 +502,12 @@ limitations under the License.
                 <artifactId>commons-io</artifactId>
                 <version>2.5</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.nifi</groupId>
+                <artifactId>nifi-site-to-site-reporting-nar</artifactId>
+                <version>${org.apache.nifi.version}</version>
+                <type>nar</type>
+            </dependency>
 
             <!-- Test Dependencies -->
             <dependency>

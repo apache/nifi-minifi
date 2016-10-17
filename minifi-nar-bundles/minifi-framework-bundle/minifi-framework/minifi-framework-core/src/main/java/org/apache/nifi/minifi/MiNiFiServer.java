@@ -74,17 +74,17 @@ public class MiNiFiServer {
 
                 @Override
                 public void initialize(AuthorizerInitializationContext initializationContext) throws AuthorizerCreationException {
-
+                    // do nothing
                 }
 
                 @Override
                 public void onConfigured(AuthorizerConfigurationContext configurationContext) throws AuthorizerCreationException {
-
+                    // do nothing
                 }
 
                 @Override
                 public void preDestruction() throws AuthorizerDestructionException {
-
+                    // do nothing
                 }
             };
             StringEncryptor encryptor = StringEncryptor.createEncryptor(props);

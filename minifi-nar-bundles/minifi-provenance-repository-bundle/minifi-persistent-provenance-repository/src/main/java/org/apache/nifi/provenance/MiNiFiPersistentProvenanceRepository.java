@@ -55,6 +55,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.events.EventReporter;
@@ -62,8 +63,6 @@ import org.apache.nifi.processor.DataUnit;
 import org.apache.nifi.provenance.expiration.ExpirationAction;
 import org.apache.nifi.provenance.expiration.FileRemovalAction;
 import org.apache.nifi.provenance.lineage.ComputeLineageSubmission;
-import org.apache.nifi.provenance.lineage.LineageComputationType;
-import org.apache.nifi.provenance.lucene.LuceneUtil;
 import org.apache.nifi.provenance.search.Query;
 import org.apache.nifi.provenance.search.QuerySubmission;
 import org.apache.nifi.provenance.search.SearchableField;
@@ -533,7 +532,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
                     continue;
                 }
 
-                final String basename = LuceneUtil.substringBefore(recoveredJournal.getName(), ".");
+                final String basename = StringUtils.substringBefore(recoveredJournal.getName(), ".");
                 try {
                     final long minId = Long.parseLong(basename);
 
@@ -776,8 +775,8 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
         final Comparator<File> sortByBasenameComparator = new Comparator<File>() {
             @Override
             public int compare(final File o1, final File o2) {
-                final String baseName1 = LuceneUtil.substringBefore(o1.getName(), ".");
-                final String baseName2 = LuceneUtil.substringBefore(o2.getName(), ".");
+                final String baseName1 = StringUtils.substringBefore(o1.getName(), ".");
+                final String baseName2 = StringUtils.substringBefore(o2.getName(), ".");
 
                 Long id1 = null;
                 Long id2 = null;
@@ -831,7 +830,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
         // Age off the data.
         final Set<String> removed = new LinkedHashSet<>();
         for (File file : uniqueFilesToPurge) {
-            final String baseName = LuceneUtil.substringBefore(file.getName(), ".");
+            final String baseName = StringUtils.substringBefore(file.getName(), ".");
             ExpirationAction currentAction = null;
             try {
                 for (final ExpirationAction action : expirationActions) {
@@ -874,7 +873,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
             while (itr.hasNext()) {
                 final Map.Entry<Long, Path> entry = itr.next();
                 final String filename = entry.getValue().toFile().getName();
-                final String baseName = LuceneUtil.substringBefore(filename, ".");
+                final String baseName = StringUtils.substringBefore(filename, ".");
 
                 if (removed.contains(baseName)) {
                     itr.remove();
@@ -994,7 +993,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
                 if (journalsToMerge.isEmpty()) {
                     logger.debug("No journals to merge; all RecordWriters were already closed");
                 } else {
-                    logger.debug("Going to merge {} files for journals starting with ID {}", journalsToMerge.size(), LuceneUtil.substringBefore(journalsToMerge.get(0).getName(), "."));
+                    logger.debug("Going to merge {} files for journals starting with ID {}", journalsToMerge.size(), StringUtils.substringBefore(journalsToMerge.get(0).getName(), "."));
                 }
             }
 
@@ -1032,7 +1031,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
                             // We need to make sure that another thread doesn't also update the map at the same time. We cannot
                             // use the write lock when purging old events, and we want to use the same approach here.
                             boolean updated = false;
-                            final Long fileFirstEventId = Long.valueOf(LuceneUtil.substringBefore(fileRolledOver.getName(), "."));
+                            final Long fileFirstEventId = Long.valueOf(StringUtils.substringBefore(fileRolledOver.getName(), "."));
                             while (!updated) {
                                 final SortedMap<Long, Path> existingPathMap = idToPathMap.get();
                                 final SortedMap<Long, Path> newIdToPathMap = new TreeMap<>(new PathMapComparator());
@@ -1165,7 +1164,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
                     continue;
                 }
 
-                final String basename = LuceneUtil.substringBefore(journalFile.getName(), ".");
+                final String basename = StringUtils.substringBefore(journalFile.getName(), ".");
                 List<File> files = journalMap.get(basename);
                 if (files == null) {
                     files = new ArrayList<>();
@@ -1193,7 +1192,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
         // verify that all Journal files have the same basename
         String canonicalBaseName = null;
         for (final File journal : journalFiles) {
-            final String basename = LuceneUtil.substringBefore(journal.getName(), ".");
+            final String basename =  StringUtils.substringBefore(journal.getName(), ".");
             if (canonicalBaseName == null) {
                 canonicalBaseName = basename;
             }
@@ -1239,8 +1238,8 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
         Collections.sort(journalFiles, new Comparator<File>() {
             @Override
             public int compare(final File o1, final File o2) {
-                final String suffix1 = LuceneUtil.substringAfterLast(o1.getName(), ".");
-                final String suffix2 = LuceneUtil.substringAfterLast(o2.getName(), ".");
+                final String suffix1 = StringUtils.substringAfterLast(o1.getName(), ".");
+                final String suffix2 = StringUtils.substringAfterLast(o2.getName(), ".");
 
                 try {
                     final int journalIndex1 = Integer.parseInt(suffix1);
@@ -1253,7 +1252,7 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
         });
 
         final String firstJournalFile = journalFiles.get(0).getName();
-        final String firstFileSuffix = LuceneUtil.substringAfterLast(firstJournalFile, ".");
+        final String firstFileSuffix = StringUtils.substringAfterLast(firstJournalFile, ".");
         final boolean allPartialFiles = firstFileSuffix.equals("0");
 
         // check if we have all of the "partial" files for the journal.

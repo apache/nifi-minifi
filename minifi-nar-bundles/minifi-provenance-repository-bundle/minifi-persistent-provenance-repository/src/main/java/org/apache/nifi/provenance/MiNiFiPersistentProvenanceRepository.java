@@ -1224,7 +1224,6 @@ public class MiNiFiPersistentProvenanceRepository implements ProvenanceRepositor
      * @throws IOException if a problem occurs writing to the mergedFile, reading from a journal
      */
     File mergeJournals(final List<File> journalFiles, final File suggestedMergeFile, final EventReporter eventReporter) throws IOException {
-        logger.warn("Merging {} to {}", journalFiles, suggestedMergeFile);
         if (this.closed.get()) {
             logger.info("Provenance Repository has been closed; will not merge journal files to {}", suggestedMergeFile);
             return null;

@@ -19,6 +19,13 @@
 package org.apache.zookeeper.server.quorum;
 
 
+/**
+ * This class is provided such that the ConfigException can be provided to the FlowController currently reused from NiFi.
+ * By creating the class within the MiNiFi codebase it is possible to remove the dependency on ZooKeeper.
+ *
+ * This totality of this class is eligible for removal when a FlowController explicitly for MiNiFi is introduced.
+ */
+@SuppressWarnings(value = "unused")
 public class QuorumPeerConfig {
 
     @SuppressWarnings("serial")

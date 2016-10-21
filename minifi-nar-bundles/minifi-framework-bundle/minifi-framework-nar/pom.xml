@@ -34,6 +34,13 @@ limitations under the License.
         <source.skip>true</source.skip>
     </properties>
     <dependencies>
+
+        <!-- NiFi dependencies required by framework level components -->
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-nar-utils</artifactId>
+        </dependency>
+
         <!-- mark these nifi artifacts as provided since it is included in the lib -->
         <dependency>
             <groupId>org.apache.nifi</groupId>
@@ -47,27 +54,7 @@ limitations under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-nar-utils</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-properties</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-framework-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-administration</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -78,6 +65,18 @@ limitations under the License.
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-framework-core-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MiNiFi Dependencies -->
+        <dependency>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-framework-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -490,7 +490,7 @@ public class TestStatusConfigReporter {
     public void remoteProcessGroupStatusAll() throws Exception {
         populateRemoteProcessGroup(true, true);
 
-        String statusRequest = "remoteProcessGroup:all:health, authorizationissues, bulletins, inputPorts, stats";
+        String statusRequest = "remoteProcessGroup:all:health, bulletins, inputPorts, stats";
         FlowStatusReport actual = StatusConfigReporter.getStatus(mockFlowController, statusRequest, LoggerFactory.getLogger(TestStatusConfigReporter.class));
 
         FlowStatusReport expected = new FlowStatusReport();
@@ -515,7 +515,7 @@ public class TestStatusConfigReporter {
 
         String statusRequest = "controllerServices:bulletins,health; processor:all:health,stats,bulletins; instance:bulletins,health,stats ; systemDiagnostics:garbagecollection, heap, " +
                 "processorstats, contentrepositoryusage, flowfilerepositoryusage; connection:all:health,stats; provenanceReporting:health,bulletins; remoteProcessGroup:all:health, " +
-                "authorizationissues, bulletins, inputPorts, stats";
+                "bulletins, inputPorts, stats";
 
         FlowStatusReport actual = StatusConfigReporter.getStatus(mockFlowController, statusRequest, LoggerFactory.getLogger(TestStatusConfigReporter.class));
 

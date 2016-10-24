@@ -210,4 +210,9 @@ public abstract class BaseSchema implements Schema {
             }
         }
     }
+
+    @Override
+    public void clearValidationIssues() {
+        validationIssues.clear();
+    }
 }

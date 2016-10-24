@@ -19,6 +19,7 @@ package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchema;
 import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
+import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 import org.apache.nifi.minifi.commons.schema.common.WritableSchema;
 
 import java.util.ArrayList;
@@ -52,6 +53,9 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_IDS = "Found the following ids that occur both in Processors and Remote Input Ports: ";
     public static final int CONFIG_VERSION = 2;
     public static final String VERSION = "MiNiFi Config Version";
+    public static final String CONNECTION_WITH_ID = "Connection with id ";
+    public static final String HAS_INVALID_SOURCE_ID = " has invalid source id ";
+    public static final String HAS_INVALID_DESTINATION_ID = " has invalid destination id ";
     public static String TOP_LEVEL_NAME = "top level";
     private FlowControllerSchema flowControllerProperties;
     private CorePropertiesSchema coreProperties;
@@ -123,6 +127,19 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         if (duplicateIds.size() > 0) {
             addValidationIssue(FOUND_THE_FOLLOWING_DUPLICATE_IDS + duplicateIds.stream().sorted().collect(Collectors.joining(", ")));
         }
+
+        Set<String> connectableIds = new HashSet<>(processorIds);
+        connectableIds.addAll(remoteInputPortIds);
+        connections.forEach(c -> {
+            String destinationId = c.getDestinationId();
+            if (!StringUtil.isNullOrEmpty(destinationId) && !connectableIds.contains(destinationId)) {
+                addValidationIssue(CONNECTION_WITH_ID + c.getId() + HAS_INVALID_DESTINATION_ID + destinationId);
+            }
+            String sourceId = c.getSourceId();
+            if (!StringUtil.isNullOrEmpty(sourceId) && !connectableIds.contains(sourceId)) {
+                addValidationIssue(CONNECTION_WITH_ID + c.getId() + HAS_INVALID_SOURCE_ID + sourceId);
+            }
+        });
     }
 
     public Map<String, Object> toMap() {

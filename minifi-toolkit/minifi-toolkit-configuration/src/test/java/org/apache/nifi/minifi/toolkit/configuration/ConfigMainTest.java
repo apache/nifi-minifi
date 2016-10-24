@@ -22,6 +22,7 @@ import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
 import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
 import org.apache.nifi.minifi.commons.schema.RemoteInputPortSchema;
+import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.junit.Before;
@@ -44,7 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.nifi.minifi.toolkit.configuration.ConfigMain.SUCCESS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -112,7 +115,7 @@ public class ConfigMainTest {
     public void testValidateSuccess() throws FileNotFoundException {
         when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
                 ConfigMainTest.class.getClassLoader().getResourceAsStream("config.yml"));
-        assertEquals(ConfigMain.SUCCESS, configMain.execute(new String[]{ConfigMain.VALIDATE, testInput}));
+        assertEquals(SUCCESS, configMain.execute(new String[]{ConfigMain.VALIDATE, testInput}));
     }
 
     @Test
@@ -123,6 +126,8 @@ public class ConfigMainTest {
 
     @Test
     public void testTransformErrorOpeningOutput() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
+                ConfigMainTest.class.getClassLoader().getResourceAsStream("CsvToJson.xml"));
         when(pathOutputStreamFactory.create(testOutput)).thenThrow(new FileNotFoundException());
         assertEquals(ConfigMain.ERR_UNABLE_TO_OPEN_OUTPUT, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
     }
@@ -136,13 +141,7 @@ public class ConfigMainTest {
     @Test
     public void testTransformErrorTransformingTemplate() throws FileNotFoundException {
         when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
-                ConfigMainTest.class.getClassLoader().getResourceAsStream("CsvToJson.xml"));
-        when(pathOutputStreamFactory.create(testOutput)).thenAnswer(invocation -> new OutputStream() {
-            @Override
-            public void write(int b) throws IOException {
-                throw new IOException();
-            }
-        });
+                ConfigMainTest.class.getClassLoader().getResourceAsStream("TemplateWithInputPort.xml"));
         assertEquals(ConfigMain.ERR_UNABLE_TO_TRANSFORM_TEMPLATE, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
     }
 
@@ -151,7 +150,7 @@ public class ConfigMainTest {
         when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
                 ConfigMainTest.class.getClassLoader().getResourceAsStream("CsvToJson.xml"));
         when(pathOutputStreamFactory.create(testOutput)).thenAnswer(invocation -> new ByteArrayOutputStream());
-        assertEquals(ConfigMain.SUCCESS, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
+        assertEquals(SUCCESS, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));
     }
 
     @Test
@@ -204,6 +203,47 @@ public class ConfigMainTest {
         ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream("TemplateWithFunnel.xml")).toMap();
     }
 
+    @Test
+    public void testUpgradeInputFileNotFoundException() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenThrow(new FileNotFoundException());
+        assertEquals(ConfigMain.ERR_UNABLE_TO_OPEN_INPUT, configMain.execute(new String[]{ConfigMain.UPGRADE, testInput, testOutput}));
+    }
+
+    @Test
+    public void testUpgradeCantLoadSchema() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenReturn(new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException();
+            }
+        });
+        assertEquals(ConfigMain.ERR_UNABLE_TO_PARSE_CONFIG, configMain.execute(new String[]{ConfigMain.UPGRADE, testInput, testOutput}));
+    }
+
+    @Test
+    public void testUpgradeOutputFileNotFoundException() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenReturn(getClass().getClassLoader().getResourceAsStream("CsvToJson-v1.yml"));
+        when(pathOutputStreamFactory.create(testOutput)).thenThrow(new FileNotFoundException());
+        assertEquals(ConfigMain.ERR_UNABLE_TO_OPEN_OUTPUT, configMain.execute(new String[]{ConfigMain.UPGRADE, testInput, testOutput}));
+    }
+
+    @Test
+    public void testUpgradeCantSaveSchema() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenReturn(getClass().getClassLoader().getResourceAsStream("CsvToJson-v1.yml"));
+        when(pathOutputStreamFactory.create(testOutput)).thenReturn(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                throw new IOException();
+            }
+        });
+        assertEquals(ConfigMain.ERR_UNABLE_TO_SAVE_CONFIG, configMain.execute(new String[]{ConfigMain.UPGRADE, testInput, testOutput}));
+    }
+
+    @Test
+    public void testUpgradeInvalidArgs() {
+        assertEquals(ConfigMain.ERR_INVALID_ARGS, configMain.execute(new String[]{ConfigMain.UPGRADE}));
+    }
+
     private void transformRoundTrip(String name) throws JAXBException, IOException, SchemaLoaderException {
         Map<String, Object> templateMap = ConfigMain.transformTemplateToSchema(getClass().getClassLoader().getResourceAsStream(name + ".xml")).toMap();
         Map<String, Object> yamlMap = SchemaLoader.loadYamlAsMap(getClass().getClassLoader().getResourceAsStream(name + ".yml"));
@@ -211,13 +251,28 @@ public class ConfigMainTest {
         testV1YmlIfPresent(name, yamlMap);
     }
 
-    private void testV1YmlIfPresent(String name, Map<String, Object> yamlMap) throws IOException, SchemaLoaderException {
+    private InputStream upgradeAndReturn(String name) throws FileNotFoundException {
         InputStream yamlV1Stream = getClass().getClassLoader().getResourceAsStream(name + "-v1.yml");
-        if (yamlV1Stream != null) {
-            ConfigSchema configSchemaFromV1 = SchemaLoader.loadConfigSchemaFromYaml(yamlV1Stream);
+        if (yamlV1Stream == null) {
+            return null;
+        }
+        when(pathInputStreamFactory.create(testInput)).thenReturn(yamlV1Stream);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        when(pathOutputStreamFactory.create(testOutput)).thenReturn(outputStream);
+        assertEquals(SUCCESS, configMain.execute(new String[]{"upgrade", testInput, testOutput}));
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    private void testV1YmlIfPresent(String name, Map<String, Object> yamlMap) throws IOException, SchemaLoaderException {
+        InputStream upgradedInputStream = upgradeAndReturn(name);
+        if (upgradedInputStream != null) {
+            ConvertableSchema<ConfigSchema> configSchemaConvertableSchema = SchemaLoader.loadConvertableSchemaFromYaml(upgradedInputStream);
+            ConfigSchema configSchemaUpgradedFromV1 = configSchemaConvertableSchema.convert();
+            assertTrue(configSchemaUpgradedFromV1.isValid());
+            assertEquals(configSchemaConvertableSchema, configSchemaUpgradedFromV1);
             ConfigSchema configSchemaFromCurrent = new ConfigSchema(yamlMap);
             List<ProcessorSchema> currentProcessors = configSchemaFromCurrent.getProcessors();
-            List<ProcessorSchema> v1Processors = configSchemaFromV1.getProcessors();
+            List<ProcessorSchema> v1Processors = configSchemaUpgradedFromV1.getProcessors();
             assertEquals(currentProcessors.size(), v1Processors.size());
 
             // V1 doesn't have ids so we need to map the autogenerated ones to the ones from the template
@@ -229,11 +284,11 @@ public class ConfigMainTest {
                 v1IdToCurrentIdMap.put(v1Processor.getId(), currentProcessor.getId());
                 v1Processor.setId(currentProcessor.getId());
             }
-            configSchemaFromV1.getRemoteProcessingGroups().stream().flatMap(g -> g.getInputPorts().stream()).map(RemoteInputPortSchema::getId).sequential()
+            configSchemaUpgradedFromV1.getRemoteProcessingGroups().stream().flatMap(g -> g.getInputPorts().stream()).map(RemoteInputPortSchema::getId).sequential()
                     .forEach(id -> v1IdToCurrentIdMap.put(id, id));
 
             List<ConnectionSchema> currentConnections = configSchemaFromCurrent.getConnections();
-            List<ConnectionSchema> v1Connections = configSchemaFromV1.getConnections();
+            List<ConnectionSchema> v1Connections = configSchemaUpgradedFromV1.getConnections();
 
             // Update source and dest ids, can set connection id equal because it isn't referenced elsewhere
             assertEquals(currentConnections.size(), v1Connections.size());
@@ -245,7 +300,7 @@ public class ConfigMainTest {
                 v1Connection.setSourceId(v1IdToCurrentIdMap.get(v1Connection.getSourceId()));
                 v1Connection.setDestinationId(v1IdToCurrentIdMap.get(v1Connection.getDestinationId()));
             }
-            Map<String, Object> v1YamlMap = configSchemaFromV1.toMap();
+            Map<String, Object> v1YamlMap = configSchemaUpgradedFromV1.toMap();
             assertNoMapDifferences(v1YamlMap, configSchemaFromCurrent.toMap());
         }
     }

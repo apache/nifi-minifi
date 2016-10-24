@@ -42,4 +42,9 @@ public interface Schema {
      * @return a boolean indicating whether the schema is valid
      */
     boolean isValid();
+
+    /**
+     * Clears validation issues
+     */
+    void clearValidationIssues();
 }

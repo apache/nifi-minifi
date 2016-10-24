@@ -64,7 +64,9 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
     public static final String FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES = "Found the following duplicate remote processing group names: ";
     public static final String CANNOT_LOOK_UP_PROCESSOR_ID_FROM_PROCESSOR_NAME_DUE_TO_DUPLICATE_PROCESSOR_NAMES = "Cannot look up Processor id from Processor name due to duplicate Processor names: ";
     public static final int CONFIG_VERSION = 1;
-    public static final String CONNECTIONS_REFER_TO_PROCESSOR_NAMES_THAT_DONT_EXIST = "Connection(s) refer to Processor names that don't exist: ";
+    public static final String CONNECTION_WITH_NAME = "Connection with name ";
+    public static final String HAS_INVALID_DESTINATION_NAME = " has invalid destination name ";
+    public static final String HAS_INVALID_SOURCE_NAME = " has invalid source name ";
     private FlowControllerSchema flowControllerProperties;
     private CorePropertiesSchema coreProperties;
     private FlowFileRepositorySchema flowfileRepositoryProperties;
@@ -109,10 +111,25 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
         addIssuesIfNotNull(connections);
         addIssuesIfNotNull(remoteProcessingGroups);
 
-        checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processors.stream().map(ProcessorSchemaV1::getName).collect(Collectors.toList()));
+        List<String> processorNames = processors.stream().map(ProcessorSchemaV1::getName).collect(Collectors.toList());
+
+        checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_PROCESSOR_NAMES, processorNames);
         checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_CONNECTION_NAMES, connections.stream().map(ConnectionSchemaV1::getName).collect(Collectors.toList()));
         checkForDuplicates(this::addValidationIssue, FOUND_THE_FOLLOWING_DUPLICATE_REMOTE_PROCESSING_GROUP_NAMES, remoteProcessingGroups.stream().map(RemoteProcessingGroupSchema::getName)
                 .collect(Collectors.toList()));
+
+        Set<String> connectableNames = new HashSet<>(processorNames);
+        connectableNames.addAll(remoteProcessingGroups.stream().flatMap(r -> r.getInputPorts().stream()).map(RemoteInputPortSchema::getId).collect(Collectors.toList()));
+        connections.forEach(c -> {
+            String destinationName = c.getDestinationName();
+            if (!StringUtil.isNullOrEmpty(destinationName) && !connectableNames.contains(destinationName)) {
+                addValidationIssue(CONNECTION_WITH_NAME + c.getName() + HAS_INVALID_DESTINATION_NAME + destinationName);
+            }
+            String sourceName = c.getSourceName();
+            if (!StringUtil.isNullOrEmpty(sourceName) && !connectableNames.contains(sourceName)) {
+                addValidationIssue(CONNECTION_WITH_NAME + c.getName() + HAS_INVALID_SOURCE_NAME + sourceName);
+            }
+        });
     }
 
     protected List<ProcessorSchema> getProcessorSchemas() {
@@ -154,7 +171,6 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
         }
 
         Set<String> problematicDuplicateNames = new HashSet<>();
-        Set<String> missingProcessorNames = new HashSet<>();
 
         List<ConnectionSchema> connectionSchemas = new ArrayList<>(connections.size());
         for (ConnectionSchemaV1 connection : connections) {
@@ -169,9 +185,7 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
                     problematicDuplicateNames.add(sourceName);
                 }
                 String sourceId = processorNameToIdMap.get(sourceName);
-                if (StringUtil.isNullOrEmpty(sourceId)) {
-                    missingProcessorNames.add(sourceName);
-                } else {
+                if (!StringUtil.isNullOrEmpty(sourceId)) {
                     convert.setSourceId(sourceId);
                 }
             }
@@ -184,9 +198,7 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
                     problematicDuplicateNames.add(destinationName);
                 }
                 String destinationId = processorNameToIdMap.get(destinationName);
-                if (StringUtil.isNullOrEmpty(destinationId)) {
-                    missingProcessorNames.add(destinationName);
-                } else {
+                if (!StringUtil.isNullOrEmpty(destinationId)) {
                     convert.setDestinationId(destinationId);
                 }
             }
@@ -196,9 +208,6 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
         if (problematicDuplicateNames.size() > 0) {
             validationIssues.add(CANNOT_LOOK_UP_PROCESSOR_ID_FROM_PROCESSOR_NAME_DUE_TO_DUPLICATE_PROCESSOR_NAMES
                     + problematicDuplicateNames.stream().collect(Collectors.joining(", ")));
-        }
-        if (missingProcessorNames.size() > 0) {
-            validationIssues.add(CONNECTIONS_REFER_TO_PROCESSOR_NAMES_THAT_DONT_EXIST + missingProcessorNames.stream().sorted().collect(Collectors.joining(", ")));
         }
         return connectionSchemas;
     }

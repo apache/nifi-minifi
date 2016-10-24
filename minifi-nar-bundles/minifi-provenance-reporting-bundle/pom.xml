@@ -25,9 +25,16 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>minifi-provenance-reporting-task</module>
         <module>minifi-provenance-reporting-nar</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-site-to-site-reporting-task</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>

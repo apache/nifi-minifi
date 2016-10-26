@@ -203,6 +203,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return provenanceRepositorySchema;
     }
 
+    @Override
     public int getVersion() {
         return CONFIG_VERSION;
     }

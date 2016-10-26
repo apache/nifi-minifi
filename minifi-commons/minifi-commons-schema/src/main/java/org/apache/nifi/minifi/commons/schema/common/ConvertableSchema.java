@@ -30,4 +30,11 @@ public interface ConvertableSchema<T extends Schema> extends Schema {
      * @return the converted instance
      */
     T convert();
+
+    /**
+     * Returns the version of this Schema before conversion.
+     *
+     * @return the version of this Schema before conversion.
+     */
+    int getVersion();
 }

@@ -96,4 +96,9 @@ public class ConnectionSchemaV1 extends BaseSchema implements ConvertableSchema<
     public String getName() {
         return name;
     }
+
+    @Override
+    public int getVersion() {
+        return ConfigSchemaV1.CONFIG_VERSION;
+    }
 }

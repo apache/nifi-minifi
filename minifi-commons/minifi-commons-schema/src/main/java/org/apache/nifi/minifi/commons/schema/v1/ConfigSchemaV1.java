@@ -256,6 +256,7 @@ public class ConfigSchemaV1 extends BaseSchema implements ConvertableSchema<Conf
         return id;
     }
 
+    @Override
     public int getVersion() {
         return CONFIG_VERSION;
     }

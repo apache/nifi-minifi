@@ -66,9 +66,9 @@ public class ConfigMain {
     public static final String TRANSFORM = "transform";
     public static final String VALIDATE = "validate";
     public static final String UPGRADE = "upgrade";
-    public static final String NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE = "No validation errors found in template.";
-    public static final String FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION = "Found the following errors when parsing the template according to its version:";
-    public static final String WHEN_CONVERTING_TO_LATEST_VERSION_FOUND_THE_FOLLOWING_ERRORS = "When converting to latest version, found the following errors:";
+    public static final String NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION = "No validation errors found in converted configuration.";
+    public static final String FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION = "Found the following errors when parsing the template according to its version ";
+    public static final String FOUND_THE_FOLLOWING_ERRORS_WHEN_CONVERTING_TO_LATEST_VERSION = "Found the following errors when converting to latest version ";
 
     private final Map<String, Command> commandMap;
     private final PathInputStreamFactory pathInputStreamFactory;
@@ -105,7 +105,7 @@ public class ConfigMain {
                 ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream);
                 boolean valid = true;
                 if (!configSchema.isValid()) {
-                    System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION);
+                    System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION + "(" + configSchema.getVersion() + "):");
                     configSchema.getValidationIssues().forEach(s -> System.out.println(s));
                     System.out.println();
                     valid = false;
@@ -114,14 +114,14 @@ public class ConfigMain {
 
                 ConfigSchema currentSchema = configSchema.convert();
                 if (!currentSchema.isValid()) {
-                    System.out.println(WHEN_CONVERTING_TO_LATEST_VERSION_FOUND_THE_FOLLOWING_ERRORS);
+                    System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_CONVERTING_TO_LATEST_VERSION + "(" + ConfigSchema.CONFIG_VERSION + "):");
                     currentSchema.getValidationIssues().forEach(s -> System.out.println(s));
                     System.out.println();
                     valid = false;
                 }
 
                 if (valid) {
-                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
+                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION);
                     return SUCCESS;
                 } else {
                     return ERR_INVALID_CONFIG;
@@ -262,6 +262,7 @@ public class ConfigMain {
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
                 configSchema = SchemaLoader.loadConfigSchemaFromYaml(inputStream);
+                validateAndPrintIssues(configSchema);
             } catch (IOException|SchemaLoaderException e) {
                 return handleErrorLoadingConfiguration(e, ConfigMain::printUgradeUsage);
             }
@@ -296,15 +297,7 @@ public class ConfigMain {
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
                 configSchema = transformTemplateToSchema(inputStream);
-                if (!configSchema.isValid()) {
-                    System.out.println("There are validation errors with the template, still outputting YAML but it will need to be edited.");
-                    for (String s : configSchema.getValidationIssues()) {
-                        System.out.println(s);
-                    }
-                    System.out.println();
-                } else {
-                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_TEMPLATE);
-                }
+                validateAndPrintIssues(configSchema);
             } catch (JAXBException e) {
                 System.out.println("Error reading template. (" + e + ")");
                 System.out.println();
@@ -334,6 +327,16 @@ public class ConfigMain {
         }
 
         return SUCCESS;
+    }
+
+    protected void validateAndPrintIssues(ConfigSchema configSchema) {
+        if (!configSchema.isValid()) {
+            System.out.println("There are validation errors with the template, still outputting YAML but it will need to be edited.");
+            configSchema.getValidationIssues().forEach(System.out::println);
+            System.out.println();
+        } else {
+            System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION);
+        }
     }
 
     protected void handleErrorClosingOutput(IOException e) {

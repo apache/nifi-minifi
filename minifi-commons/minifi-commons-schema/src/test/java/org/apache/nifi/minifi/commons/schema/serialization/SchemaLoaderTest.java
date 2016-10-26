@@ -31,6 +31,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SchemaLoaderTest {
     @Test
@@ -61,6 +62,18 @@ public class SchemaLoaderTest {
         yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
         ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
         validateMinimalConfigVersion1Parse(configSchema);
+    }
+
+    @Test
+    public void testUnsupportedVersion() throws IOException, SchemaLoaderException {
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v2.yml"));
+        yamlAsMap.put(ConfigSchema.VERSION, "9999999");
+        try {
+            SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+            fail();
+        } catch (SchemaLoaderException e) {
+            assertEquals("YAML configuration version 9999999 not supported.  Supported versions: 1, 2", e.getMessage());
+        }
     }
 
     private void validateMinimalConfigVersion1Parse(ConfigSchema configSchema) {

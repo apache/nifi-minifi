@@ -62,6 +62,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
@@ -77,6 +81,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <p>
@@ -985,7 +990,14 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         }
 
         final String libFilename = replaceNull(props.get("lib.dir"), "./lib").trim();
-        File libDir = getFile(libFilename, workingDir);
+        final String bootstrapLibDirectory = "./lib/bootstrap";
+
+        final File bootstrapLibDir = getFile(bootstrapLibDirectory, workingDir);
+        final File libDir = getFile(libFilename, workingDir);
+
+        final List<File> classpathDirectories = new ArrayList<>(2);
+        classpathDirectories.add(bootstrapLibDir);
+        classpathDirectories.add(libDir);
 
         final String confFilename = replaceNull(props.get(CONF_DIR_KEY), "./conf").trim();
         File confDir = getFile(confFilename, workingDir);
@@ -1011,14 +1023,18 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             }
         }
 
-        final File[] libFiles = libDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(final File dir, final String filename) {
-                return filename.toLowerCase().endsWith(".jar");
-            }
-        });
+        final List<File> libFiles = classpathDirectories
+                .stream()
+                .flatMap(new Function<File, Stream<File>>() {
+                    @Override
+                    public Stream<File> apply(File file) {
+                        return Arrays.stream(file.listFiles((dir, name) -> {
+                            return name.toLowerCase().endsWith(".jar");
+                        }));
+                    }
+                }).collect(Collectors.toList());
 
-        if (libFiles == null || libFiles.length == 0) {
+        if (libFiles == null || libFiles.size() == 0) {
             throw new RuntimeException("Could not find lib directory at " + libDir.getAbsolutePath());
         }
 
@@ -1027,7 +1043,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             throw new RuntimeException("Could not find conf directory at " + confDir.getAbsolutePath());
         }
 
-        final List<String> cpFiles = new ArrayList<>(confFiles.length + libFiles.length);
+        final List<String> cpFiles = new ArrayList<>(confFiles.length + libFiles.size());
         cpFiles.add(confDir.getAbsolutePath());
         for (final File file : libFiles) {
             cpFiles.add(file.getAbsolutePath());

@@ -76,6 +76,8 @@
                 <include>javax.servlet-api</include>
                 <include>commons-io</include>
                 <include>okhttp</include>
+                <include>bcprov-jdk15on</include>
+                <include>bcpkix-jdk15on</include>
             </includes>
         </dependencySet>
 

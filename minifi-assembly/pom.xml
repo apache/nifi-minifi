@@ -156,13 +156,15 @@ limitations under the License.
             <artifactId>nifi-framework-core-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-standard-services-api-nar</artifactId>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-standard-services-api-nar</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-ssl-context-service-nar</artifactId>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-ssl-context-service-nar</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
         <dependency>
@@ -179,6 +181,12 @@ limitations under the License.
         </dependency>
 
         <!-- Provided in NiFi so must include here too -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.54</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>

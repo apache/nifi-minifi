@@ -22,8 +22,6 @@ import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -35,11 +33,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SchemaLoader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchemaLoader.class);
     private static final Map<String, Function<Map, ConvertableSchema<ConfigSchema>>> configSchemaFactories = initConfigSchemaFactories();
 
     private static Map<String, Function<Map, ConvertableSchema<ConfigSchema>>> initConfigSchemaFactories() {
         Map<String, Function<Map, ConvertableSchema<ConfigSchema>>> result = new HashMap<>();
+        result.put(String.valueOf((Object) null), ConfigSchemaV1::new);
+        result.put("", ConfigSchemaV1::new);
         result.put(Integer.toString(ConfigSchemaV1.CONFIG_VERSION), ConfigSchemaV1::new);
         result.put(Integer.toString(ConfigSchema.CONFIG_VERSION), ConfigSchema::new);
         return result;
@@ -80,31 +79,10 @@ public class SchemaLoader {
 
     public static ConvertableSchema<ConfigSchema> loadConvertableSchemaFromYaml(Map<String, Object> yamlAsMap) throws SchemaLoaderException {
         String version = String.valueOf(yamlAsMap.get(ConfigSchema.VERSION));
-        if (StringUtil.isNullOrEmpty(version) || String.valueOf((Object) null).equals(version)) {
-            try {
-                ConfigSchema currentLoad = new ConfigSchema(yamlAsMap);
-                ConfigSchemaV1 configSchemaV1 = new ConfigSchemaV1(yamlAsMap);
-                if (currentLoad.getValidationIssues().size() < configSchemaV1.getValidationIssues().size()) {
-                    LOGGER.info(ConfigSchema.VERSION + " property missing.  Using version " + currentLoad.getVersion()
-                            + " because it has fewer issues than version " + configSchemaV1.getVersion() + ".");
-                    return currentLoad;
-                } else if (currentLoad.getValidationIssues().size() > configSchemaV1.getValidationIssues().size()) {
-                    LOGGER.info(ConfigSchema.VERSION + " property missing.  Using version " + configSchemaV1.getVersion()
-                            + " because it has fewer issues than version " + currentLoad.getVersion() + ".");
-                    return configSchemaV1;
-                } else {
-                    LOGGER.info(ConfigSchema.VERSION + " property missing.  Using version " + currentLoad.getVersion()
-                            + " even though it has the same number of issues as version " + configSchemaV1.getVersion() + ".");
-                    return currentLoad;
-                }
-            } catch (Exception e) {
-                LOGGER.debug("Unable to load without " + ConfigSchema.VERSION + ".  While older schemas could have validation errors, we don't expect exceptions here.", e);
-            }
-        }
         Function<Map, ConvertableSchema<ConfigSchema>> schemaFactory = configSchemaFactories.get(version);
         if (schemaFactory == null) {
             throw new SchemaLoaderException("YAML configuration version " + version + " not supported.  Supported versions: "
-                    + configSchemaFactories.keySet().stream().sorted().collect(Collectors.joining(", ")));
+                    + configSchemaFactories.keySet().stream().filter(s -> !StringUtil.isNullOrEmpty(s) && !String.valueOf((Object) null).equals(s)).sorted().collect(Collectors.joining(", ")));
         }
         return schemaFactory.apply(yamlAsMap);
     }

@@ -20,9 +20,9 @@ package org.apache.nifi.minifi.toolkit.configuration;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
+import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaSaver;
-import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.toolkit.configuration.dto.ConfigSchemaFunction;
 import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -102,30 +103,14 @@ public class ConfigMain {
         }
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
-                ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream);
-                boolean valid = true;
-                if (!configSchema.isValid()) {
-                    System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION + "(" + configSchema.getVersion() + "):");
-                    configSchema.getValidationIssues().forEach(s -> System.out.println(s));
-                    System.out.println();
-                    valid = false;
-                    configSchema.clearValidationIssues();
-                }
-
-                ConfigSchema currentSchema = configSchema.convert();
-                if (!currentSchema.isValid()) {
-                    System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_CONVERTING_TO_LATEST_VERSION + "(" + ConfigSchema.CONFIG_VERSION + "):");
-                    currentSchema.getValidationIssues().forEach(s -> System.out.println(s));
-                    System.out.println();
-                    valid = false;
-                }
-
-                if (valid) {
-                    System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION);
-                    return SUCCESS;
-                } else {
-                    return ERR_INVALID_CONFIG;
-                }
+                return loadAndPrintValidationErrors(inputStream, (configSchema, valid) -> {
+                    if (valid) {
+                        System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION);
+                        return SUCCESS;
+                    } else {
+                        return ERR_INVALID_CONFIG;
+                    }
+                });
             } catch (IOException|SchemaLoaderException e) {
                 return handleErrorLoadingConfiguration(e, ConfigMain::printValidateUsage);
             }
@@ -144,7 +129,7 @@ public class ConfigMain {
         System.out.println();
     }
 
-    public static void printUgradeUsage() {
+    public static void printUpgradeUsage() {
         System.out.println("Upgrade Usage:");
         System.out.println();
         System.out.println(" upgrade INPUT_FILE OUTPUT_FILE");
@@ -254,37 +239,65 @@ public class ConfigMain {
 
     public int upgrade(String[] args) {
         if (args.length != 3) {
-            printUgradeUsage();
+            printUpgradeUsage();
             return ERR_INVALID_ARGS;
         }
 
-        ConfigSchema configSchema = null;
+        ConfigSchema currentSchema = null;
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
-                configSchema = SchemaLoader.loadConfigSchemaFromYaml(inputStream);
-                validateAndPrintIssues(configSchema);
+                currentSchema = loadAndPrintValidationErrors(inputStream, (configSchema, valid) -> {
+                    if (!valid) {
+                        System.out.println("There are validation errors with the template, still outputting YAML but it will need to be edited.");
+                        System.out.println();
+                    } else {
+                        System.out.println(NO_VALIDATION_ERRORS_FOUND_IN_CONVERTED_CONFIGURATION);
+                    }
+                    return configSchema;
+                });
             } catch (IOException|SchemaLoaderException e) {
-                return handleErrorLoadingConfiguration(e, ConfigMain::printUgradeUsage);
+                return handleErrorLoadingConfiguration(e, ConfigMain::printUpgradeUsage);
             }
         } catch (FileNotFoundException e) {
-            return handleErrorOpeningInput(args[1], ConfigMain::printUgradeUsage, e);
+            return handleErrorOpeningInput(args[1], ConfigMain::printUpgradeUsage, e);
         } catch (IOException e) {
             handleErrorClosingInput(e);
         }
 
         try (OutputStream fileOutputStream = pathOutputStreamFactory.create(args[2])) {
             try {
-                SchemaSaver.saveConfigSchema(configSchema, fileOutputStream);
+                SchemaSaver.saveConfigSchema(currentSchema, fileOutputStream);
             } catch (IOException e) {
                 return handleErrorSavingCofiguration(e);
             }
         } catch (FileNotFoundException e) {
-            return handleErrorOpeningOutput(args[2], ConfigMain::printUgradeUsage, e);
+            return handleErrorOpeningOutput(args[2], ConfigMain::printUpgradeUsage, e);
         } catch (IOException e) {
             handleErrorClosingOutput(e);
         }
 
         return SUCCESS;
+    }
+
+    public <T> T loadAndPrintValidationErrors(InputStream inputStream, BiFunction<ConfigSchema, Boolean, T> resultHandler) throws IOException, SchemaLoaderException {
+        ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream);
+        boolean valid = true;
+        if (!configSchema.isValid()) {
+            System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_PARSING_THE_TEMPLATE_ACCORDING_TO_ITS_VERSION + "(" + configSchema.getVersion() + "):");
+            configSchema.getValidationIssues().forEach(s -> System.out.println(s));
+            System.out.println();
+            valid = false;
+            configSchema.clearValidationIssues();
+        }
+
+        ConfigSchema currentSchema = configSchema.convert();
+        if (!currentSchema.isValid()) {
+            System.out.println(FOUND_THE_FOLLOWING_ERRORS_WHEN_CONVERTING_TO_LATEST_VERSION + "(" + ConfigSchema.CONFIG_VERSION + "):");
+            currentSchema.getValidationIssues().forEach(s -> System.out.println(s));
+            System.out.println();
+            valid = false;
+        }
+        return resultHandler.apply(currentSchema, valid);
     }
 
     public int transform(String[] args) {

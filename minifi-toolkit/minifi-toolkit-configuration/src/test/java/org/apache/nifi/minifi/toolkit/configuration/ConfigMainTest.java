@@ -119,6 +119,13 @@ public class ConfigMainTest {
     }
 
     @Test
+    public void testValidateV1Success() throws FileNotFoundException {
+        when(pathInputStreamFactory.create(testInput)).thenAnswer(invocation ->
+                ConfigMainTest.class.getClassLoader().getResourceAsStream("config-v1.yml"));
+        assertEquals(SUCCESS, configMain.execute(new String[]{ConfigMain.VALIDATE, testInput}));
+    }
+
+    @Test
     public void testTransformErrorOpeningInput() throws FileNotFoundException {
         when(pathInputStreamFactory.create(testInput)).thenThrow(new FileNotFoundException());
         assertEquals(ConfigMain.ERR_UNABLE_TO_OPEN_INPUT, configMain.execute(new String[]{ConfigMain.TRANSFORM, testInput, testOutput}));

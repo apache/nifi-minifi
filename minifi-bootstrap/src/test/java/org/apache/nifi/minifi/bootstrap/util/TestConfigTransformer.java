@@ -50,6 +50,23 @@ public class TestConfigTransformer {
     }
 
     @Test
+    public void doesTransformV1File() throws Exception {
+        ConfigTransformer.transformConfigFile("./src/test/resources/config-v1.yml", "./target/");
+        File nifiPropertiesFile = new File("./target/nifi.properties");
+
+        assertTrue(nifiPropertiesFile.exists());
+        assertTrue(nifiPropertiesFile.canRead());
+
+        nifiPropertiesFile.deleteOnExit();
+
+        File flowXml = new File("./target/flow.xml.gz");
+        assertTrue(flowXml.exists());
+        assertTrue(flowXml.canRead());
+
+        flowXml.deleteOnExit();
+    }
+
+    @Test
     public void doesTransformInputStream() throws Exception {
         File inputFile = new File("./src/test/resources/config.yml");
         ConfigTransformer.transformConfigFile(new FileInputStream(inputFile), "./target/");

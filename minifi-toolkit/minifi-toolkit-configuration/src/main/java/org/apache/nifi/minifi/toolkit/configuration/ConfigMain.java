@@ -28,6 +28,7 @@ import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
 import org.apache.nifi.web.api.dto.NiFiComponentDTO;
+import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupContentsDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
@@ -50,6 +51,8 @@ import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.apache.nifi.minifi.commons.schema.common.CollectionUtil.nullToEmpty;
 
 public class ConfigMain {
     public static final int ERR_INVALID_ARGS = 1;
@@ -134,9 +137,7 @@ public class ConfigMain {
         System.out.println();
     }
 
-    private static void enrichTemplateDTO(TemplateDTO templateDTO) {
-        FlowSnippetDTO flowSnippetDTO = templateDTO.getSnippet();
-
+    private static void enrichFlowSnippetDTO(FlowSnippetDTO flowSnippetDTO) {
         Set<RemoteProcessGroupDTO> remoteProcessGroups = flowSnippetDTO.getRemoteProcessGroups();
         if (remoteProcessGroups != null) {
             for (RemoteProcessGroupDTO remoteProcessGroupDTO : remoteProcessGroups) {
@@ -148,18 +149,15 @@ public class ConfigMain {
         Set<ConnectionDTO> connections = flowSnippetDTO.getConnections();
         if (connections != null) {
             Map<String, String> connectableNameMap = new HashMap<>();
-            Set<ProcessorDTO> processorDTOs = flowSnippetDTO.getProcessors();
-            if (processorDTOs != null) {
-                connectableNameMap.putAll(processorDTOs.stream().collect(Collectors.toMap(NiFiComponentDTO::getId, ProcessorDTO::getName)));
+
+            connectableNameMap.putAll(nullToEmpty(flowSnippetDTO.getProcessors()).stream().collect(Collectors.toMap(NiFiComponentDTO::getId, ProcessorDTO::getName)));
+
+            for (RemoteProcessGroupDTO remoteProcessGroupDTO : nullToEmpty(remoteProcessGroups)) {
+                RemoteProcessGroupContentsDTO contents = remoteProcessGroupDTO.getContents();
+                addRemoteProcessGroupPortDTOs(connectableNameMap, contents.getInputPorts());
+                addRemoteProcessGroupPortDTOs(connectableNameMap, contents.getOutputPorts());
             }
 
-            if (remoteProcessGroups != null) {
-                for (RemoteProcessGroupDTO remoteProcessGroupDTO : remoteProcessGroups) {
-                    RemoteProcessGroupContentsDTO contents = remoteProcessGroupDTO.getContents();
-                    addRemoteProcessGroupPortDTOs(connectableNameMap, contents.getInputPorts());
-                    addRemoteProcessGroupPortDTOs(connectableNameMap, contents.getOutputPorts());
-                }
-            }
             for (ConnectionDTO connection : connections) {
                 setName(connectableNameMap, connection.getSource());
                 setName(connectableNameMap, connection.getDestination());
@@ -184,30 +182,23 @@ public class ConfigMain {
                 }
             }
         }
+        nullToEmpty(flowSnippetDTO.getProcessGroups()).stream().map(ProcessGroupDTO::getContents).forEach(ConfigMain::enrichFlowSnippetDTO);
     }
 
-    public static ConfigSchema transformTemplateToSchema(InputStream source) throws JAXBException, SchemaLoaderException {
-        TemplateDTO templateDTO = (TemplateDTO) JAXBContext.newInstance(TemplateDTO.class).createUnmarshaller().unmarshal(source);
+    public static ConfigSchema transformTemplateToSchema(InputStream source) throws JAXBException, IOException, SchemaLoaderException {
+        try {
+            TemplateDTO templateDTO = (TemplateDTO) JAXBContext.newInstance(TemplateDTO.class).createUnmarshaller().unmarshal(source);
 
-        if (templateDTO.getSnippet().getProcessGroups().size() != 0){
-            throw new SchemaLoaderException("Process Groups are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            if (templateDTO.getSnippet().getFunnels().size() != 0){
+                throw new SchemaLoaderException("Funnels are not currently supported in MiNiFi. Please remove any from the template and try again.");
+            }
+
+            enrichFlowSnippetDTO(templateDTO.getSnippet());
+            ConfigSchema configSchema = new ConfigSchemaFunction().apply(templateDTO);
+            return configSchema;
+        } finally {
+            source.close();
         }
-
-        if (templateDTO.getSnippet().getOutputPorts().size() != 0){
-            throw new SchemaLoaderException("Output Ports are not currently supported in MiNiFi. Please remove any from the template and try again.");
-        }
-
-        if (templateDTO.getSnippet().getInputPorts().size() != 0){
-            throw new SchemaLoaderException("Input Ports are not currently supported in MiNiFi. Please remove any from the template and try again.");
-        }
-
-        if (templateDTO.getSnippet().getFunnels().size() != 0){
-            throw new SchemaLoaderException("Funnels are not currently supported in MiNiFi. Please remove any from the template and try again.");
-        }
-
-        enrichTemplateDTO(templateDTO);
-        ConfigSchema configSchema = new ConfigSchemaFunction().apply(templateDTO);
-        return configSchema;
     }
 
     private static void setName(Map<String, String> connectableNameMap, ConnectableDTO connectableDTO) {

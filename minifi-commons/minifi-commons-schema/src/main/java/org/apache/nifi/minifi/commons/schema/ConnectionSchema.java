@@ -56,6 +56,7 @@ public class ConnectionSchema extends BaseSchemaWithIdAndName {
         sourceId = getOptionalKeyAsType(map, SOURCE_ID_KEY, String.class, wrapperName, "");
         destinationId = getOptionalKeyAsType(map, DESTINATION_ID_KEY, String.class, wrapperName, "");
 
+        // This could be empty if the source is a port.
         sourceRelationshipNames = getOptionalKeyAsType(map, SOURCE_RELATIONSHIP_NAMES_KEY, List.class, wrapperName, new ArrayList<>());
         maxWorkQueueSize = getOptionalKeyAsType(map, MAX_WORK_QUEUE_SIZE_KEY, Number.class, wrapperName, DEFAULT_MAX_WORK_QUEUE_SIZE);
         maxWorkQueueDataSize = getOptionalKeyAsType(map, MAX_WORK_QUEUE_DATA_SIZE_KEY, String.class, wrapperName, DEFAULT_MAX_QUEUE_DATA_SIZE);

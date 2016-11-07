@@ -408,16 +408,16 @@ Process Groups                      | The child Process Groups contained in this
 
 ## Input Ports
 
-These ports provide input to the Process Group they reside on.
+These ports provide input to the Process Group they reside on. (Currently only for internal Input ports.)
 
 *Property*               | *Description*
 --------------------     | -------------
 name                     | The name of what this input port will do.
 id                       | The id of this input port.  This needs to be set to a unique filesystem-friendly value (regex: [A-Za-z0-9_-]+)
 
-## Input Ports
+## Output Ports
 
-These ports provide output from the Process Group they reside on.
+These ports provide output from the Process Group they reside on. (Currently only for internal Output ports.)
 
 *Property*               | *Description*
 --------------------     | -------------

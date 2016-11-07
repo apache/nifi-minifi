@@ -48,7 +48,7 @@ public class RemoteProcessingGroupSchema extends BaseSchema implements WritableS
 
     public RemoteProcessingGroupSchema(Map map) {
         name = getRequiredKeyAsType(map, NAME_KEY, String.class, REMOTE_PROCESSING_GROUPS_KEY);
-        String wrapperName = "RemoteProcessingGroup(name: {name})".replace("{name}", StringUtil.isNullOrEmpty(name) ? "unknown" : name);
+        String wrapperName = new StringBuilder("RemoteProcessingGroup(name: ").append(StringUtil.isNullOrEmpty(name) ? "unknown" : name).append(")").toString();
         url = getRequiredKeyAsType(map, URL_KEY, String.class, wrapperName);
         inputPorts = convertListToType(getRequiredKeyAsType(map, INPUT_PORTS_KEY, List.class, wrapperName), "input port", RemoteInputPortSchema.class, INPUT_PORTS_KEY);
         if (inputPorts != null) {

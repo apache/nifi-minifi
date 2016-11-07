@@ -154,7 +154,7 @@ Process Groups:
       flowfile expiration: 0 sec
       queue prioritizer class: ''
     - id: 207ad5e9-0158-1000-0000-000000000000
-      name: UpdateAttribute/success/null
+      name: UpdateAttribute/success/output
       source id: 207a89ba-0158-1000-0000-000000000000
       source relationship names:
       - success
@@ -164,7 +164,7 @@ Process Groups:
       flowfile expiration: 0 sec
       queue prioritizer class: ''
     - id: 207aca0d-0158-1000-0000-000000000000
-      name: null//UpdateAttribute
+      name: input//UpdateAttribute
       source id: 207a5f50-0158-1000-0000-000000000000
       source relationship names: []
       destination id: 207a89ba-0158-1000-0000-000000000000
@@ -202,7 +202,7 @@ Process Groups:
     flowfile expiration: 0 sec
     queue prioritizer class: ''
   - id: 207b0eb1-0158-1000-0000-000000000000
-    name: UpdateAttribute/success/null
+    name: UpdateAttribute/success/input
     source id: 2078f34e-0158-1000-0000-000000000000
     source relationship names:
     - success
@@ -212,7 +212,7 @@ Process Groups:
     flowfile expiration: 0 sec
     queue prioritizer class: ''
   - id: 20792ec2-0158-1000-0000-000000000000
-    name: null//UpdateAttribute
+    name: input//UpdateAttribute
     source id: 2078c936-0158-1000-0000-000000000000
     source relationship names: []
     destination id: 2078f34e-0158-1000-0000-000000000000
@@ -221,7 +221,7 @@ Process Groups:
     flowfile expiration: 0 sec
     queue prioritizer class: ''
   - id: 207b1880-0158-1000-0000-000000000000
-    name: null//null
+    name: output//output
     source id: 207a6d92-0158-1000-0000-000000000000
     source relationship names: []
     destination id: 2079b327-0158-1000-0000-000000000000
@@ -255,7 +255,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: ''
 - id: 2079cf6f-0158-1000-0000-000000000000
-  name: UpdateAttribute/success/null
+  name: UpdateAttribute/success/input
   source id: 2077ab1e-0158-1000-0000-000000000000
   source relationship names:
   - success
@@ -265,7 +265,7 @@ Connections:
   flowfile expiration: 0 sec
   queue prioritizer class: ''
 - id: 2079faa0-0158-1000-0000-000000000000
-  name: null//LogAttribute
+  name: output//LogAttribute
   source id: 2079b327-0158-1000-0000-000000000000
   source relationship names: []
   destination id: 2079e8bd-0158-1000-0000-000000000000

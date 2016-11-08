@@ -52,9 +52,6 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
 
     public ProcessGroupSchema(Map map, String wrapperName) {
         super(map, wrapperName);
-        if (!ConfigSchema.TOP_LEVEL_NAME.equals(wrapperName) && ID_DEFAULT.equals(getId())) {
-            addValidationIssue(ID_KEY, wrapperName, "must be set to a value not " + ID_DEFAULT + " if not in root group");
-        }
 
         processors = getOptionalKeyAsList(map, PROCESSORS_KEY, ProcessorSchema::new, wrapperName);
         remoteProcessingGroups = getOptionalKeyAsList(map, REMOTE_PROCESSING_GROUPS_KEY, RemoteProcessingGroupSchema::new, wrapperName);
@@ -62,6 +59,17 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
         inputPortSchemas = getOptionalKeyAsList(map, INPUT_PORTS_KEY, m -> new PortSchema(m, "InputPort(id: {id}, name: {name})"), wrapperName);
         outputPortSchemas = getOptionalKeyAsList(map, OUTPUT_PORTS_KEY, m -> new PortSchema(m, "OutputPort(id: {id}, name: {name})"), wrapperName);
         processGroupSchemas = getOptionalKeyAsList(map, PROCESS_GROUPS_KEY, m -> new ProcessGroupSchema(m, "ProcessGroup(id: {id}, name: {name})"), wrapperName);
+
+        if (ConfigSchema.TOP_LEVEL_NAME.equals(wrapperName)) {
+            if (inputPortSchemas.size() > 0) {
+                addValidationIssue(INPUT_PORTS_KEY, wrapperName, "must be empty in root group as external input/output ports are currently unsupported");
+            }
+            if (outputPortSchemas.size() > 0) {
+                addValidationIssue(OUTPUT_PORTS_KEY, wrapperName, "must be empty in root group as external input/output ports are currently unsupported");
+            }
+        } else if (ID_DEFAULT.equals(getId())) {
+            addValidationIssue(ID_KEY, wrapperName, "must be set to a value not " + ID_DEFAULT + " if not in root group");
+        }
 
         Set<String> portIds = getPortIds();
         connections.stream().filter(c -> portIds.contains(c.getSourceId())).forEachOrdered(c -> c.setNeedsSourceRelationships(false));

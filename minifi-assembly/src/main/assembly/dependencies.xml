@@ -35,7 +35,6 @@
             <excludes>
             	<exclude>minifi-bootstrap</exclude>
                 <exclude>minifi-resources</exclude>
-                <exclude>bcprov-jdk15on</exclude>
                 <!-- Filter items introduced via transitive dependencies that are provided in associated NARs -->
                 <exclude>spring-aop</exclude>
                 <exclude>zookeeper</exclude>
@@ -51,13 +50,6 @@
                 <exclude>mail</exclude>
                 <exclude>log4j</exclude>
                 <exclude>lucene-analyzers-common</exclude>
-                <exclude>nifi-utils</exclude>
-                <exclude>logback-classic</exclude>
-                <exclude>logback-core</exclude>
-                <exclude>jetty-server</exclude>
-                <exclude>jetty-util</exclude>
-                <exclude>jetty-http</exclude>
-                <exclude>jetty-io</exclude>
                 <exclude>lucene-queryparser</exclude>
                 <exclude>commons-net</exclude>
             </excludes>
@@ -73,19 +65,13 @@
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <includes>
             	<include>minifi-bootstrap</include>
-                <include>slf4j-api</include>
-                <include>logback-classic</include>
-                <include>nifi-api</include>
+                <include>minifi-api</include>
+                <include>minifi-commons-schema</include>
+                <include>minifi-utils</include>
+                <include>snakeyaml</include>
                 <include>nifi-utils</include>
-                <include>jetty-server</include>
-                <include>jetty-util</include>
-                <include>jetty-http</include>
-                <include>jetty-io</include>
-                <include>javax.servlet-api</include>
                 <include>commons-io</include>
                 <include>okhttp</include>
-                <include>bcprov-jdk15on</include>
-                <include>bcpkix-jdk15on</include>
             </includes>
         </dependencySet>
 

@@ -203,11 +203,6 @@ limitations under the License.
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jsp</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>javax.servlet.jsp-api</artifactId>
             <scope>compile</scope>

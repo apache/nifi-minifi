@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class WholeConfigDifferentiator {
 
@@ -40,7 +41,8 @@ public abstract class WholeConfigDifferentiator {
 
     boolean compareInputStreamToConfigFile(InputStream inputStream) throws IOException {
         logger.debug("Checking if change is different");
-        ByteBuffer currentConfigFile = configurationFileHolder.getConfigFile();
+        AtomicReference<ByteBuffer> currentConfigFileReference = configurationFileHolder.getConfigFileReference();
+        ByteBuffer currentConfigFile = currentConfigFileReference.get();
         ByteBuffer byteBuffer = ByteBuffer.allocate(currentConfigFile.limit());
         DataInputStream dataInputStream = new DataInputStream(inputStream);
         try {
@@ -71,7 +73,9 @@ public abstract class WholeConfigDifferentiator {
 
     public static class ByteBufferInput extends WholeConfigDifferentiator implements Differentiator<ByteBuffer> {
         public boolean isNew(ByteBuffer inputBuffer) {
-            return inputBuffer.compareTo(configurationFileHolder.getConfigFile()) != 0;
+            AtomicReference<ByteBuffer> currentConfigFileReference = configurationFileHolder.getConfigFileReference();
+            ByteBuffer currentConfigFile = currentConfigFileReference.get();
+            return inputBuffer.compareTo(currentConfigFile) != 0;
         }
     }
 

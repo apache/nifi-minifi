@@ -17,14 +17,12 @@
 
 package org.apache.nifi.minifi.bootstrap.configuration.ingestors;
 
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.common.TestPullHttpChangeIngestorCommon;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.BeforeClass;
 import org.mockito.Mockito;
 
-import java.nio.ByteBuffer;
 import java.util.Properties;
 
 public class TestPullHttpChangeIngestor extends TestPullHttpChangeIngestorCommon {
@@ -48,9 +46,11 @@ public class TestPullHttpChangeIngestor extends TestPullHttpChangeIngestorCommon
         if (!jetty.isStarted()) {
             throw new IllegalStateException("Jetty server not started");
         }
+    }
 
 
-        Properties properties = new Properties();
+    @Override
+    public void pullHttpChangeIngestorInit(Properties properties) {
         port = ((ServerConnector) jetty.getConnectors()[0]).getLocalPort();
         properties.put(PullHttpChangeIngestor.PORT_KEY, String.valueOf(port));
         properties.put(PullHttpChangeIngestor.HOST_KEY, "localhost");
@@ -58,9 +58,8 @@ public class TestPullHttpChangeIngestor extends TestPullHttpChangeIngestorCommon
 
         pullHttpChangeIngestor = new PullHttpChangeIngestor();
 
-        testNotifier = Mockito.mock(MockConfigurationChangeNotifier.class);
 
-        pullHttpChangeIngestor.initialize(properties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), testNotifier);
+        pullHttpChangeIngestor.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), testNotifier);
         pullHttpChangeIngestor.setDifferentiator(mockDifferentiator);
     }
 }

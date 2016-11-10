@@ -23,7 +23,7 @@
 
 # Automatic Warm-Redeploy
 
-When many MiNiFi agents running on the edge, it may not be possible to manually stop, edit the config.yml and then restart every one every time their configuration needs to change. The Config Change Coordinator and it's Ingestors were designed to automatically redeploy in response to a configuration update.
+When many MiNiFi agents running on the edge, it may not be possible to manually stop, edit the config.yml and then restart every one every time their configuration needs to change. The Config Change Coordinator and its Ingestors were designed to automatically redeploy in response to a configuration update.
 
 The Config Change Ingestors are the means by which the agent is notified of a potential new configuration. Currently there are three:
 
@@ -37,7 +37,7 @@ After a new configuration has been pulled/received the Ingestors use a Different
 
 After a new config is determined to be new, the MiNiFi agent will attempt to restart. The bootstrap first saves the old config into a swap file. The bootstrap monitors the agent as it restarts and if it fails it will roll back to the old config. If it succeeds then the swap file will be deleted and the agent will start processing using the new config.
 
-Note: Data left in connections when the agent attempts to restart will either mapped to a connection with the same ID in the new config, or orphaned and deleted.
+Note: Data left in connections when the agent attempts to restart will either be mapped to a connection with the same ID in the new config, or orphaned and deleted.
 
 The configuration for Warm-Redeploy is done in the bootstrap.conf and primarily revolve around the Config Change Ingestors. The configuration in the bootstrap.conf is done using the "nifi.minifi.notifier.ingestors" key followed by the full path name of the desired Ingestor implementation to run. Use a comma separated list  to define more than one Ingestor implementation. For example:
 
@@ -104,6 +104,7 @@ Option | Description
 ------ | -----------
 nifi.minifi.notifier.ingestors.pull.http.hostname | Hostname on which to pull configurations from
 nifi.minifi.notifier.ingestors.pull.http.port | Port on which to pull configurations from
+nifi.minifi.notifier.ingestors.pull.http.path | Path on which to pull configurations from
 nifi.minifi.notifier.ingestors.pull.http.period.ms | Period on which to pull configurations from, defaults to 5 minutes if not set.
 nifi.minifi.notifier.ingestors.pull.http.use.etag | If the destination server is set up with cache control ability and utilizes an "ETag" header, then this should be set to true to utilize it. Very simply, the Ingestor remembers the "ETag" of the last successful pull (returned 200) then uses that "ETag" in a "If-None-Match" header on the next request.
 nifi.minifi.notifier.ingestors.pull.http.connect.timeout.ms | Sets the connect timeout for new connections. A value of 0 means no timeout, otherwise values must be a positive whole number in milliseconds.

@@ -17,15 +17,13 @@
 
 package org.apache.nifi.minifi.bootstrap.configuration.ingestors;
 
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.common.TestPullHttpChangeIngestorCommon;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.BeforeClass;
 import org.mockito.Mockito;
 
-import java.nio.ByteBuffer;
 import java.util.Properties;
 
 public class TestPullHttpChangeIngestorSSL extends TestPullHttpChangeIngestorCommon {
@@ -64,8 +62,10 @@ public class TestPullHttpChangeIngestorSSL extends TestPullHttpChangeIngestorCom
         if (!jetty.isStarted()) {
             throw new IllegalStateException("Jetty server not started");
         }
+    }
 
-        Properties properties = new Properties();
+    @Override
+    public void pullHttpChangeIngestorInit(Properties properties) {
         properties.setProperty(PullHttpChangeIngestor.TRUSTSTORE_LOCATION_KEY, "./src/test/resources/localhost-ts.jks");
         properties.setProperty(PullHttpChangeIngestor.TRUSTSTORE_PASSWORD_KEY, "localtest");
         properties.setProperty(PullHttpChangeIngestor.TRUSTSTORE_TYPE_KEY, "JKS");
@@ -78,9 +78,7 @@ public class TestPullHttpChangeIngestorSSL extends TestPullHttpChangeIngestorCom
 
         pullHttpChangeIngestor = new PullHttpChangeIngestor();
 
-        testNotifier = Mockito.mock(MockConfigurationChangeNotifier.class);
-
-        pullHttpChangeIngestor.initialize(properties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), testNotifier);
+        pullHttpChangeIngestor.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), testNotifier);
         pullHttpChangeIngestor.setDifferentiator(mockDifferentiator);
     }
 }

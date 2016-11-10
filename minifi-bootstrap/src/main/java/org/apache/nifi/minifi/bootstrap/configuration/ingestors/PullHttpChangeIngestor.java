@@ -70,6 +70,7 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
     public static final String PULL_HTTP_POLLING_PERIOD_KEY = PULL_HTTP_BASE_KEY + ".period.ms";
     public static final String PORT_KEY = PULL_HTTP_BASE_KEY + ".port";
     public static final String HOST_KEY = PULL_HTTP_BASE_KEY + ".hostname";
+    public static final String PATH_KEY = PULL_HTTP_BASE_KEY + ".path";
     public static final String TRUSTSTORE_LOCATION_KEY = PULL_HTTP_BASE_KEY + ".truststore.location";
     public static final String TRUSTSTORE_PASSWORD_KEY = PULL_HTTP_BASE_KEY + ".truststore.password";
     public static final String TRUSTSTORE_TYPE_KEY = PULL_HTTP_BASE_KEY + ".truststore.type";
@@ -84,6 +85,7 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
     private final AtomicReference<OkHttpClient> httpClientReference = new AtomicReference<>();
     private final AtomicReference<Integer> portReference = new AtomicReference<>();
     private final AtomicReference<String> hostReference = new AtomicReference<>();
+    private final AtomicReference<String> pathReference = new AtomicReference<>();
     private volatile Differentiator<ByteBuffer> differentiator;
     private volatile String connectionScheme;
     private volatile String lastEtag = "";
@@ -107,6 +109,8 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
             throw new IllegalArgumentException("Property, " + HOST_KEY + ", for the hostname to pull configurations from must be specified.");
         }
 
+        final String path = properties.getProperty(PATH_KEY, "/");
+
         final String portString = (String) properties.get(PORT_KEY);
         final Integer port;
         if (portString == null) {
@@ -117,6 +121,7 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
 
         portReference.set(port);
         hostReference.set(host);
+        pathReference.set(path);
 
         final String useEtagString = (String) properties.getOrDefault(USE_ETAG_KEY, "false");
         if ("true".equalsIgnoreCase(useEtagString) || "false".equalsIgnoreCase(useEtagString)){
@@ -173,6 +178,7 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
             final HttpUrl url = new HttpUrl.Builder()
                     .host(hostReference.get())
                     .port(portReference.get())
+                    .encodedPath(pathReference.get())
                     .scheme(connectionScheme)
                     .build();
 

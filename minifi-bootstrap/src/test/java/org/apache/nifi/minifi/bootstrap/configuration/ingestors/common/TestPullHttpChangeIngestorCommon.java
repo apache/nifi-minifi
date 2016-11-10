@@ -17,11 +17,11 @@
 
 package org.apache.nifi.minifi.bootstrap.configuration.ingestors.common;
 
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
 import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
+import org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces.Differentiator;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockChangeListener;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockDifferentiator;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -41,18 +41,23 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Properties;
 
+import static org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor.PATH_KEY;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public abstract class TestPullHttpChangeIngestorCommon {
 
     public static volatile Server jetty;
     public static volatile int port;
     public static volatile PullHttpChangeIngestor pullHttpChangeIngestor;
-    public static ConfigurationChangeNotifier testNotifier;
-    public static MockDifferentiator<ByteBuffer> mockDifferentiator = new MockDifferentiator<>();;
+    public static ConfigurationChangeNotifier testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
+    public static Differentiator<ByteBuffer> mockDifferentiator = Mockito.mock(Differentiator.class);
     public static final String RESPONSE_STRING = "test";
+    public static final String PATH_RESPONSE_STRING = "path";
     public static ByteBuffer configBuffer= ByteBuffer.wrap(RESPONSE_STRING.getBytes());
+    public static ByteBuffer pathConfigBuffer= ByteBuffer.wrap(PATH_RESPONSE_STRING.getBytes());
     public static final String ETAG = "testEtag";
     public static final String QUOTED_ETAG = "\"testEtag\"";
 
@@ -62,14 +67,18 @@ public abstract class TestPullHttpChangeIngestorCommon {
         jetty = new Server(queuedThreadPool);
 
         HandlerCollection handlerCollection = new HandlerCollection(true);
-        handlerCollection.addHandler(new JettyHandler(RESPONSE_STRING));
+        handlerCollection.addHandler(new JettyHandler(RESPONSE_STRING, PATH_RESPONSE_STRING));
         jetty.setHandler(handlerCollection);
     }
+
+    public abstract void pullHttpChangeIngestorInit(Properties properties);
 
     @Before
     public void before() {
         Mockito.reset(testNotifier);
-        Mockito.when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(new MockChangeListener())));
+        ConfigurationChangeListener testListener = Mockito.mock(ConfigurationChangeListener.class);
+        when(testListener.getDescriptor()).thenReturn("MockChangeListener");
+        Mockito.when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(testListener)));
     }
 
     @AfterClass
@@ -78,9 +87,11 @@ public abstract class TestPullHttpChangeIngestorCommon {
     }
 
     @Test
-    public void testNewUpdate(){
+    public void testNewUpdate() throws IOException {
+        Properties properties = new Properties();
+        pullHttpChangeIngestorInit(properties);
         pullHttpChangeIngestor.setUseEtag(false);
-        mockDifferentiator.setNew(true);
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(true);
 
         pullHttpChangeIngestor.run();
 
@@ -89,23 +100,26 @@ public abstract class TestPullHttpChangeIngestorCommon {
 
 
     @Test
-    public void testNoUpdate() {
+    public void testNoUpdate() throws IOException {
+        Properties properties = new Properties();
+        pullHttpChangeIngestorInit(properties);
         pullHttpChangeIngestor.setUseEtag(false);
-
-        mockDifferentiator.setNew(false);
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(false);
 
         pullHttpChangeIngestor.run();
 
         verify(testNotifier, Mockito.never()).notifyListeners(Mockito.any());
     }
 
-
     @Test
-    public void testUseEtag() {
+    public void testUseEtag() throws IOException {
+        Properties properties = new Properties();
+        pullHttpChangeIngestorInit(properties);
         pullHttpChangeIngestor.setLastEtag("");
+
         pullHttpChangeIngestor.setUseEtag(true);
 
-        mockDifferentiator.setNew(true);
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(true);
 
         pullHttpChangeIngestor.run();
 
@@ -117,13 +131,62 @@ public abstract class TestPullHttpChangeIngestorCommon {
 
     }
 
+    @Test
+    public void testNewUpdateWithPath() throws IOException {
+        Properties properties = new Properties();
+        properties.put(PATH_KEY, "/config.yml");
+        pullHttpChangeIngestorInit(properties);
+        pullHttpChangeIngestor.setUseEtag(false);
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(true);
+
+        pullHttpChangeIngestor.run();
+
+        verify(testNotifier, Mockito.times(1)).notifyListeners(Mockito.eq(pathConfigBuffer.asReadOnlyBuffer()));
+    }
+
+    @Test
+    public void testNoUpdateWithPath() throws IOException {
+        Properties properties = new Properties();
+        properties.put(PATH_KEY, "/config.yml");
+        pullHttpChangeIngestorInit(properties);
+        pullHttpChangeIngestor.setUseEtag(false);
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(false);
+
+        pullHttpChangeIngestor.run();
+
+        verify(testNotifier, Mockito.never()).notifyListeners(Mockito.any());
+    }
+
+    @Test
+    public void testUseEtagWithPath() throws IOException {
+        Properties properties = new Properties();
+        properties.put(PATH_KEY, "/config.yml");
+        pullHttpChangeIngestorInit(properties);
+        pullHttpChangeIngestor.setLastEtag("");
+
+        pullHttpChangeIngestor.setUseEtag(true);
+
+        when(mockDifferentiator.isNew(Mockito.any(ByteBuffer.class))).thenReturn(true);
+
+        pullHttpChangeIngestor.run();
+
+        verify(testNotifier, Mockito.times(1)).notifyListeners(Mockito.eq(pathConfigBuffer.asReadOnlyBuffer()));
+
+        pullHttpChangeIngestor.run();
+
+        verify(testNotifier, Mockito.times(1)).notifyListeners(Mockito.any());
+
+    }
+
     static class JettyHandler extends AbstractHandler {
         volatile String configResponse;
+        volatile String pathResponse;
 
-
-        public JettyHandler(String configResponse){
+        public JettyHandler(String configResponse, String pathResponse){
             this.configResponse = configResponse;
+            this.pathResponse = pathResponse;
         }
+
 
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -136,8 +199,15 @@ public abstract class TestPullHttpChangeIngestorCommon {
                 if (QUOTED_ETAG.equals(baseRequest.getHeader("If-None-Match"))){
                     writeOutput(response, null, 304);
                 } else {
-                    writeOutput(response, configResponse, 200);
+
+                    if ("/config.yml".equals(baseRequest.getPathInfo())) {
+                        writeOutput(response, pathResponse, 200);
+                    } else {
+                        writeOutput(response, configResponse, 200);
+                    }
                 }
+
+
             } else {
                 writeOutput(response, "not a GET request", 404);
             }

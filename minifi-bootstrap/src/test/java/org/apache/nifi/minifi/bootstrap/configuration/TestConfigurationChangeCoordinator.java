@@ -17,7 +17,7 @@
 
 package org.apache.nifi.minifi.bootstrap.configuration;
 
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +26,8 @@ import org.mockito.Mockito;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 import static org.mockito.Mockito.verify;
@@ -33,6 +35,7 @@ import static org.mockito.Mockito.verify;
 public class TestConfigurationChangeCoordinator {
 
     private ConfigurationChangeCoordinator coordinatorSpy;
+    private Properties properties = new Properties();
 
     @Before
     public void setUp() throws Exception {
@@ -46,17 +49,16 @@ public class TestConfigurationChangeCoordinator {
 
     @Test
     public void testInit() throws Exception {
-        Properties properties = new Properties();
         properties.put("nifi.minifi.notifier.ingestors", "org.apache.nifi.minifi.bootstrap.configuration.ingestors.RestChangeIngestor");
-        coordinatorSpy.initialize(properties, new MockConfigurationFileHolder(ByteBuffer.allocate(0)));
+        final ConfigurationChangeListener testListener = Mockito.mock(ConfigurationChangeListener.class);
+        coordinatorSpy.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), Collections.singleton(testListener));
     }
 
     @Test
     public void testNotifyListeners() throws Exception {
         final ConfigurationChangeListener testListener = Mockito.mock(ConfigurationChangeListener.class);
-        boolean wasRegistered = coordinatorSpy.registerListener(testListener);
+        coordinatorSpy.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), Collections.singleton(testListener));
 
-        Assert.assertTrue("Registration did not correspond to newly added listener", wasRegistered);
         Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 1);
 
         coordinatorSpy.notifyListeners(ByteBuffer.allocate(1));
@@ -67,28 +69,16 @@ public class TestConfigurationChangeCoordinator {
     @Test
     public void testRegisterListener() throws Exception {
         final ConfigurationChangeListener firstListener = Mockito.mock(ConfigurationChangeListener.class);
-        boolean wasRegistered = coordinatorSpy.registerListener(firstListener);
+        coordinatorSpy.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), Collections.singleton(firstListener));
 
-        Assert.assertTrue("Registration did not correspond to newly added listener", wasRegistered);
+        Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 1);
+
+        coordinatorSpy.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), Arrays.asList(firstListener, firstListener));
         Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 1);
 
         final ConfigurationChangeListener secondListener = Mockito.mock(ConfigurationChangeListener.class);
-        wasRegistered = coordinatorSpy.registerListener(secondListener);
+        coordinatorSpy.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), Arrays.asList(firstListener, secondListener));
         Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 2);
 
-    }
-
-    @Test
-    public void testRegisterDuplicateListener() throws Exception {
-        final ConfigurationChangeListener firstListener = Mockito.mock(ConfigurationChangeListener.class);
-        boolean wasRegistered = coordinatorSpy.registerListener(firstListener);
-
-        Assert.assertTrue("Registration did not correspond to newly added listener", wasRegistered);
-        Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 1);
-
-        wasRegistered = coordinatorSpy.registerListener(firstListener);
-
-        Assert.assertEquals("Did not receive the correct number of registered listeners", coordinatorSpy.getChangeListeners().size(), 1);
-        Assert.assertFalse("Registration did not correspond to newly added listener", wasRegistered);
     }
 }

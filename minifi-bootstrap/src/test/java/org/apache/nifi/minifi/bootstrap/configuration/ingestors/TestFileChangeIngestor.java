@@ -31,10 +31,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockDifferentiator;
+import org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces.Differentiator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,14 +47,14 @@ public class TestFileChangeIngestor {
     private FileChangeIngestor notifierSpy;
     private WatchService mockWatchService;
     private Properties testProperties;
-    private MockDifferentiator<InputStream> mockDifferentiator;
+    private Differentiator<InputStream> mockDifferentiator;
     private ConfigurationChangeNotifier testNotifier;
 
     @Before
     public void setUp() throws Exception {
         mockWatchService = Mockito.mock(WatchService.class);
         notifierSpy = Mockito.spy(new FileChangeIngestor());
-        mockDifferentiator = new MockDifferentiator<>();
+        mockDifferentiator = Mockito.mock(Differentiator.class);
         testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
 
         notifierSpy.setConfigFilePath(Paths.get(TEST_CONFIG_PATH));
@@ -76,30 +75,30 @@ public class TestFileChangeIngestor {
     @Test(expected = IllegalStateException.class)
     public void testInitialize_invalidFile() throws Exception {
         testProperties.put(FileChangeIngestor.CONFIG_FILE_PATH_KEY, "/land/of/make/believe");
-        notifierSpy.initialize(testProperties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), new MockConfigurationChangeNotifier());
+        notifierSpy.initialize(testProperties, Mockito.mock(ConfigurationFileHolder.class), Mockito.mock(ConfigurationChangeNotifier.class));
     }
 
     @Test
     public void testInitialize_validFile() throws Exception {
-        notifierSpy.initialize(testProperties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), new MockConfigurationChangeNotifier());
+        notifierSpy.initialize(testProperties, Mockito.mock(ConfigurationFileHolder.class), Mockito.mock(ConfigurationChangeNotifier.class));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testInitialize_invalidPollingPeriod() throws Exception {
         testProperties.put(FileChangeIngestor.POLLING_PERIOD_INTERVAL_KEY, "abc");
-        notifierSpy.initialize(testProperties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), new MockConfigurationChangeNotifier());
+        notifierSpy.initialize(testProperties, Mockito.mock(ConfigurationFileHolder.class), Mockito.mock(ConfigurationChangeNotifier.class));
     }
 
     @Test
     public void testInitialize_useDefaultPolling() throws Exception {
         testProperties.remove(FileChangeIngestor.POLLING_PERIOD_INTERVAL_KEY);
-        notifierSpy.initialize(testProperties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), new MockConfigurationChangeNotifier());
+        notifierSpy.initialize(testProperties, Mockito.mock(ConfigurationFileHolder.class), Mockito.mock(ConfigurationChangeNotifier.class));
     }
 
     /* Verify handleChange events */
     @Test
     public void testTargetChangedNoModification() throws Exception {
-        mockDifferentiator.setNew(false);
+        when(mockDifferentiator.isNew(Mockito.any(InputStream.class))).thenReturn(false);
         final ConfigurationChangeNotifier testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
 
         // In this case the WatchKey is null because there were no events found
@@ -110,7 +109,7 @@ public class TestFileChangeIngestor {
 
     @Test
     public void testTargetChangedWithModificationEvent_nonConfigFile() throws Exception {
-        mockDifferentiator.setNew(false);
+        when(mockDifferentiator.isNew(Mockito.any(InputStream.class))).thenReturn(false);
         final ConfigurationChangeNotifier testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
 
         // In this case, we receive a trigger event for the directory monitored, but it was another file not being monitored
@@ -125,7 +124,7 @@ public class TestFileChangeIngestor {
 
     @Test
     public void testTargetChangedWithModificationEvent() throws Exception {
-        mockDifferentiator.setNew(true);
+        when(mockDifferentiator.isNew(Mockito.any(InputStream.class))).thenReturn(true);
 
         final WatchKey mockWatchKey = createMockWatchKeyForPath(CONFIG_FILENAME);
         // Provided as a spy to allow injection of mock objects for some tests when dealing with the finalized FileSystems class

@@ -19,11 +19,12 @@ package org.apache.nifi.minifi.bootstrap.configuration.differentiators;
 
 import okhttp3.Request;
 import org.apache.commons.io.FileUtils;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
 import org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces.Differentiator;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,9 +33,11 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class TestWholeConfigDifferentiator {
 
@@ -44,7 +47,7 @@ public class TestWholeConfigDifferentiator {
     public static ByteBuffer defaultConfigBuffer;
     public static ByteBuffer newConfigBuffer;
     public static Properties properties = new Properties();
-    public static MockConfigurationFileHolder configurationFileHolder;
+    public static ConfigurationFileHolder configurationFileHolder;
 
     public static Request dummyRequest;
 
@@ -58,7 +61,9 @@ public class TestWholeConfigDifferentiator {
         defaultConfigBuffer = ByteBuffer.wrap(FileUtils.readFileToByteArray(defaultConfigPath.toFile()));
         newConfigBuffer = ByteBuffer.wrap(FileUtils.readFileToByteArray(newConfigPath.toFile()));
 
-        configurationFileHolder = new MockConfigurationFileHolder(defaultConfigBuffer);
+        configurationFileHolder = Mockito.mock(ConfigurationFileHolder.class);
+
+        when(configurationFileHolder.getConfigFileReference()).thenReturn(new AtomicReference<>(defaultConfigBuffer));
     }
 
     @Before

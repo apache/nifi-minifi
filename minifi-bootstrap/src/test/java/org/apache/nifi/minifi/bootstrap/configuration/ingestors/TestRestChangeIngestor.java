@@ -19,15 +19,14 @@ package org.apache.nifi.minifi.bootstrap.configuration.ingestors;
 
 
 import okhttp3.OkHttpClient;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.common.TestRestChangeIngestorCommon;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.mockito.Mockito;
 
 import java.net.MalformedURLException;
-import java.nio.ByteBuffer;
 import java.util.Properties;
 
 
@@ -38,9 +37,9 @@ public class TestRestChangeIngestor extends TestRestChangeIngestorCommon {
         Properties properties = new Properties();
         restChangeIngestor = new RestChangeIngestor();
 
-        testNotifier = Mockito.mock(MockConfigurationChangeNotifier.class);
+        testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
 
-        restChangeIngestor.initialize(properties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), testNotifier);
+        restChangeIngestor.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), testNotifier);
         restChangeIngestor.setDifferentiator(mockDifferentiator);
         restChangeIngestor.start();
 

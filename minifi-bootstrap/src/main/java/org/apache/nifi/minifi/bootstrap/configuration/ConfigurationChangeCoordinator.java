@@ -46,7 +46,7 @@ public class ConfigurationChangeCoordinator implements Closeable, ConfigurationC
      *
      * @param properties from the bootstrap configuration
      */
-    public void initialize(Properties properties, ConfigurationFileHolder configurationFileHolder) {
+    public void initialize(Properties properties, ConfigurationFileHolder configurationFileHolder, Collection<ConfigurationChangeListener> changeListenerSet) {
         final String ingestorsCsv = properties.getProperty(NOTIFIER_INGESTORS_KEY);
 
         if (ingestorsCsv != null && !ingestorsCsv.isEmpty()) {
@@ -63,6 +63,8 @@ public class ConfigurationChangeCoordinator implements Closeable, ConfigurationC
                 }
             }
         }
+        configurationChangeListeners.clear();
+        configurationChangeListeners.addAll(changeListenerSet);
     }
 
     /**
@@ -79,16 +81,6 @@ public class ConfigurationChangeCoordinator implements Closeable, ConfigurationC
      */
     public Set<ConfigurationChangeListener> getChangeListeners() {
         return Collections.unmodifiableSet(configurationChangeListeners);
-    }
-
-    /**
-     * Adds a listener to be notified of configuration changes
-     *
-     * @param listener to be added to the collection
-     * @return true if the listener was added; false if already registered
-     */
-    public boolean registerListener(ConfigurationChangeListener listener) {
-        return this.configurationChangeListeners.add(listener);
     }
 
     /**

@@ -18,8 +18,9 @@
 package org.apache.nifi.minifi.bootstrap;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface ConfigurationFileHolder {
 
-    ByteBuffer getConfigFile();
+    AtomicReference<ByteBuffer> getConfigFileReference();
 }

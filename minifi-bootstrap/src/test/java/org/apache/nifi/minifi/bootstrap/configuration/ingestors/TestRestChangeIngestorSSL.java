@@ -19,10 +19,10 @@ package org.apache.nifi.minifi.bootstrap.configuration.ingestors;
 
 
 import okhttp3.OkHttpClient;
+import org.apache.nifi.minifi.bootstrap.ConfigurationFileHolder;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
 import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockChangeListener;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationChangeNotifier;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockConfigurationFileHolder;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.common.TestRestChangeIngestorCommon;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,7 +36,6 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -45,6 +44,8 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Properties;
+
+import static org.mockito.Mockito.when;
 
 
 public class TestRestChangeIngestorSSL extends TestRestChangeIngestorCommon {
@@ -63,10 +64,12 @@ public class TestRestChangeIngestorSSL extends TestRestChangeIngestorCommon {
 
         restChangeIngestor = new RestChangeIngestor();
 
-        testNotifier = Mockito.mock(MockConfigurationChangeNotifier.class);
-        Mockito.when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(new MockChangeListener())));
+        testNotifier = Mockito.mock(ConfigurationChangeNotifier.class);
+        ConfigurationChangeListener testListener = Mockito.mock(ConfigurationChangeListener.class);
+        when(testListener.getDescriptor()).thenReturn("MockChangeListener");
+        when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(testListener)));
 
-        restChangeIngestor.initialize(properties, new MockConfigurationFileHolder(ByteBuffer.allocate(1)), testNotifier);
+        restChangeIngestor.initialize(properties, Mockito.mock(ConfigurationFileHolder.class), testNotifier);
         restChangeIngestor.setDifferentiator(mockDifferentiator);
         restChangeIngestor.start();
 

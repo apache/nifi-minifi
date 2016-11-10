@@ -23,11 +23,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeNotifier;
 import org.apache.nifi.minifi.bootstrap.configuration.ListenerHandleResult;
+import org.apache.nifi.minifi.bootstrap.configuration.differentiators.interfaces.Differentiator;
 import org.apache.nifi.minifi.bootstrap.configuration.ingestors.RestChangeIngestor;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockChangeListener;
-import org.apache.nifi.minifi.bootstrap.configuration.mocks.MockDifferentiator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -39,6 +39,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public abstract class TestRestChangeIngestorCommon {
 
@@ -49,13 +50,15 @@ public abstract class TestRestChangeIngestorCommon {
     public static final MediaType MEDIA_TYPE_MARKDOWN  = MediaType.parse("text/x-markdown; charset=utf-8");
     public static String url;
     public static ConfigurationChangeNotifier testNotifier;
-    public static MockDifferentiator<InputStream> mockDifferentiator = new MockDifferentiator<>();
+    public static Differentiator<InputStream> mockDifferentiator = Mockito.mock(Differentiator.class);
 
 
     @Before
     public void before() {
         Mockito.reset(testNotifier);
-        Mockito.when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(new MockChangeListener())));
+        ConfigurationChangeListener testListener = Mockito.mock(ConfigurationChangeListener.class);
+        when(testListener.getDescriptor()).thenReturn("MockChangeListener");
+        Mockito.when(testNotifier.notifyListeners(Mockito.any())).thenReturn(Collections.singleton(new ListenerHandleResult(testListener)));
     }
 
     @Test
@@ -78,7 +81,7 @@ public abstract class TestRestChangeIngestorCommon {
 
     @Test
     public void testFileUploadNewConfig() throws Exception {
-        mockDifferentiator.setNew(true);
+        when(mockDifferentiator.isNew(Mockito.any(InputStream.class))).thenReturn(true);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -101,7 +104,7 @@ public abstract class TestRestChangeIngestorCommon {
 
     @Test
     public void testFileUploadSameConfig() throws Exception {
-        mockDifferentiator.setNew(false);
+        when(mockDifferentiator.isNew(Mockito.any(InputStream.class))).thenReturn(false);
 
         Request request = new Request.Builder()
                 .url(url)

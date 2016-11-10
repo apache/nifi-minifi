@@ -1503,7 +1503,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
         private final RunMiNiFi runner;
         private final Logger logger;
-        private volatile AtomicBoolean handlingChange = new AtomicBoolean(false);
+        private static final ReentrantLock handlingLock = new ReentrantLock();
 
         public MiNiFiConfigurationChangeListener(RunMiNiFi runner, Logger logger) {
             this.runner = runner;
@@ -1513,10 +1513,11 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         @Override
         public void handleChange(InputStream configInputStream) throws ConfigurationChangeException {
             logger.info("Received notification of a change");
+
+            if (!handlingLock.tryLock()) {
+                throw new ConfigurationChangeException("Instance is already handling another change");
+            }
             try {
-                if (handlingChange.compareAndSet(false, true)) {
-                    throw new ConfigurationChangeException("Instance is already reloading");
-                }
 
                 final Properties bootstrapProperties = runner.getBootstrapProperties();
                 final File configFile = new File(bootstrapProperties.getProperty(MINIFI_CONFIG_FILE_KEY));
@@ -1589,7 +1590,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                 } catch (IOException e) {
                     // Quietly close
                 }
-                handlingChange.set(false);
+                handlingLock.unlock();
             }
         }
 

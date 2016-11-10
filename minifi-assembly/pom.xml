@@ -189,6 +189,39 @@ limitations under the License.
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
+            <version>9.3.9.v20160517</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-framework-core</artifactId>
+        </dependency>
+
+        <!--<include>nifi-framework-core-api</include>-->
+        <!--<include>minifi-framework-core</include>-->
+        <!--<include>httpclient</include>-->
+        <!--<include>commons-lang3</include>-->
+        <!--<include>guava</include>-->
+        <!--<include>jetty-server</include>-->
+        <!--<include>jetty-util</include>-->
+        <!--<include>jetty-http</include>-->
+        <!--<include>jetty-io</include>-->
+        <!--<include>jersey-client</include>-->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
             <scope>compile</scope>
         </dependency>

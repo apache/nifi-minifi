@@ -36,11 +36,12 @@
             	<exclude>minifi-bootstrap</exclude>
                 <exclude>minifi-resources</exclude>
                 <!-- Filter items introduced via transitive dependencies that are provided in associated NARs -->
-                <exclude>spring-aop</exclude>
+                <exclude>org.apache.nifi:nifi-framework-core:1.0.0</exclude>
                 <exclude>zookeeper</exclude>
+                <exclude>spring-aop</exclude>
                 <exclude>spring-context</exclude>
-                <exclude>spring-security-core</exclude>
                 <exclude>spring-beans</exclude>
+                <exclude>spring-expression</exclude>
                 <exclude>swagger-annotations</exclude>
                 <exclude>slf4j-log4j12</exclude>
                 <exclude>aspectjweaver</exclude>
@@ -52,7 +53,20 @@
                 <exclude>lucene-analyzers-common</exclude>
                 <exclude>lucene-queryparser</exclude>
                 <exclude>commons-net</exclude>
+                <exclude>spring-context</exclude>
+                <exclude>spring-security-core</exclude>
             </excludes>
+        </dependencySet>
+        <dependencySet>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0770</directoryMode>
+            <fileMode>0660</fileMode>
+            <includes>
+                <include>minifi-framework-core</include>
+                <include>nifi-framework-core-api</include>
+            </includes>
         </dependencySet>
 
         <!-- Write out the bootstrap lib component to its own dir -->

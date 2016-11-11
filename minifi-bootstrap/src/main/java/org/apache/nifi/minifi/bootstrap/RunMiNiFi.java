@@ -1628,7 +1628,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
             ConfigTransformer.transformConfigFile(teeInputStream, configDestinationPath);
 
-            return ByteBuffer.wrap(byteArrayOutputStream.getUnderlyingBuffer());
+            return ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
         } catch (ConfigurationChangeException e){
             throw e;
         } catch (Exception e) {

@@ -16,13 +16,12 @@
     -->
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.apache.nifi</groupId>
-        <artifactId>nifi-ssl-context-bundle</artifactId>
-        <version>1.0.0</version>
+        <groupId>org.apache.nifi.minifi</groupId>
+        <artifactId>minifi-nar-bundles</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <groupId>org.apache.nifi.minifi</groupId>
     <artifactId>minifi-ssl-context-service-nar</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
     <packaging>nar</packaging>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -32,7 +31,6 @@
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-standard-services-api-nar</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
             <type>nar</type>
             <exclusions>
                 <exclusion>

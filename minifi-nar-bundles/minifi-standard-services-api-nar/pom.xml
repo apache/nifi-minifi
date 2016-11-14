@@ -19,10 +19,10 @@
         <groupId>org.apache.nifi</groupId>
         <artifactId>nifi-standard-services</artifactId>
         <version>1.0.0</version>
+        <relativePath/>
     </parent>
     <groupId>org.apache.nifi.minifi</groupId>
     <artifactId>minifi-standard-services-api-nar</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
     <packaging>nar</packaging>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -63,19 +63,16 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.54</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpg-jdk15on</artifactId>
-            <version>1.54</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.54</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

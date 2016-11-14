@@ -113,6 +113,10 @@ limitations under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-framework-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-framework-nar</artifactId>
             <type>nar</type>
         </dependency>
@@ -158,13 +162,11 @@ limitations under the License.
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-standard-services-api-nar</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-ssl-context-service-nar</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
         <dependency>
@@ -184,13 +186,11 @@ limitations under the License.
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.54</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>9.3.9.v20160517</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -205,21 +205,6 @@ limitations under the License.
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-framework-core</artifactId>
-        </dependency>
-
-        <!--<include>nifi-framework-core-api</include>-->
-        <!--<include>minifi-framework-core</include>-->
-        <!--<include>httpclient</include>-->
-        <!--<include>commons-lang3</include>-->
-        <!--<include>guava</include>-->
-        <!--<include>jetty-server</include>-->
-        <!--<include>jetty-util</include>-->
-        <!--<include>jetty-http</include>-->
-        <!--<include>jetty-io</include>-->
-        <!--<include>jersey-client</include>-->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>

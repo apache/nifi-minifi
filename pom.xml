@@ -82,7 +82,7 @@ limitations under the License.
         <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/nifi-minifi.git</developerConnection>
         <url>https://git-wip-us.apache.org/repos/asf?p=nifi-minifi.git</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
     <issueManagement>
         <system>JIRA</system>
         <url>https://issues.apache.org/jira/browse/MINIFI</url>
@@ -95,9 +95,9 @@ limitations under the License.
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <inceptionYear>2016</inceptionYear>
         <org.slf4j.version>1.7.12</org.slf4j.version>
+        <logback.version>1.1.3</logback.version>
         <org.apache.nifi.version>1.0.0</org.apache.nifi.version>
         <jetty.version>9.2.11.v20150529</jetty.version>
-        <org.slf4j.version>1.7.12</org.slf4j.version>
         <jetty.version>9.3.9.v20160517</jetty.version>
         <lucene.version>4.10.4</lucene.version>
         <spring.version>4.2.4.RELEASE</spring.version>
@@ -195,13 +195,40 @@ limitations under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-persistent-provenance-repository</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-framework-bundle</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-framework-nar</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
                 <artifactId>minifi-standard-nar</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
                 <type>nar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-standard-services-api-nar</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <type>nar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
                 <artifactId>minifi-update-attribute-nar</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+                <type>nar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-ssl-context-service-nar</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
                 <type>nar</type>
             </dependency>
@@ -217,12 +244,12 @@ limitations under the License.
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.1.3</version>
+                <version>${logback.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
-                <version>1.1.3</version>
+                <version>${logback.version}</version>
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
@@ -253,6 +280,12 @@ limitations under the License.
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${org.slf4j.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -513,6 +546,11 @@ limitations under the License.
                 <version>${org.apache.nifi.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.nifi</groupId>
+                <artifactId>nifi-ssl-context-service</artifactId>
+                <version>${org.apache.nifi.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>2.5</version>
@@ -566,68 +604,7 @@ limitations under the License.
                 <artifactId>okhttp</artifactId>
                 <version>3.4.1</version>
             </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>1.1.3</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
-                <version>1.1.3</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
-                <version>${org.slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>log4j-over-slf4j</artifactId>
-                <version>${org.slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jul-to-slf4j</artifactId>
-                <version>${org.slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${org.slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>1.10.19</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-all</artifactId>
-                <version>1.10.19</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>${org.slf4j.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
@@ -682,28 +659,6 @@ limitations under the License.
                 <groupId>commons-net</groupId>
                 <artifactId>commons-net</artifactId>
                 <version>3.3</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>2.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk15on</artifactId>
-                <version>1.54</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpg-jdk15on</artifactId>
-                <version>1.54</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpkix-jdk15on</artifactId>
-                <version>1.54</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.jcraft</groupId>
@@ -816,8 +771,6 @@ limitations under the License.
                 <artifactId>spring-core</artifactId>
                 <version>${spring.version}</version>
                 <exclusions>
-                    <!-- <artifactId>jcl-over-slf4j</artifactId> is used in dependencies
-                    section -->
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
@@ -1106,37 +1059,7 @@ limitations under the License.
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlets</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-annotations</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>apache-jsp</artifactId>
                 <version>${jetty.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -1144,12 +1067,6 @@ limitations under the License.
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>apache-jstl</artifactId>
                 <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <version>3.1.0</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -1224,532 +1141,22 @@ limitations under the License.
                 <artifactId>jsoup</artifactId>
                 <version>1.8.3</version>
             </dependency>
-            <!-- NiFi modules -->
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-api</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-framework-api</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-site-to-site-client</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-web-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-expression-language</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-custom-ui-utilities</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ui-extension</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-flowfile-packager</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-socket-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-data-provenance-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-runtime</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-bootstrap</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-toolkit-tls</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-toolkit-encrypt-config</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-toolkit-s2s</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-resources</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <classifier>resources</classifier>
-                <scope>runtime</scope>
-                <type>zip</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-docs</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <classifier>resources</classifier>
-                <scope>runtime</scope>
-                <type>zip</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-framework-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-provenance-repository-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-standard-services-api-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ssl-context-service-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ssl-context-service-api</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-distributed-cache-services-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-standard-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-jetty-bundle</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-update-attribute-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hadoop-libraries-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hadoop-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-html-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-kite-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-mongodb-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-solr-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-kafka-0-8-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-kafka-0-9-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-kafka-0-10-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ignite-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-http-context-map-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-social-media-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hl7-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-language-translation-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-enrich-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-aws-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-flume-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-dbcp-service-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ambari-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-avro-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-media-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-couchbase-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-riemann-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-amqp-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-jms-cf-service-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-jms-processors-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-spring-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-mqtt-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-snmp-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hbase_1_1_2-client-service-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hbase-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-azure-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-ldap-iaa-providers-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-kerberos-iaa-providers-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-scripting-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-slack-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-elasticsearch-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-lumberjack-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-email-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-splunk-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-cassandra-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hive-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-site-to-site-reporting-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-evtx-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-windows-event-log-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-datadog-nar</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <type>nar</type>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-properties</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-properties-loader</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-security-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-logging-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-nar-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-processor-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hadoop-utils</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-mock</artifactId>
-                <version>${org.apache.nifi.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-write-ahead-log</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-dbcp-service</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-dbcp-service-api</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-hbase-client-service-api</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-assembly</artifactId>
-                <version>${org.apache.nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.jayway.jsonpath</groupId>
-                <artifactId>json-path</artifactId>
-                <version>2.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.derby</groupId>
-                <artifactId>derby</artifactId>
-                <version>10.11.1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk</artifactId>
-                <version>1.11.8</version>
-            </dependency>
-         
-            <!-- Groovy support is primarily as a test dependency -->
+
+
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
                 <version>2.4.5</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.spockframework</groupId>
                 <artifactId>spock-core</artifactId>
                 <version>1.0-groovy-2.4</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-all</artifactId>
                 <version>1.3</version>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -80,7 +80,7 @@ public final class ConfigTransformer {
     // Underlying version of NIFI will be using
     public static final String NIFI_VERSION = "1.0.0";
     public static final String ROOT_GROUP = "Root-Group";
-    public static final String DEFAULT_PROV_REPORTING_TASK_CLASS = "org.apache.nifi.SiteToSiteProvenanceReportingTask";
+    public static final String DEFAULT_PROV_REPORTING_TASK_CLASS = "org.apache.nifi.reporting.SiteToSiteProvenanceReportingTask";
 
     // Final util classes should have private constructor
     private ConfigTransformer() {
@@ -480,7 +480,7 @@ public final class ConfigTransformer {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("Destination URL", provenanceProperties.getDestinationUrl());
             attributes.put("Input Port Name", provenanceProperties.getPortName());
-            attributes.put("MiNiFi URL", provenanceProperties.getOriginatingUrl());
+            attributes.put("Instance URL", provenanceProperties.getOriginatingUrl());
             attributes.put("Compress Events", provenanceProperties.getUseCompression());
             attributes.put("Batch Size", provenanceProperties.getBatchSize());
             attributes.put("Communications Timeout", provenanceProperties.getTimeout());

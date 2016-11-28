@@ -291,7 +291,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return configFile;
     }
 
-    private File getBootstrapFile(final Logger logger, String directory, String defaultDirectory, String fileName) throws IOException{
+    private File getBootstrapFile(final Logger logger, String directory, String defaultDirectory, String fileName) throws IOException {
 
         final File confDir = bootstrapConfigFile.getParentFile();
         final File nifiHome = confDir.getParentFile();
@@ -300,9 +300,9 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
         final File fileDir;
 
-        if(confFileDir != null){
+        if (confFileDir != null) {
             fileDir = new File(confFileDir.trim());
-        } else{
+        } else {
             fileDir = new File(nifiHome, defaultDirectory);
         }
 
@@ -312,16 +312,16 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return statusFile;
     }
 
-    File getPidFile(final Logger logger) throws IOException{
-        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP,DEFAULT_PID_DIR, MINIFI_PID_FILE_NAME);
+    File getPidFile(final Logger logger) throws IOException {
+        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP, DEFAULT_PID_DIR, MINIFI_PID_FILE_NAME);
     }
 
-    File getStatusFile(final Logger logger) throws IOException{
-        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP,DEFAULT_PID_DIR, MINIFI_STATUS_FILE_NAME);
+    File getStatusFile(final Logger logger) throws IOException {
+        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP, DEFAULT_PID_DIR, MINIFI_STATUS_FILE_NAME);
     }
 
-    File getLockFile(final Logger logger) throws IOException{
-        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP,DEFAULT_PID_DIR, MINIFI_LOCK_FILE_NAME);
+    File getLockFile(final Logger logger) throws IOException {
+        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP, DEFAULT_PID_DIR, MINIFI_LOCK_FILE_NAME);
     }
 
     File getStatusFile() throws IOException{
@@ -556,7 +556,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             return new Status(port, pid, true, true);
         }
 
-        final boolean alive = (pid == null) ? false : isProcessRunning(pid, logger);
+        final boolean alive = (pid != null) && isProcessRunning(pid, logger);
         return new Status(port, pid, pingSuccess, alive);
     }
 
@@ -801,7 +801,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                 logger.error("Failed to send shutdown command to port {} due to {}. No PID found for the MiNiFi process, so unable to kill process; "
                     + "the process should be killed manually.", new Object[]{port, ioe.toString()});
             } else {
-                logger.error("Failed to send shutdown command to port {} due to {}. Will kill the MiNiFi Process with PID {}.", new Object[]{port, ioe.toString(), pid});
+                logger.error("Failed to send shutdown command to port {} due to {}. Will kill the MiNiFi Process with PID {}.", port, ioe.toString(), pid);
                 killProcessTree(pid, logger);
             }
         } finally {
@@ -1047,7 +1047,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             builder.directory(workingDir);
         }
 
-        final String minifiLogDir = replaceNull(System.getProperty("org.apache.nifi.minifi.bootstrap.config.log.dir"),DEFAULT_LOG_DIR).trim();
+        final String minifiLogDir = replaceNull(System.getProperty("org.apache.nifi.minifi.bootstrap.config.log.dir"), DEFAULT_LOG_DIR).trim();
 
         final String libFilename = replaceNull(props.get("lib.dir"), "./lib").trim();
         File libDir = getFile(libFilename, workingDir);

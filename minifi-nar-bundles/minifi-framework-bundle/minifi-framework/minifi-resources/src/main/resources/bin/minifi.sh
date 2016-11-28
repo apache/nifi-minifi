@@ -23,8 +23,9 @@
 
 SCRIPT_DIR=$(dirname "$0")
 SCRIPT_NAME=$(basename "$0")
-MINIFI_HOME=$(cd "${SCRIPT_DIR}" && cd .. && pwd)
 PROGNAME=$(basename "$0")
+
+. "$SCRIPT_DIR"/minifi-env.sh
 
 
 warn() {
@@ -211,12 +212,22 @@ run() {
     echo "Bootstrap Config File: ${BOOTSTRAP_CONF}"
     echo
 
+
+    #setup directory parameters
+    BOOTSTRAP_LOG_PARAMS="-Dorg.apache.nifi.minifi.bootstrap.config.log.dir="\""${MINIFI_LOG_DIR}"\"""
+    BOOTSTRAP_PID_PARAMS="-Dorg.apache.nifi.minifi.bootstrap.config.pid.dir="\""${MINIFI_PID_DIR}"\"""
+    BOOTSTRAP_CONF_PARAMS="-Dorg.apache.nifi.minifi.bootstrap.config.file="\""${BOOTSTRAP_CONF}"\"""
+
+    BOOTSTRAP_DIR_PARAMS="${BOOTSTRAP_LOG_PARAMS} ${BOOTSTRAP_PID_PARAMS} ${BOOTSTRAP_CONF_PARAMS}"
+
+    RUN_MINIFI_CMD="cd "\""${MINIFI_HOME}"\"" && ${sudo_cmd_prefix} "\""${JAVA}"\"" -cp "\""${BOOTSTRAP_CLASSPATH}"\"" -Xms12m -Xmx24m ${BOOTSTRAP_DIR_PARAMS}  org.apache.nifi.bootstrap.RunNiFi"
+
     # run 'start' in the background because the process will continue to run, monitoring MiNiFi.
     # all other commands will terminate quickly so want to just wait for them
     if [ "$1" = "start" ]; then
-        (cd "${MINIFI_HOME}" && ${sudo_cmd_prefix} "${JAVA}" -cp "${BOOTSTRAP_CLASSPATH}" -Xms12m -Xmx24m -Dorg.apache.nifi.minifi.bootstrap.config.file="${BOOTSTRAP_CONF}" org.apache.nifi.minifi.bootstrap.RunMiNiFi $@ &)
+        (eval $RUN_MINIFI_CMD $@ &)
     else
-        (cd "${MINIFI_HOME}" && ${sudo_cmd_prefix} "${JAVA}" -cp "${BOOTSTRAP_CLASSPATH}" -Xms12m -Xmx24m -Dorg.apache.nifi.minifi.bootstrap.config.file="${BOOTSTRAP_CONF}" org.apache.nifi.minifi.bootstrap.RunMiNiFi $@)
+        (eval $RUN_MINIFI_CMD $@)
     fi
 
     # Wait just a bit (3 secs) to wait for the logging to finish and then echo a new-line.

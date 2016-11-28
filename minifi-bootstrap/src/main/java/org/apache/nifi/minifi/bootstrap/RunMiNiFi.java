@@ -73,6 +73,7 @@ import org.apache.nifi.minifi.commons.status.FlowStatusReport;
 import org.apache.nifi.stream.io.ByteArrayInputStream;
 import org.apache.nifi.stream.io.ByteArrayOutputStream;
 import org.apache.nifi.util.Tuple;
+import org.apache.nifi.util.file.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +99,8 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
     public static final String DEFAULT_CONFIG_FILE = "./conf/bootstrap.conf";
     public static final String DEFAULT_NIFI_PROPS_FILE = "./conf/nifi.properties";
     public static final String DEFAULT_JAVA_CMD = "java";
+    public static final String DEFAULT_PID_DIR = "bin";
+    public static final String DEFAULT_LOG_DIR = "./logs";
 
 
     public static final String CONF_DIR_KEY = "conf.dir";
@@ -107,9 +110,11 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
     public static final String GRACEFUL_SHUTDOWN_PROP = "graceful.shutdown.seconds";
     public static final String DEFAULT_GRACEFUL_SHUTDOWN_VALUE = "20";
 
-    public static final String RUN_AS_PROP = "run.as";
+    public static final String MINIFI_PID_DIR_PROP = "org.apache.nifi.minifi.bootstrap.config.pid.dir";
 
-    public static final int MAX_RESTART_ATTEMPTS = 5;
+    public static final String MINIFI_PID_FILE_NAME = "minifi.pid";
+    public static final String MINIFI_LOCK_FILE_NAME = "minifi.lock";
+
     public static final int STARTUP_WAIT_SECONDS = 60;
 
     public static final String SHUTDOWN_CMD = "SHUTDOWN";
@@ -126,7 +131,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
     private volatile boolean autoRestartNiFi = true;
     private volatile int ccPort = -1;
-    private volatile long nifiPid = -1L;
+    private volatile long minifiPid = -1L;
     private volatile String secretKey;
     private volatile ShutdownHook shutdownHook;
     private volatile boolean nifiStarted;
@@ -282,29 +287,37 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return configFile;
     }
 
-    File getStatusFile() {
-        return getStatusFile(defaultLogger);
-    }
+    private File getBootstrapFile(final Logger logger, String directory, String defaultDirectory, String fileName) throws IOException{
 
-    public File getStatusFile(final Logger logger) {
         final File confDir = bootstrapConfigFile.getParentFile();
         final File nifiHome = confDir.getParentFile();
-        final File bin = new File(nifiHome, "bin");
-        final File statusFile = new File(bin, "minifi.pid");
 
+        String confFileDir = System.getProperty(directory);
+
+        final File fileDir;
+
+        if(confFileDir != null){
+            fileDir = new File(confFileDir.trim());
+        } else{
+            fileDir = new File(nifiHome, defaultDirectory);
+        }
+
+        FileUtils.ensureDirectoryExistAndCanAccess(fileDir);
+        final File statusFile = new File(fileDir, fileName);
         logger.debug("Status File: {}", statusFile);
-
         return statusFile;
     }
 
-    public File getLockFile(final Logger logger) {
-        final File confDir = bootstrapConfigFile.getParentFile();
-        final File nifiHome = confDir.getParentFile();
-        final File bin = new File(nifiHome, "bin");
-        final File lockFile = new File(bin, "minifi.lock");
+    File getStatusFile(final Logger logger) throws IOException{
+        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP,DEFAULT_PID_DIR, MINIFI_PID_FILE_NAME);
+    }
 
-        logger.debug("Lock File: {}", lockFile);
-        return lockFile;
+    File getLockFile(final Logger logger) throws IOException{
+        return getBootstrapFile(logger, MINIFI_PID_DIR_PROP,DEFAULT_PID_DIR, MINIFI_LOCK_FILE_NAME);
+    }
+
+    File getStatusFile() throws IOException{
+        return getStatusFile(defaultLogger);
     }
 
     public File getReloadFile(final Logger logger) {
@@ -345,7 +358,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return props;
     }
 
-    private synchronized void saveProperties(final Properties nifiProps, final Logger logger) throws IOException {
+    private synchronized void saveProperties(final Properties minifiProps, final Logger logger) throws IOException {
         final File statusFile = getStatusFile(logger);
         if (statusFile.exists() && !statusFile.delete()) {
             logger.warn("Failed to delete {}", statusFile);
@@ -367,11 +380,11 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         }
 
         try (final FileOutputStream fos = new FileOutputStream(statusFile)) {
-            nifiProps.store(fos, null);
+            minifiProps.store(fos, null);
             fos.getFD().sync();
         }
 
-        logger.debug("Saved Properties {} to {}", new Object[]{nifiProps, statusFile});
+        logger.debug("Saved Properties {} to {}", new Object[]{minifiProps, statusFile});
     }
 
     private boolean isPingSuccessful(final int port, final String secretKey, final Logger logger) {
@@ -618,8 +631,8 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             return;
         }
 
-        final Properties nifiProps = loadProperties(logger);
-        final String secretKey = nifiProps.getProperty("secret.key");
+        final Properties minifiProps = loadProperties(logger);
+        final String secretKey = minifiProps.getProperty("secret.key");
 
         final StringBuilder sb = new StringBuilder();
         try (final Socket socket = new Socket()) {
@@ -669,9 +682,9 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             reloadLockFile.createNewFile();
         }
 
-        final Properties nifiProps = loadProperties(logger);
-        final String secretKey = nifiProps.getProperty("secret.key");
-        final String pid = nifiProps.getProperty("pid");
+        final Properties minifiProps = loadProperties(logger);
+        final String secretKey = minifiProps.getProperty("secret.key");
+        final String pid = minifiProps.getProperty("pid");
 
         try (final Socket socket = new Socket()) {
             logger.debug("Connecting to MiNiFi instance");
@@ -768,9 +781,9 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             lockFile.createNewFile();
         }
 
-        final Properties nifiProps = loadProperties(logger);
-        final String secretKey = nifiProps.getProperty("secret.key");
-        final String pid = nifiProps.getProperty("pid");
+        final Properties minifiProps = loadProperties(logger);
+        final String secretKey = minifiProps.getProperty("secret.key");
+        final String pid = minifiProps.getProperty("pid");
         final File statusFile = getStatusFile(logger);
 
         try (final Socket socket = new Socket()) {
@@ -984,22 +997,24 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
             builder.directory(workingDir);
         }
 
+        final String minifiLogDir = replaceNull(System.getProperty("org.apache.nifi.minifi.bootstrap.config.log.dir"),DEFAULT_LOG_DIR).trim();
+
         final String libFilename = replaceNull(props.get("lib.dir"), "./lib").trim();
         File libDir = getFile(libFilename, workingDir);
 
         final String confFilename = replaceNull(props.get(CONF_DIR_KEY), "./conf").trim();
         File confDir = getFile(confFilename, workingDir);
 
-        String nifiPropsFilename = props.get("props.file");
-        if (nifiPropsFilename == null) {
+        String minifiPropsFilename = props.get("props.file");
+        if (minifiPropsFilename == null) {
             if (confDir.exists()) {
-                nifiPropsFilename = new File(confDir, "nifi.properties").getAbsolutePath();
+                minifiPropsFilename = new File(confDir, "nifi.properties").getAbsolutePath();
             } else {
-                nifiPropsFilename = DEFAULT_CONFIG_FILE;
+                minifiPropsFilename = DEFAULT_CONFIG_FILE;
             }
         }
 
-        nifiPropsFilename = nifiPropsFilename.trim();
+        minifiPropsFilename = minifiPropsFilename.trim();
 
         final List<String> javaAdditionalArgs = new ArrayList<>();
         for (final Entry<String, String> entry : props.entrySet()) {
@@ -1068,9 +1083,10 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         cmd.add("-classpath");
         cmd.add(classPath);
         cmd.addAll(javaAdditionalArgs);
-        cmd.add("-Dnifi.properties.file.path=" + nifiPropsFilename);
+        cmd.add("-Dnifi.properties.file.path=" + minifiPropsFilename);
         cmd.add("-Dnifi.bootstrap.listen.port=" + listenPort);
         cmd.add("-Dapp=MiNiFi");
+        cmd.add("-Dorg.apache.nifi.minifi.bootstrap.config.log.dir="+minifiLogDir);
         cmd.add("org.apache.nifi.minifi.MiNiFi");
 
         builder.command(cmd);
@@ -1089,10 +1105,10 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         handleLogging(process);
         Long pid = getPid(process, cmdLogger);
         if (pid != null) {
-            nifiPid = pid;
-            final Properties nifiProps = new Properties();
-            nifiProps.setProperty("pid", String.valueOf(nifiPid));
-            saveProperties(nifiProps, cmdLogger);
+            minifiPid = pid;
+            final Properties minifiProps = new Properties();
+            minifiProps.setProperty("pid", String.valueOf(minifiPid));
+            saveProperties(minifiProps, cmdLogger);
         }
 
         gracefulShutdownSeconds = getGracefulShutdownSeconds(props, bootstrapConfigAbsoluteFile);
@@ -1218,10 +1234,10 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
                         Long pid = getPid(process, defaultLogger);
                         if (pid != null) {
-                            nifiPid = pid;
-                            final Properties nifiProps = new Properties();
-                            nifiProps.setProperty("pid", String.valueOf(nifiPid));
-                            saveProperties(nifiProps, defaultLogger);
+                            minifiPid = pid;
+                            final Properties minifiProps = new Properties();
+                            minifiProps.setProperty("pid", String.valueOf(minifiPid));
+                            saveProperties(minifiProps, defaultLogger);
                         }
 
                         shutdownHook = new ShutdownHook(process, this, secretKey, gracefulShutdownSeconds, loggingExecutor);
@@ -1388,7 +1404,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         this.autoRestartNiFi = restart;
     }
 
-    void setNiFiCommandControlPort(final int port, final String secretKey) {
+    void setMiNiFiCommandControlPort(final int port, final String secretKey) throws IOException {
         this.ccPort = port;
         this.secretKey = secretKey;
 
@@ -1398,15 +1414,15 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
         final File statusFile = getStatusFile(defaultLogger);
 
-        final Properties nifiProps = new Properties();
-        if (nifiPid != -1) {
-            nifiProps.setProperty("pid", String.valueOf(nifiPid));
+        final Properties minifiProps = new Properties();
+        if (minifiPid != -1) {
+            minifiProps.setProperty("pid", String.valueOf(minifiPid));
         }
-        nifiProps.setProperty("port", String.valueOf(ccPort));
-        nifiProps.setProperty("secret.key", secretKey);
+        minifiProps.setProperty("port", String.valueOf(ccPort));
+        minifiProps.setProperty("secret.key", secretKey);
 
         try {
-            saveProperties(nifiProps, defaultLogger);
+            saveProperties(minifiProps, defaultLogger);
         } catch (final IOException ioe) {
             defaultLogger.warn("Apache MiNiFi has started but failed to persist MiNiFi Port information to {} due to {}", new Object[]{statusFile.getAbsolutePath(), ioe});
         }

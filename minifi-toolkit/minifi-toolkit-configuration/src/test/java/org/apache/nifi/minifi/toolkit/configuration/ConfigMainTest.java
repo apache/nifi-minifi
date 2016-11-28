@@ -303,7 +303,7 @@ public class ConfigMainTest {
                 v1Processor.setId(currentProcessor.getId());
             }
 
-            configSchemaUpgradedFromV1.getProcessGroupSchema().getRemoteProcessingGroups().stream().flatMap(g -> g.getInputPorts().stream()).map(RemoteInputPortSchema::getId).sequential()
+            configSchemaUpgradedFromV1.getProcessGroupSchema().getRemoteProcessGroups().stream().flatMap(g -> g.getInputPorts().stream()).map(RemoteInputPortSchema::getId).sequential()
                     .forEach(id -> v1IdToCurrentIdMap.put(id, id));
 
             List<ConnectionSchema> currentConnections = configSchemaFromCurrent.getProcessGroupSchema().getConnections();

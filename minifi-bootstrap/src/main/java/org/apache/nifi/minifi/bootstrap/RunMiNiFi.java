@@ -383,8 +383,10 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
         try {
             final Set<PosixFilePermission> perms = new HashSet<>();
-            perms.add(PosixFilePermission.OWNER_READ);
             perms.add(PosixFilePermission.OWNER_WRITE);
+            perms.add(PosixFilePermission.OWNER_READ);
+            perms.add(PosixFilePermission.GROUP_READ);
+            perms.add(PosixFilePermission.OTHERS_READ);
             Files.setPosixFilePermissions(statusFile.toPath(), perms);
         } catch (final Exception e) {
             logger.warn("Failed to set permissions so that only the owner can read status file {}; "

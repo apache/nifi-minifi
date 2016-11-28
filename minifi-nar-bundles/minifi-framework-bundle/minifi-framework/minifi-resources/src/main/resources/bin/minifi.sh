@@ -229,6 +229,7 @@ run() {
     else
         (eval $RUN_MINIFI_CMD $@)
     fi
+    EXIT_STATUS=$?
 
     # Wait just a bit (3 secs) to wait for the logging to finish and then echo a new-line.
     # We do this to avoid having logs spewed on the console after running the command and then not giving
@@ -249,11 +250,13 @@ case "$1" in
         ;;
     start|stop|run|status|flowStatus|dump|env)
         main "$@"
+        exit $EXIT_STATUS
         ;;
     restart)
         init
-    run "stop"
-    run "start"
+        run "stop"
+        run "start"
+        exit $EXIT_STATUS
     ;;
     *)
         echo "Usage minifi {start|stop|run|restart|status|flowStatus|dump|install}"

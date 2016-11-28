@@ -238,6 +238,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         final File configFile = getBootstrapConfFile();
         final RunMiNiFi runMiNiFi = new RunMiNiFi(configFile);
 
+        Integer exitStatus = null;
         switch (cmd.toLowerCase()) {
             case "start":
                 runMiNiFi.start();
@@ -249,7 +250,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                 runMiNiFi.stop();
                 break;
             case "status":
-                runMiNiFi.status();
+                exitStatus = runMiNiFi.status();
                 break;
             case "restart":
                 runMiNiFi.stop();
@@ -268,6 +269,9 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                     System.out.println("The 'flowStatus' command requires an input query. See the System Admin Guide 'FlowStatus Script Query' section for complete details.");
                 }
                 break;
+        }
+        if (exitStatus != null) {
+            System.exit(exitStatus);
         }
     }
 
@@ -560,23 +564,23 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return new Status(port, pid, pingSuccess, alive);
     }
 
-    public void status() throws IOException {
+    public int status() throws IOException {
         final Logger logger = cmdLogger;
         final Status status = getStatus(logger);
         if (status.isRespondingToPing()) {
             logger.info("Apache MiNiFi is currently running, listening to Bootstrap on port {}, PID={}",
                 new Object[]{status.getPort(), status.getPid() == null ? "unknown" : status.getPid()});
-            return;
+            return 0;
         }
 
         if (status.isProcessRunning()) {
             logger.info("Apache MiNiFi is running at PID {} but is not responding to ping requests", status.getPid());
-            return;
+            return 4;
         }
 
         if (status.getPort() == null) {
             logger.info("Apache MiNiFi is not running");
-            return;
+            return 3;
         }
 
         if (status.getPid() == null) {
@@ -584,6 +588,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         } else {
             logger.info("Apache MiNiFi is not running");
         }
+        return 3;
     }
 
     public FlowStatusReport statusReport(String statusRequest) throws IOException {

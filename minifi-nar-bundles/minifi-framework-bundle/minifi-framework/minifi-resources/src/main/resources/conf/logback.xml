@@ -73,6 +73,8 @@
     <!-- valid logging levels: TRACE, DEBUG, INFO, WARN, ERROR -->
     
     <logger name="org.apache.nifi" level="INFO"/>
+    <logger name="org.apache.nifi.processors" level="WARN"/>
+    <logger name="org.apache.nifi.processors.standard.LogAttribute" level="INFO"/>
     <logger name="org.apache.nifi.controller.repository.StandardProcessSession" level="WARN" />
 
     <!-- Logger for managing logging statements for jetty -->

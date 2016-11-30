@@ -16,6 +16,7 @@
  */
 package org.apache.nifi.nar;
 
+import org.apache.nifi.annotation.behavior.RequiresInstanceClassLoading;
 import org.apache.nifi.authentication.LoginIdentityProvider;
 import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.controller.ControllerService;
@@ -134,6 +135,12 @@ public class ExtensionManager {
         if (registeredClassLoader == null) {
             classloaderMap.put(className, classLoader);
             classes.add(type);
+
+            // keep track of which classes require a class loader per component instance
+            if (type.isAnnotationPresent(RequiresInstanceClassLoading.class)) {
+                requiresInstanceClassLoading.add(className);
+            }
+
         } else {
             boolean loadedFromAncestor = false;
 
@@ -166,11 +173,6 @@ public class ExtensionManager {
         return extensionClassloaderLookup.get(classType);
     }
 
-    public static Set<Class> getExtensions(final Class<?> definition) {
-        final Set<Class> extensions = definitionMap.get(definition);
-        return (extensions == null) ? Collections.<Class>emptySet() : extensions;
-    }
-
     /**
      * Determines the effective ClassLoader for the instance of the given type.
      *
@@ -198,9 +200,9 @@ public class ExtensionManager {
             // InstanceClassLoader that has the NAR ClassLoader as a parent
             if (requiresInstanceClassLoading.contains(classType) && (registeredClassLoader instanceof URLClassLoader)) {
                 final URLClassLoader registeredUrlClassLoader = (URLClassLoader) registeredClassLoader;
-                instanceClassLoader = new InstanceClassLoader(instanceIdentifier, classType, registeredUrlClassLoader.getURLs(), registeredUrlClassLoader.getParent());
+                instanceClassLoader = new InstanceClassLoader(instanceIdentifier, registeredUrlClassLoader.getURLs(), registeredUrlClassLoader.getParent());
             } else {
-                instanceClassLoader = new InstanceClassLoader(instanceIdentifier, classType, new URL[0], registeredClassLoader);
+                instanceClassLoader = new InstanceClassLoader(instanceIdentifier, new URL[0], registeredClassLoader);
             }
 
             instanceClassloaderLookup.put(instanceIdentifier, instanceClassLoader);
@@ -216,11 +218,7 @@ public class ExtensionManager {
      * @return the removed ClassLoader for the given instance, or null if not found
      */
     public static ClassLoader removeInstanceClassLoaderIfExists(final String instanceIdentifier) {
-        if (instanceIdentifier == null) {
-            return null;
-        }
-
-        final ClassLoader classLoader = instanceClassloaderLookup.remove(instanceIdentifier);
+        ClassLoader classLoader = instanceClassloaderLookup.remove(instanceIdentifier);
         if (classLoader != null && (classLoader instanceof URLClassLoader)) {
             final URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
             try {
@@ -240,6 +238,11 @@ public class ExtensionManager {
      */
     public static boolean requiresInstanceClassLoading(final String classType) {
         return requiresInstanceClassLoading.contains(classType);
+    }
+
+    public static Set<Class> getExtensions(final Class<?> definition) {
+        final Set<Class> extensions = definitionMap.get(definition);
+        return (extensions == null) ? Collections.<Class>emptySet() : extensions;
     }
 
     public static void logClassLoaderMapping() {

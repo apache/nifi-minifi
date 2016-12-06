@@ -30,22 +30,16 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     public static final String URL_KEY = "url";
     public static final String TIMEOUT_KEY = "timeout";
     public static final String TRANSPORT_PROTOCOL_KEY = "transport protocol";
+    public static final String PROXY_HOST_KEY = "proxy host";
+    public static final String PROXY_PORT_KEY = "proxy port";
+    public static final String PROXY_USER_KEY = "proxy user";
+    public static final String PROXY_PASSWORD_KEY = "proxy password";
 
-    private enum transportProtocolOptions {
-        RAW("RAW"), HTTP("HTTP");
-
-        private final String stringValue;
-
-        private transportProtocolOptions(final String s) {
-            stringValue = s;
-        }
-
-        public String toString() {
-            return stringValue;
-        }
+    public enum TransportProtocolOptions {
+        RAW, HTTP;
 
         public static boolean valid(String input) {
-            return RAW.stringValue.equals(input) || HTTP.stringValue.equals(input);
+            return RAW.name().equals(input) || HTTP.name().equals(input);
         }
     }
 
@@ -53,6 +47,10 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     public static final String DEFAULT_TIMEOUT = "30 secs";
     public static final String DEFAULT_YIELD_PERIOD = "10 sec";
     public static final String DEFAULT_TRANSPORT_PROTOCOL= "RAW";
+    public static final String DEFAULT_PROXY_HOST = "";
+    public static final Integer DEFAULT_PROXY_PORT = null;
+    public static final String DEFAULT_PROXY_USER = "";
+    public static final String DEFAULT_PROXY_PASSWORD = "";
 
     private String url;
     private List<RemoteInputPortSchema> inputPorts;
@@ -61,6 +59,10 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     private String timeout = DEFAULT_TIMEOUT;
     private String yieldPeriod = DEFAULT_YIELD_PERIOD;
     private String transportProtocol = DEFAULT_TRANSPORT_PROTOCOL;
+    private String proxyHost = DEFAULT_PROXY_HOST;
+    private Integer proxyPort = DEFAULT_PROXY_PORT;
+    private String proxyUser = DEFAULT_PROXY_USER;
+    private String proxyPassword = DEFAULT_PROXY_PASSWORD;
 
     public RemoteProcessGroupSchema(Map map) {
         super(map, "RemoteProcessGroup(id: {id}, name: {name})");
@@ -78,9 +80,14 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
         yieldPeriod = getOptionalKeyAsType(map, YIELD_PERIOD_KEY, String.class, wrapperName, DEFAULT_YIELD_PERIOD);
         transportProtocol = getOptionalKeyAsType(map, TRANSPORT_PROTOCOL_KEY, String.class, wrapperName, DEFAULT_TRANSPORT_PROTOCOL);
 
-        if (!transportProtocolOptions.valid(transportProtocol)){
+        if (!TransportProtocolOptions.valid(transportProtocol)){
             addValidationIssue(TRANSPORT_PROTOCOL_KEY, wrapperName, "it must be either 'RAW' or 'HTTP' but is '" + transportProtocol + "'");
         }
+
+        proxyHost = getOptionalKeyAsType(map, PROXY_HOST_KEY, String.class, wrapperName, DEFAULT_PROXY_HOST);
+        proxyPort = getOptionalKeyAsType(map, PROXY_PORT_KEY, Integer.class, wrapperName, DEFAULT_PROXY_PORT);
+        proxyUser = getOptionalKeyAsType(map, PROXY_USER_KEY, String.class, wrapperName, DEFAULT_PROXY_USER);
+        proxyPassword = getOptionalKeyAsType(map, PROXY_PASSWORD_KEY, String.class, wrapperName, DEFAULT_PROXY_PASSWORD);
     }
 
     @Override
@@ -91,6 +98,10 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
         result.put(TIMEOUT_KEY, timeout);
         result.put(YIELD_PERIOD_KEY, yieldPeriod);
         result.put(TRANSPORT_PROTOCOL_KEY, transportProtocol);
+        result.put(PROXY_HOST_KEY, proxyHost);
+        result.put(PROXY_PORT_KEY, proxyPort == null ? "" : proxyPort);
+        result.put(PROXY_USER_KEY, proxyUser);
+        result.put(PROXY_PASSWORD_KEY, proxyPassword);
         putListIfNotNull(result, INPUT_PORTS_KEY, inputPorts);
         return result;
     }
@@ -117,5 +128,41 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
 
     public String getTransportProtocol() {
         return transportProtocol;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public void setProxyUser(String proxyUser) {
+        this.proxyUser = proxyUser;
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
+    }
+
+    public void setTransportProtocol(String transportProtocol) {
+        this.transportProtocol = transportProtocol;
+    }
+
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return proxyPort;
+    }
+
+    public String getProxyUser() {
+        return proxyUser;
+    }
+
+    public String getProxyPassword() {
+        return proxyPassword;
     }
 }

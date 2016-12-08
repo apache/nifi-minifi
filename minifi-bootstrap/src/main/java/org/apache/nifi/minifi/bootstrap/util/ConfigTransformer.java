@@ -398,10 +398,6 @@ public final class ConfigTransformer {
                 addProcessor(element, processorConfig);
             }
 
-            for (ControllerServiceSchema controllerServiceSchema : processGroupSchema.getControllerServices()) {
-                addControllerService(element, controllerServiceSchema);
-            }
-
             for (PortSchema portSchema : processGroupSchema.getInputPortSchemas()) {
                 addPort(doc, element, portSchema, "inputPort");
             }
@@ -426,6 +422,10 @@ public final class ConfigTransformer {
 
             for (ConnectionSchema connectionConfig : processGroupSchema.getConnections()) {
                 addConnection(element, connectionConfig, parentGroupIdResolver);
+            }
+
+            for (ControllerServiceSchema controllerServiceSchema : processGroupSchema.getControllerServices()) {
+                addControllerService(element, controllerServiceSchema);
             }
         } catch (ConfigurationChangeException e) {
             throw e;

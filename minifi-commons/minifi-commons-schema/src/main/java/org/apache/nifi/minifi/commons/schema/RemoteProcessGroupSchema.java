@@ -18,6 +18,7 @@
 package org.apache.nifi.minifi.commons.schema;
 
 import org.apache.nifi.minifi.commons.schema.common.BaseSchemaWithIdAndName;
+import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,10 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     public static final String PROXY_PORT_KEY = "proxy port";
     public static final String PROXY_USER_KEY = "proxy user";
     public static final String PROXY_PASSWORD_KEY = "proxy password";
+
+    public static final String EXPECTED_PROXY_HOST_IF_PROXY_PORT = "expected " + PROXY_HOST_KEY + " to be set if " + PROXY_PORT_KEY + " is";
+    public static final String EXPECTED_PROXY_HOST_IF_PROXY_USER = "expected " + PROXY_HOST_KEY + " to be set if " + PROXY_USER_KEY + " is";
+    public static final String EXPECTED_PROXY_USER_IF_PROXY_PASSWORD = "expected " + PROXY_USER_KEY + " to be set if " + PROXY_USER_KEY + " is";
 
     public enum TransportProtocolOptions {
         RAW, HTTP;
@@ -88,6 +93,18 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
         proxyPort = getOptionalKeyAsType(map, PROXY_PORT_KEY, Integer.class, wrapperName, DEFAULT_PROXY_PORT);
         proxyUser = getOptionalKeyAsType(map, PROXY_USER_KEY, String.class, wrapperName, DEFAULT_PROXY_USER);
         proxyPassword = getOptionalKeyAsType(map, PROXY_PASSWORD_KEY, String.class, wrapperName, DEFAULT_PROXY_PASSWORD);
+
+        if (StringUtil.isNullOrEmpty(proxyHost)) {
+            if (proxyPort != null) {
+                addValidationIssue(PROXY_PORT_KEY, wrapperName, EXPECTED_PROXY_HOST_IF_PROXY_PORT);
+            }
+            if (!StringUtil.isNullOrEmpty(proxyUser)) {
+                addValidationIssue(PROXY_USER_KEY, wrapperName, EXPECTED_PROXY_HOST_IF_PROXY_USER);
+            }
+        }
+        if (!StringUtil.isNullOrEmpty(proxyPassword) && StringUtil.isNullOrEmpty(proxyUser)) {
+            addValidationIssue(PROXY_PASSWORD_KEY, wrapperName, EXPECTED_PROXY_USER_IF_PROXY_PASSWORD);
+        }
     }
 
     @Override

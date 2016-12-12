@@ -38,7 +38,8 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
 
     public static final String EXPECTED_PROXY_HOST_IF_PROXY_PORT = "expected " + PROXY_HOST_KEY + " to be set if " + PROXY_PORT_KEY + " is";
     public static final String EXPECTED_PROXY_HOST_IF_PROXY_USER = "expected " + PROXY_HOST_KEY + " to be set if " + PROXY_USER_KEY + " is";
-    public static final String EXPECTED_PROXY_USER_IF_PROXY_PASSWORD = "expected " + PROXY_USER_KEY + " to be set if " + PROXY_USER_KEY + " is";
+    public static final String EXPECTED_PROXY_USER_IF_PROXY_PASSWORD = "expected " + PROXY_USER_KEY + " to be set if " + PROXY_PASSWORD_KEY + " is";
+    public static final String EXPECTED_PROXY_PASSWORD_IF_PROXY_USER = "expected " + PROXY_PASSWORD_KEY + " to be set if " + PROXY_USER_KEY + " is";
 
     public enum TransportProtocolOptions {
         RAW, HTTP;
@@ -102,8 +103,12 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
                 addValidationIssue(PROXY_USER_KEY, wrapperName, EXPECTED_PROXY_HOST_IF_PROXY_USER);
             }
         }
-        if (!StringUtil.isNullOrEmpty(proxyPassword) && StringUtil.isNullOrEmpty(proxyUser)) {
-            addValidationIssue(PROXY_PASSWORD_KEY, wrapperName, EXPECTED_PROXY_USER_IF_PROXY_PASSWORD);
+        if (StringUtil.isNullOrEmpty(proxyUser)) {
+            if (!StringUtil.isNullOrEmpty(proxyPassword)) {
+                addValidationIssue(PROXY_PASSWORD_KEY, wrapperName, EXPECTED_PROXY_USER_IF_PROXY_PASSWORD);
+            }
+        } else if (StringUtil.isNullOrEmpty(proxyPassword)) {
+            addValidationIssue(PROXY_USER_KEY, wrapperName, EXPECTED_PROXY_PASSWORD_IF_PROXY_USER);
         }
     }
 

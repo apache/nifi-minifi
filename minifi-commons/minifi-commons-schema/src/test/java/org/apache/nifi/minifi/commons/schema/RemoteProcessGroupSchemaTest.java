@@ -94,10 +94,18 @@ public class RemoteProcessGroupSchemaTest {
         assertTrue(remoteProcessGroupSchema.getValidationIssues().contains(BaseSchema.getIssueText(RemoteProcessGroupSchema.PROXY_PASSWORD_KEY, remoteProcessGroupSchema.getWrapperName(),
                 RemoteProcessGroupSchema.EXPECTED_PROXY_USER_IF_PROXY_PASSWORD)));
 
+        map.remove(RemoteProcessGroupSchema.PROXY_PASSWORD_KEY);
         map.put(RemoteProcessGroupSchema.PROXY_USER_KEY, "user");
+        remoteProcessGroupSchema = new RemoteProcessGroupSchema(map);
+        assertTrue(remoteProcessGroupSchema.getValidationIssues().contains(BaseSchema.getIssueText(RemoteProcessGroupSchema.PROXY_USER_KEY, remoteProcessGroupSchema.getWrapperName(),
+                RemoteProcessGroupSchema.EXPECTED_PROXY_PASSWORD_IF_PROXY_USER)));
+
+        map.put(RemoteProcessGroupSchema.PROXY_PASSWORD_KEY, "password");
         remoteProcessGroupSchema = new RemoteProcessGroupSchema(map);
         assertFalse(remoteProcessGroupSchema.getValidationIssues().contains(BaseSchema.getIssueText(RemoteProcessGroupSchema.PROXY_PASSWORD_KEY, remoteProcessGroupSchema.getWrapperName(),
                 RemoteProcessGroupSchema.EXPECTED_PROXY_USER_IF_PROXY_PASSWORD)));
+        assertFalse(remoteProcessGroupSchema.getValidationIssues().contains(BaseSchema.getIssueText(RemoteProcessGroupSchema.PROXY_USER_KEY, remoteProcessGroupSchema.getWrapperName(),
+                RemoteProcessGroupSchema.EXPECTED_PROXY_PASSWORD_IF_PROXY_USER)));
 
         assertEquals("host", remoteProcessGroupSchema.getProxyHost());
         assertEquals(Integer.valueOf(1234), remoteProcessGroupSchema.getProxyPort());

@@ -17,7 +17,6 @@
 
 package org.apache.nifi.minifi.commons.status;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.nifi.minifi.commons.status.connection.ConnectionStatusBean;

@@ -17,6 +17,9 @@
 
 package org.apache.nifi.minifi.commons.status;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.nifi.minifi.commons.status.connection.ConnectionStatusBean;
 import org.apache.nifi.minifi.commons.status.controllerservice.ControllerServiceStatus;
 import org.apache.nifi.minifi.commons.status.instance.InstanceStatus;
@@ -25,6 +28,8 @@ import org.apache.nifi.minifi.commons.status.reportingTask.ReportingTaskStatus;
 import org.apache.nifi.minifi.commons.status.rpg.RemoteProcessGroupStatusBean;
 import org.apache.nifi.minifi.commons.status.system.SystemDiagnosticsStatus;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 
 public class FlowStatusReport implements java.io.Serializable {
@@ -36,6 +41,7 @@ public class FlowStatusReport implements java.io.Serializable {
     private SystemDiagnosticsStatus systemDiagnosticsStatus;
     private List<ReportingTaskStatus> reportingTaskStatusList;
     private List<String> errorsGeneratingReport;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public FlowStatusReport() {
     }
@@ -111,14 +117,20 @@ public class FlowStatusReport implements java.io.Serializable {
 
         FlowStatusReport that = (FlowStatusReport) o;
 
-        if (getControllerServiceStatusList() != null ? !getControllerServiceStatusList().equals(that.getControllerServiceStatusList()) : that.getControllerServiceStatusList() != null) return false;
-        if (getProcessorStatusList() != null ? !getProcessorStatusList().equals(that.getProcessorStatusList()) : that.getProcessorStatusList() != null) return false;
-        if (getConnectionStatusList() != null ? !getConnectionStatusList().equals(that.getConnectionStatusList()) : that.getConnectionStatusList() != null) return false;
+        if (getControllerServiceStatusList() != null ? !getControllerServiceStatusList().equals(that.getControllerServiceStatusList()) : that.getControllerServiceStatusList() != null)
+            return false;
+        if (getProcessorStatusList() != null ? !getProcessorStatusList().equals(that.getProcessorStatusList()) : that.getProcessorStatusList() != null)
+            return false;
+        if (getConnectionStatusList() != null ? !getConnectionStatusList().equals(that.getConnectionStatusList()) : that.getConnectionStatusList() != null)
+            return false;
         if (getRemoteProcessGroupStatusList() != null ? !getRemoteProcessGroupStatusList().equals(that.getRemoteProcessGroupStatusList()) : that.getRemoteProcessGroupStatusList() != null)
             return false;
-        if (getInstanceStatus() != null ? !getInstanceStatus().equals(that.getInstanceStatus()) : that.getInstanceStatus() != null) return false;
-        if (getSystemDiagnosticsStatus() != null ? !getSystemDiagnosticsStatus().equals(that.getSystemDiagnosticsStatus()) : that.getSystemDiagnosticsStatus() != null) return false;
-        if (getReportingTaskStatusList() != null ? !getReportingTaskStatusList().equals(that.getReportingTaskStatusList()) : that.getReportingTaskStatusList() != null) return false;
+        if (getInstanceStatus() != null ? !getInstanceStatus().equals(that.getInstanceStatus()) : that.getInstanceStatus() != null)
+            return false;
+        if (getSystemDiagnosticsStatus() != null ? !getSystemDiagnosticsStatus().equals(that.getSystemDiagnosticsStatus()) : that.getSystemDiagnosticsStatus() != null)
+            return false;
+        if (getReportingTaskStatusList() != null ? !getReportingTaskStatusList().equals(that.getReportingTaskStatusList()) : that.getReportingTaskStatusList() != null)
+            return false;
         return getErrorsGeneratingReport() != null ? getErrorsGeneratingReport().equals(that.getErrorsGeneratingReport()) : that.getErrorsGeneratingReport() == null;
 
     }
@@ -138,7 +150,24 @@ public class FlowStatusReport implements java.io.Serializable {
 
     @Override
     public String toString() {
-        return "FlowStatusReport{" +
+
+        StringWriter jsonString = new StringWriter();
+        try(JsonGenerator generator = objectMapper.getFactory().createGenerator(jsonString)){
+            generator.writeStartObject();
+            generator.writeObjectField("controllerServiceStatusList", controllerServiceStatusList);
+            generator.writeObjectField("processorStatusList", processorStatusList);
+            generator.writeObjectField("connectionStatusList", connectionStatusList);
+            generator.writeObjectField("remoteProcessGroupStatusList", remoteProcessGroupStatusList);
+            generator.writeObjectField("instanceStatus", instanceStatus);
+            generator.writeObjectField("systemDiagnosticsStatus", systemDiagnosticsStatus);
+            generator.writeObjectField("reportingTaskStatusList", reportingTaskStatusList);
+            generator.writeObjectField("errorsGeneratingReport", errorsGeneratingReport);
+            generator.writeEndObject();
+            generator.close();
+        } catch (IOException e) {
+            //this should not occur since we are using a StringWriter, however, in the event it does. Generate
+            //the old style report
+            return "FlowStatusReport{" +
                 "controllerServiceStatusList=" + controllerServiceStatusList +
                 ", processorStatusList=" + processorStatusList +
                 ", connectionStatusList=" + connectionStatusList +
@@ -148,5 +177,7 @@ public class FlowStatusReport implements java.io.Serializable {
                 ", reportingTaskStatusList=" + reportingTaskStatusList +
                 ", errorsGeneratingReport=" + errorsGeneratingReport +
                 '}';
+        }
+        return jsonString.toString();
     }
 }

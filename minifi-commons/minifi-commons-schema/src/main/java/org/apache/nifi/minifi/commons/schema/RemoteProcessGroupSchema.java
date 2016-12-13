@@ -31,6 +31,7 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     public static final String URL_KEY = "url";
     public static final String TIMEOUT_KEY = "timeout";
     public static final String TRANSPORT_PROTOCOL_KEY = "transport protocol";
+    public static final String S2S_PROXY_REQUIRES_HTTP = "Site-To-Site proxy support requires HTTP " + TRANSPORT_PROTOCOL_KEY;
     public static final String PROXY_HOST_KEY = "proxy host";
     public static final String PROXY_PORT_KEY = "proxy port";
     public static final String PROXY_USER_KEY = "proxy user";
@@ -102,7 +103,10 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
             if (!StringUtil.isNullOrEmpty(proxyUser)) {
                 addValidationIssue(PROXY_USER_KEY, wrapperName, EXPECTED_PROXY_HOST_IF_PROXY_USER);
             }
+        } else if (!TransportProtocolOptions.HTTP.name().equals(transportProtocol)) {
+            addValidationIssue(PROXY_HOST_KEY, wrapperName, S2S_PROXY_REQUIRES_HTTP);
         }
+
         if (StringUtil.isNullOrEmpty(proxyUser)) {
             if (!StringUtil.isNullOrEmpty(proxyPassword)) {
                 addValidationIssue(PROXY_PASSWORD_KEY, wrapperName, EXPECTED_PROXY_USER_IF_PROXY_PASSWORD);

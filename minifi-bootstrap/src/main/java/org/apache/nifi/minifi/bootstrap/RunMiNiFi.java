@@ -1197,7 +1197,14 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         this.changeListener = new MiNiFiConfigurationChangeListener(this, defaultLogger);
         this.periodicStatusReporters = initializePeriodicNotifiers();
         startPeriodicNotifiers();
-        this.changeCoordinator = initializeNotifier(this.changeListener);
+        try {
+            this.changeCoordinator = initializeNotifier(this.changeListener);
+        } catch (Exception e) {
+            final String errorMsg = "Unable to start as {} is not properly configured due to: {}";
+            cmdLogger.error(errorMsg, this.changeListener.getDescriptor(), e.getMessage());
+            // if we fail to initialize, exit without attempting to start
+            System.exit(1);
+        }
 
         ProcessBuilder builder = tuple.getKey();
         Process process = tuple.getValue();

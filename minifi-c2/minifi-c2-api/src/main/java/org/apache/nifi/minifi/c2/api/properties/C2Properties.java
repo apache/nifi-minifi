@@ -35,7 +35,7 @@ public class C2Properties extends Properties {
     public static final String MINIFI_C2_SERVER_KEYSTORE_TYPE = "minifi.c2.server.keystoreType";
     public static final String MINIFI_C2_SERVER_KEYSTORE = "minifi.c2.server.keystore";
     public static final String MINIFI_C2_SERVER_KEYSTORE_PASSWD = "minifi.c2.server.keystorePasswd";
-    public static final String MINIFI_C2_SERVER_KEYSTORE_PASSWD1 = "minifi.c2.server.keystorePasswd";
+    public static final String MINIFI_C2_SERVER_KEY_PASSWD = "minifi.c2.server.keyPasswd";
     public static final String MINIFI_C2_SERVER_TRUSTSTORE = "minifi.c2.server.truststore";
     public static final String MINIFI_C2_SERVER_TRUSTSTORE_TYPE = "minifi.c2.server.truststoreType";
     public static final String MINIFI_C2_SERVER_TRUSTSTORE_PASSWD = "minifi.c2.server.truststorePasswd";
@@ -71,7 +71,7 @@ public class C2Properties extends Properties {
             keyStore.load(inputStream, properties.getProperty(MINIFI_C2_SERVER_KEYSTORE_PASSWD).toCharArray());
         }
         sslContextFactory.setKeyStore(keyStore);
-        sslContextFactory.setKeyManagerPassword(properties.getProperty(MINIFI_C2_SERVER_KEYSTORE_PASSWD1));
+        sslContextFactory.setKeyManagerPassword(properties.getProperty(MINIFI_C2_SERVER_KEY_PASSWD));
         sslContextFactory.setWantClientAuth(true);
 
         String trustStorePath = Paths.get(C2_SERVER_HOME).resolve(properties.getProperty(MINIFI_C2_SERVER_TRUSTSTORE)).toAbsolutePath().toFile().getAbsolutePath();

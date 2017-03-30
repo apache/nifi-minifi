@@ -50,7 +50,7 @@ public class NiFiRestConfigurationProviderSecureTest extends AbstractTestSecure 
                     new HttpsStatusCodeHealthCheck(container -> "https://mocknifi:8443/", containers -> containers.get(0), containers -> containers.get(1), () -> {
                         Path c2 = certificatesDirectory.resolve("c2");
                         try {
-                            return SslContextFactory.createSslContext(c2.resolve("keystore.jks").toFile().getAbsolutePath(), "badKeyPass".toCharArray(), "JKS",
+                            return SslContextFactory.createSslContext(c2.resolve("keystore.jks").toFile().getAbsolutePath(), "badKeystorePass".toCharArray(), "badKeyPass".toCharArray(), "JKS",
                                     c2.resolve("truststore.jks").toFile().getAbsolutePath(), "badTrustPass".toCharArray(), "JKS", SslContextFactory.ClientAuth.NONE, "TLS").getSocketFactory();
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -76,7 +76,7 @@ public class NiFiRestConfigurationProviderSecureTest extends AbstractTestSecure 
 
         KeyStore mockNiFiKeyStore = KeyStore.getInstance("JKS");
         try (InputStream inputStream = Files.newInputStream(certificatesDirectory.resolve("mocknifi").resolve("keystore.jks"))) {
-            mockNiFiKeyStore.load(inputStream, "badKeyPass".toCharArray());
+            mockNiFiKeyStore.load(inputStream, "badKeystorePass".toCharArray());
         }
         try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(certificatesDirectory.resolve("mocknifi").resolve("cert.pem"))))) {
             pemWriter.writeObject(new JcaMiscPEMGenerator(mockNiFiKeyStore.getKey(TlsToolkitStandalone.NIFI_KEY, "badKeyPass".toCharArray())));

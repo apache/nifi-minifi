@@ -69,7 +69,7 @@ public abstract class AbstractTestSecure extends AbstractTestUnsecure {
 
     public static SSLContext initCertificates(Path certificatesDirectory, List<String> serverHostnames) throws Exception {
         List<String> toolkitCommandLine = new ArrayList<>(Arrays.asList("-O", "-o", certificatesDirectory.toFile().getAbsolutePath(),
-                "-C", "CN=user1", "-C", "CN=user2", "-C", "CN=user3", "-C", "CN=user4", "-S", "badKeyPass", "-K", "badKeyPass", "-P", "badTrustPass"));
+                "-C", "CN=user1", "-C", "CN=user2", "-C", "CN=user3", "-C", "CN=user4", "-S", "badKeystorePass", "-K", "badKeyPass", "-P", "badTrustPass"));
         for (String serverHostname : serverHostnames) {
             toolkitCommandLine.add("-n");
             toolkitCommandLine.add(serverHostname);

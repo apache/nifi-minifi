@@ -90,7 +90,7 @@ public class ConfigService {
             cacheBuilder = cacheBuilder.maximumSize(maximumCacheSize);
         }
         if (cacheTtlMillis >= 0) {
-            cacheBuilder = cacheBuilder.expireAfterAccess(cacheTtlMillis, TimeUnit.MILLISECONDS);
+            cacheBuilder = cacheBuilder.refreshAfterWrite(cacheTtlMillis, TimeUnit.MILLISECONDS);
         }
         this.configurationCache = cacheBuilder
                 .build(new CacheLoader<ConfigurationProviderKey, ConfigurationProviderValue>() {
@@ -102,6 +102,9 @@ public class ConfigService {
     }
 
     public ConfigurationProviderValue initConfigurationProviderValue(ConfigurationProviderKey key) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Attempting to load and cache configuration with key " + key);
+        }
         try {
             List<MediaType> acceptValues = key.getAcceptValues();
             Pair<MediaType, ConfigurationProvider> providerPair = getProvider(acceptValues);

@@ -28,6 +28,8 @@ import org.apache.nifi.minifi.c2.api.cache.ConfigurationCacheFileInfo;
 import org.apache.nifi.minifi.c2.api.cache.WriteableConfiguration;
 import org.apache.nifi.minifi.c2.api.security.authorization.AuthorizationException;
 import org.apache.nifi.minifi.c2.provider.util.HttpConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +47,7 @@ import java.util.regex.Pattern;
 
 public class DelegatingConfigurationProvider implements ConfigurationProvider {
     public static final Pattern errorPattern = Pattern.compile("^Server returned HTTP response code: ([0-9]+) for URL:.*");
+    private static final Logger logger = LoggerFactory.getLogger(DelegatingConfigurationProvider.class);
     private final ConfigurationCache configurationCache;
     private final HttpConnector httpConnector;
     private final ObjectMapper objectMapper;
@@ -64,7 +67,11 @@ public class DelegatingConfigurationProvider implements ConfigurationProvider {
         try {
             HttpURLConnection httpURLConnection = httpConnector.get("/c2/config/contentTypes");
             try {
-                return objectMapper.readValue(httpURLConnection.getInputStream(), List.class);
+                List<String> contentTypes = objectMapper.readValue(httpURLConnection.getInputStream(), List.class);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Got content types: " + contentTypes);
+                }
+                return contentTypes;
             } finally {
                 httpURLConnection.disconnect();
             }
@@ -80,6 +87,9 @@ public class DelegatingConfigurationProvider implements ConfigurationProvider {
             if (version == null) {
                 remoteC2ServerConnection = getDelegateConnection(contentType, parameters);
                 version = Integer.parseInt(remoteC2ServerConnection.getHeaderField("X-Content-Version"));
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Got current version " + version + " from upstream.");
+                }
             }
             ConfigurationCacheFileInfo cacheFileInfo = configurationCache.getCacheFileInfo(contentType, parameters);
             WriteableConfiguration configuration = cacheFileInfo.getConfiguration(version);

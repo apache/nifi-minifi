@@ -83,7 +83,7 @@ public class HttpConnector {
             if (proxyPassword == null) {
                 throw new InvalidParameterException("Must specify proxy password with proxy username.");
             }
-            proxyAuthorization = Base64.getEncoder().encodeToString((proxyHost + ":" + proxyPassword).getBytes(StandardCharsets.UTF_8));
+            proxyAuthorization = "Basic " + Base64.getEncoder().encodeToString((proxyHost + ":" + proxyPassword).getBytes(StandardCharsets.UTF_8));
         } else {
             proxyAuthorization = null;
         }

@@ -53,6 +53,14 @@ public class ConfigurationProviderKey {
     }
 
     @Override
+    public String toString() {
+        return "ConfigurationProviderKey{" +
+                "acceptValues=" + acceptValues +
+                ", parameters=" + parameters +
+                '}';
+    }
+
+    @Override
     public int hashCode() {
         int result = acceptValues.hashCode();
         result = 31 * result + parameters.hashCode();

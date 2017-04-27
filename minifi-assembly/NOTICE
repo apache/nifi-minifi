@@ -294,6 +294,11 @@ The following binary components are provided under the Apache Software License v
       Apache Avro
       Copyright 2009-2013 The Apache Software Foundation
 
+  (ASLv2) AWS Java SDK
+    The following NOTICE information applies:
+      AWS Java SDK
+      Copyright 2010-2014 Amazon.com, Inc. or its affiliates.
+
   (ASLv2) Jasypt
     The following NOTICE information applies:
 	  Copyright (c) 2007-2010, The JASYPT team (http://www.jasypt.org)

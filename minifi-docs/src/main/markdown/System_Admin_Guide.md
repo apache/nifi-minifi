@@ -25,11 +25,12 @@
 
 When many MiNiFi agents running on the edge, it may not be possible to manually stop, edit the config.yml and then restart every one every time their configuration needs to change. The Config Change Coordinator and its Ingestors were designed to automatically redeploy in response to a configuration update.
 
-The Config Change Ingestors are the means by which the agent is notified of a potential new configuration. Currently there are three:
+The Config Change Ingestors are the means by which the agent is notified of a potential new configuration. Currently there are four:
 
- - FileChangeIngestor
- - RestChangeIngestor
- - PullHttpChangeIngestor
+ - `FileChangeIngestor`
+ - `RestChangeIngestor`
+ - `PullHttpChangeIngestor`
+ - `S3ChangeIngestor`
 
 After a new configuration has been pulled/received the Ingestors use a Differentiator in order to determine if the currently running config is different than the new config. Which Differentiator is used, is configurable for each Ingestor. Currently there is only one Differentiator:
 
@@ -121,6 +122,29 @@ nifi.minifi.notifier.ingestors.pull.http.keystore.password | If using HTTPS, thi
 nifi.minifi.notifier.ingestors.pull.http.keystore.type | If using HTTPS, this specifies the type of the keystore.
 nifi.minifi.notifier.ingestors.pull.http.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
 
+## S3ChangeIngestor
+
+class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.S3ChangeIngestor
+
+This Config Change Ingestor periodically checks an S3 object in to order to pull the potential new config. The S3 object's ETag is used to determine if the configuration has changed since last check.
+
+Below are the configuration options. 
+
+* The S3 object URI is the only required property.
+* If the endpoint is not provided then "s3.amazonaws.com" will be used.
+* If the region is not provided then "us-east-1" will be used. 
+* To get S3 credentials from the AWS credentials chain (environment variable, profile, IAM role) do not specify an access key.
+
+Option | Description
+------ | -----------
+nifi.minifi.notifier.ingestors.pull.s3.bucket | The S3 bucket that contains the config.
+nifi.minifi.notifier.ingestors.pull.s3.object.key | The S3 key of the object that contains the config.
+nifi.minifi.notifier.ingestors.pull.s3.access.key | The S3 access key. Leave blank to get credentials from the default AWS credentials chain.
+nifi.minifi.notifier.ingestors.pull.s3.secret.key | The S3 secret key. Only required if an S3 access key is specified.
+nifi.minifi.notifier.ingestors.pull.s3.endpoint | The S3 endpoint to use such as s3.amazonaws.com.
+nifi.minifi.notifier.ingestors.pull.s3.region | The S3 signing region to use such as us-east-1.
+nifi.minifi.notifier.ingestors.pull.s3.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
+nifi.minifi.notifier.ingestors.pull.s3.period.ms | Period on which to pull configurations from, defaults to 5 minutes if not set.
 
 # Status Reporting and Querying
 

@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.nifi.minifi</groupId>
         <artifactId>minifi-framework</artifactId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>0.3.0</version>
     </parent>
     <artifactId>minifi-resources</artifactId>
     <packaging>pom</packaging>
@@ -52,23 +52,17 @@
 									</then>
 									<else>
 										<echo message="Downloading Commons Daemon Windows binaries." />
-										<get
-											src="http://apache.claz.org/commons/daemon/binaries/windows/commons-daemon-1.1.0-bin-windows.zip"
-											dest="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip"
-											skipexisting="true" />
+										<get src="http://apache.claz.org/commons/daemon/binaries/windows/commons-daemon-1.1.0-bin-windows.zip" dest="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip" skipexisting="true" />
 										<local name="checksum.matches" />
 										<property name="sha256sum" value="b5a211f826dc4c0d90508eb1222fe00d70c04a960a6c06540b13ccc5ca71d377" />
-										<checksum file="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip" algorithm="SHA-256" property="${sha256sum}" verifyProperty="checksum.matches"/>
-										<echo message="Checksum match = ${checksum.matches}"/>
+										<checksum file="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip" algorithm="SHA-256" property="${sha256sum}" verifyProperty="checksum.matches" />
+										<echo message="Checksum match = ${checksum.matches}" />
 										<condition property="checksum.matches.fail">
-      										<equals arg1="${checksum.matches}" arg2="false"/>
+      										<equals arg1="${checksum.matches}" arg2="false" />
       									</condition>
       									<fail if="checksum.matches.fail">Checksum error</fail>
-										<unzip
-											src="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip"
-											dest="${java.io.tmpdir}" />
-										<copy file="${java.io.tmpdir}/prunmgr.exe"
-											tofile="${basedir}/src/main/resources/bin/minifiw.exe" />
+										<unzip src="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip" dest="${java.io.tmpdir}" />
+										<copy file="${java.io.tmpdir}/prunmgr.exe" tofile="${basedir}/src/main/resources/bin/minifiw.exe" />
 										<copy file="${java.io.tmpdir}/prunsrv.exe" tofile="${basedir}/src/main/resources/bin/minifi.exe" />
 									</else>
 								</if>

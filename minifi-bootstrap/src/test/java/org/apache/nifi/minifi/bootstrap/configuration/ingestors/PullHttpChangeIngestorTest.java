@@ -55,6 +55,7 @@ public class PullHttpChangeIngestorTest extends PullHttpChangeIngestorCommonTest
         properties.put(PullHttpChangeIngestor.PORT_KEY, String.valueOf(port));
         properties.put(PullHttpChangeIngestor.HOST_KEY, "localhost");
         properties.put(PullHttpChangeIngestor.PULL_HTTP_POLLING_PERIOD_KEY, "30000");
+        properties.put(PullHttpChangeIngestor.OVERRIDE_SECURITY, "true");
 
         pullHttpChangeIngestor = new PullHttpChangeIngestor();
 

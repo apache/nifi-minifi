@@ -85,16 +85,20 @@ public class ConfigSchemaFunction implements Function<TemplateDTO, ConfigSchema>
     }
 
     protected void addSnippet(Map<String, Object> map, FlowSnippetDTO snippet) {
-        addSnippet(map, null, null, snippet);
+        addSnippet(map, null, null, null, snippet);
     }
 
-    protected Map<String, Object> addSnippet(Map<String, Object> map, String id, String name, FlowSnippetDTO snippet) {
+    protected Map<String, Object> addSnippet(Map<String, Object> map, String id, String name, Map<String, String> variables, FlowSnippetDTO snippet) {
         if (!StringUtil.isNullOrEmpty(id)) {
             map.put(ID_KEY, id);
         }
 
         if (!StringUtil.isNullOrEmpty(name)) {
             map.put(NAME_KEY, name);
+        }
+
+        if (variables != null) {
+            map.put(ProcessGroupSchema.PROCESS_GROUPS_VARIABLES_KEY, variables);
         }
 
         map.put(CommonPropertyKeys.PROCESSORS_KEY, nullToEmpty(snippet.getProcessors()).stream()
@@ -140,7 +144,8 @@ public class ConfigSchemaFunction implements Function<TemplateDTO, ConfigSchema>
                 .collect(Collectors.toList()));
 
         map.put(ProcessGroupSchema.PROCESS_GROUPS_KEY, nullToEmpty(snippet.getProcessGroups()).stream()
-                .map(p -> addSnippet(new HashMap<>(), p.getId(), p.getName(), p.getContents())).collect(Collectors.toList()));
+                .map(p -> addSnippet(new HashMap<>(), p.getId(), p.getName(), p.getVariables(), p.getContents()))
+                .collect(Collectors.toList()));
 
         return map;
     }

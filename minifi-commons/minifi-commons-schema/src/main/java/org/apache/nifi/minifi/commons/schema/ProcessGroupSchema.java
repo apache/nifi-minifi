@@ -24,10 +24,12 @@ import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
 import org.apache.nifi.minifi.commons.schema.common.WritableSchema;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CONNECTIONS_KEY;
@@ -43,6 +45,7 @@ import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.RE
 public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements WritableSchema, ConvertableSchema<ProcessGroupSchema> {
 
     public static final String PROCESS_GROUPS_KEY = "Process Groups";
+    public static final String PROCESS_GROUPS_VARIABLES_KEY = "Variables";
     public static final String ID_DEFAULT = "Root-Group";
 
     private String comment;
@@ -54,6 +57,7 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
     private List<ProcessGroupSchema> processGroupSchemas;
     private List<PortSchema> inputPortSchemas;
     private List<PortSchema> outputPortSchemas;
+    private Map<String, String> variables;
 
     public ProcessGroupSchema(Map map, String wrapperName) {
         super(map, wrapperName);
@@ -66,6 +70,7 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
         inputPortSchemas = getOptionalKeyAsList(map, INPUT_PORTS_KEY, m -> new PortSchema(m, "InputPort(id: {id}, name: {name})"), wrapperName);
         outputPortSchemas = getOptionalKeyAsList(map, OUTPUT_PORTS_KEY, m -> new PortSchema(m, "OutputPort(id: {id}, name: {name})"), wrapperName);
         processGroupSchemas = getOptionalKeyAsList(map, PROCESS_GROUPS_KEY, m -> new ProcessGroupSchema(m, "ProcessGroup(id: {id}, name: {name})"), wrapperName);
+        variables = getOptionalKeyAsType(map, PROCESS_GROUPS_VARIABLES_KEY, Map.class, wrapperName, Collections.emptyMap());
 
         if (ConfigSchema.TOP_LEVEL_NAME.equals(wrapperName)) {
             if (inputPortSchemas.size() > 0) {
@@ -93,6 +98,7 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
         addIssuesIfNotNull(connections);
     }
 
+    @Override
     public Map<String, Object> toMap() {
         Map<String, Object> result = mapSupplier.get();
         String id = getId();
@@ -108,6 +114,11 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
         putListIfNotNull(result, FUNNELS_KEY, funnels);
         putListIfNotNull(result, CONNECTIONS_KEY, connections);
         putListIfNotNull(result, REMOTE_PROCESS_GROUPS_KEY, remoteProcessGroups);
+
+        if(!variables.isEmpty()) {
+            result.put(PROCESS_GROUPS_VARIABLES_KEY, new TreeMap<>(variables));
+        }
+
         return result;
     }
 
@@ -174,6 +185,10 @@ public class ProcessGroupSchema extends BaseSchemaWithIdAndName implements Writa
 
     public List<PortSchema> getInputPortSchemas() {
         return inputPortSchemas;
+    }
+
+    public Map<String,String> getVariables() {
+        return variables;
     }
 
     @Override

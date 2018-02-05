@@ -171,6 +171,12 @@ public class ConfigMainTest {
     public void testTransformRoundTrip15RPGHandling() throws IOException, JAXBException, SchemaLoaderException {
         transformRoundTrip("1.5_RPG_Handling");
     }
+
+    @Test
+    public void testTransformRoundTrip15VariablesHandling() throws IOException, JAXBException, SchemaLoaderException {
+        transformRoundTrip("1.5_Variables_Handling");
+    }
+
     @Test
     public void testTransformRoundTripDecompression() throws IOException, JAXBException, SchemaLoaderException {
         transformRoundTrip("DecompressionCircularFlow");

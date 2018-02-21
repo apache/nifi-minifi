@@ -12,6 +12,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+
+NOTICE: This README file may become out of date on this branch as development to add new capabilities to the C2 server are in progress. This notice will be removed and the contents of this README file will be updated prior to merging this feature branch.
+
 ## Apache NiFi MiNiFi Command and Control (C2) Server
 MiNiFi agents allow us to push data flows down to smaller devices on the edge of the network.  This provides many of the niceties of processing data with NiFi in a smaller package.  One big challenge with many disparate agents running on all sorts of devices is coordinating their work and pushing out revised flows.
 

@@ -17,22 +17,46 @@ limitations under the License.
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>minifi</artifactId>
         <groupId>org.apache.nifi.minifi</groupId>
         <version>0.5.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>minifi-c2</artifactId>
+    <version>0.5.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <description>A central command and control (C2) server for MiNiFi agents.</description>
+
     <modules>
-        <module>minifi-c2-api</module>
-        <module>minifi-c2-cache</module>
-        <module>minifi-c2-provider</module>
-        <module>minifi-c2-service</module>
-        <module>minifi-c2-jetty</module>
         <module>minifi-c2-assembly</module>
+        <module>minifi-c2-commons</module>
         <module>minifi-c2-docker</module>
+        <module>minifi-c2-framework</module>
         <module>minifi-c2-integration-tests</module>
+        <module>minifi-c2-jetty</module>
+        <module>minifi-c2-web-api</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-c2-web-api</artifactId>
+                <type>war</type>
+                <version>0.5.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi.minifi</groupId>
+                <artifactId>minifi-c2-resources</artifactId>
+                <version>0.5.0-SNAPSHOT</version>
+                <classifier>resources</classifier>
+                <scope>runtime</scope>
+                <type>zip</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>

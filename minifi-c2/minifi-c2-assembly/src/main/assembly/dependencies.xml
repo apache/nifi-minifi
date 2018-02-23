@@ -24,28 +24,17 @@
     <baseDirectory>minifi-c2-${project.version}</baseDirectory>
 
     <dependencySets>
-        <!-- Write out all non-war dependency artifacts to lib directory -->
+        <!-- Write out all dependency artifacts to lib directory -->
         <dependencySet>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
             <outputDirectory>lib</outputDirectory>
-            <useProjectArtifact>false</useProjectArtifact>
             <directoryMode>0770</directoryMode>
             <fileMode>0660</fileMode>
-            <excludes>
-                <exclude>*:war</exclude>
-            </excludes>
-        </dependencySet>
-
-        <!-- Write out all war dependency artifacts to lib directory -->
-        <dependencySet>
-            <outputDirectory>webapps</outputDirectory>
-            <useProjectArtifact>false</useProjectArtifact>
-            <directoryMode>0770</directoryMode>
-            <fileMode>0660</fileMode>
-            <includes>
-                <include>*:war</include>
-            </includes>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
         </dependencySet>
     </dependencySets>
+
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/src/main/resources</directory>

@@ -74,36 +74,6 @@ limitations under the License.
     <dependencies>
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-cache-filesystem</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-cache-s3</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-provider-cache</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-provider-delegating</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-provider-nifi-rest</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-c2-jetty</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -123,21 +93,6 @@ limitations under the License.
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <scope>compile</scope>
@@ -145,11 +100,6 @@ limitations under the License.
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>
             <artifactId>jersey-spring</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -174,7 +124,7 @@ limitations under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.nifi.minifi</groupId>
-            <artifactId>minifi-c2-service</artifactId>
+            <artifactId>minifi-c2-web-api</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>

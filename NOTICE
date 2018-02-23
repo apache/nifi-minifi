@@ -5,3 +5,5 @@ This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
 
 This includes derived works from the Apache NiFi (ASLv2) project including numerous source files from the core framework API.  
+
+This includes derived works from the Apache NiFi Registry (ASLv2) project including source files from the framework, security, and web api.

@@ -15,7 +15,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache</groupId>
@@ -84,12 +85,60 @@ limitations under the License.
         <connection>scm:git:git://git.apache.org/nifi-minifi.git</connection>
         <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/nifi-minifi.git</developerConnection>
         <url>https://git-wip-us.apache.org/repos/asf?p=nifi-minifi.git</url>
-      <tag>HEAD</tag>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>JIRA</system>
         <url>https://issues.apache.org/jira/browse/MINIFI</url>
     </issueManagement>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <!-- This should be at top, it makes maven try the central repo
+                first and then others and hence faster dep resolution -->
+            <name>Maven Repository</name>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>apache-repo</id>
+            <name>Apache Repository</name>
+            <url>https://repository.apache.org/content/repositories/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -99,14 +148,14 @@ limitations under the License.
         <inceptionYear>2016</inceptionYear>
         <org.slf4j.version>1.7.25</org.slf4j.version>
         <org.apache.nifi.version>1.5.0</org.apache.nifi.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.1.3</logback.version>
+        <flyway.version>4.2.0</flyway.version>
+        <jax.rs.api.version>2.1</jax.rs.api.version>
+        <jackson.version>2.9.2</jackson.version>
         <jetty.version>9.4.3.v20170317</jetty.version>
         <jersey.version>2.26</jersey.version>
-        <yammer.metrics.version>2.2.0</yammer.metrics.version>
-        <spring.version>4.2.4.RELEASE</spring.version>
-        <spring.security.version>4.0.3.RELEASE</spring.security.version>
-        <system.rules.version>1.16.1</system.rules.version>
-        <aws.sdk.version>1.11.172</aws.sdk.version>
+        <spring.boot.version>2.0.0.M7</spring.boot.version>
+        <spring.security.version>5.0.0.RELEASE</spring.security.version>
     </properties>
 
     <dependencies>
@@ -318,6 +367,29 @@ limitations under the License.
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-annotations</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>apache-jsp</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>apache-jstl</artifactId>
+                <version>${jetty.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.toolchain</groupId>
+                <artifactId>jetty-jsp-jdt</artifactId>
+                <version>2.3.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>javax.servlet.jsp</groupId>
                 <artifactId>javax.servlet.jsp-api</artifactId>
                 <version>2.3.1</version>
@@ -342,10 +414,19 @@ limitations under the License.
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.jetty.toolchain</groupId>
-                <artifactId>jetty-jsp-jdt</artifactId>
-                <version>2.3.3</version>
-                <scope>provided</scope>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${jax.rs.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>2.0.0.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>6.0.2.Final</version>
             </dependency>
 
             <!-- NiFi Modules -->
@@ -652,7 +733,7 @@ limitations under the License.
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.4</version>
+                <version>3.5</version>
             </dependency>
             <dependency>
                 <groupId>org.antlr</groupId>
@@ -781,205 +862,6 @@ limitations under the License.
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context-support</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-expression</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>${spring.security.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-web</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-expression</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-web</artifactId>
-                <version>${spring.security.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-tx</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-jdbc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-expression</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-web</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-acl</artifactId>
-                <version>${spring.security.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-tx</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-jdbc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-config</artifactId>
-                <version>${spring.security.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-ldap</artifactId>
-                <version>${spring.security.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-tx</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security.kerberos</groupId>
-                <artifactId>spring-security-kerberos-core</artifactId>
-                <version>1.0.1.RELEASE</version>
-            </dependency>
-            <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjweaver</artifactId>
                 <version>1.8.5</version>
@@ -1008,16 +890,6 @@ limitations under the License.
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>2.8.2</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yammer.metrics</groupId>
-                <artifactId>metrics-ganglia</artifactId>
-                <version>${yammer.metrics.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yammer.metrics</groupId>
-                <artifactId>metrics-core</artifactId>
-                <version>${yammer.metrics.version}</version>
             </dependency>
             <dependency>
                 <groupId>javax.jms</groupId>
@@ -1082,6 +954,11 @@ limitations under the License.
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.el</artifactId>
+                <version>3.0.1-b08</version>
+            </dependency>
+            <dependency>
                 <groupId>com.sun.jersey</groupId>
                 <artifactId>jersey-json</artifactId>
                 <version>${jersey.version}</version>
@@ -1096,18 +973,7 @@ limitations under the License.
                 <artifactId>jersey-client</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-annotations</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>apache-jstl</artifactId>
-                <version>${jetty.version}</version>
-                <scope>provided</scope>
-            </dependency>
+
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -1119,19 +985,34 @@ limitations under the License.
                 <version>1.3.176</version>
             </dependency>
             <dependency>
-                <groupId>org.jasypt</groupId>
-                <artifactId>jasypt</artifactId>
-                <version>1.9.2</version>
-            </dependency>
-            <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
                 <version>1.9.13</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.6.1</version>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>1.5.16</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
@@ -1372,14 +1253,16 @@ limitations under the License.
                                 </module>
                                 <module name="RegexpSinglelineJava">
                                     <property name="format" value="[@]see\s+[{][@]link" />
-                                    <property name="message" value="Javadoc @see does not need @link: pick one or the other." />
+                                    <property name="message"
+                                              value="Javadoc @see does not need @link: pick one or the other." />
                                 </module>
                                 <module name="OuterTypeFilename" />
                                 <module name="LineLength">
                                     <!-- needs extra, because Eclipse formatter ignores the ending left
                                     brace -->
                                     <property name="max" value="200" />
-                                    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
+                                    <property name="ignorePattern"
+                                              value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
                                 </module>
                                 <module name="AvoidStarImport" />
                                 <module name="UnusedImports">
@@ -1392,7 +1275,8 @@ limitations under the License.
                                 <module name="RightCurly" />
                                 <module name="RightCurly">
                                     <property name="option" value="alone" />
-                                    <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO, STATIC_INIT, INSTANCE_INIT" />
+                                    <property name="tokens"
+                                              value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO, STATIC_INIT, INSTANCE_INIT" />
                                 </module>
                                 <module name="SeparatorWrap">
                                     <property name="tokens" value="DOT" />

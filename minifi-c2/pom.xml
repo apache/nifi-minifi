@@ -40,6 +40,10 @@ limitations under the License.
         <module>minifi-c2-web-api</module>
     </modules>
 
+    <properties>
+        <io.swagger.version>1.5.18</io.swagger.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

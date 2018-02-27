@@ -18,24 +18,39 @@ package org.apache.nifi.minifi.c2;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
+import java.util.Properties;
+
 /**
- * Main class for starting the NiFi Registry Web API as a Spring Boot application.
+ * Main class for starting the MiNiFi C2 Web API as a Spring Boot application.
  *
  * This class is purposely in org.apache.nifi.minifi.c2 as that is the common base
  * package across other modules. Spring Boot will use the package of this class to
  * automatically scan for beans/config/entities/etc. and would otherwise require
  * configuring custom packages to scan in several different places.
- *
- * WebMvcAutoConfiguration is excluded because our web app is using Jersey in place of SpringMVC
  */
-@SpringBootApplication(exclude = WebMvcAutoConfiguration.class)
+@SpringBootApplication
 public class MinifiC2ApiApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(MinifiC2ApiApplication.class, args);
     }
 
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        final Properties defaultProperties = new Properties();
+
+        // Enable Actuator Endpoints
+        defaultProperties.setProperty("management.endpoints.web.exposure.include", "*");
+        defaultProperties.setProperty("management.endpoint.health.show-details", "always");
+
+        // Run Jersey as a filter instead of a servlet so that requests can be forwarded to other handlers (e.g., actuator, swagger-ui)
+        defaultProperties.setProperty("spring.jersey.type", "filter");
+
+        return application
+                .sources(MinifiC2ApiApplication.class)
+                .properties(defaultProperties);
+    }
 }

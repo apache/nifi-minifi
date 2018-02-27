@@ -149,13 +149,16 @@ limitations under the License.
         <org.slf4j.version>1.7.25</org.slf4j.version>
         <org.apache.nifi.version>1.5.0</org.apache.nifi.version>
         <logback.version>1.1.3</logback.version>
+        <guava.version>18.0</guava.version>
         <flyway.version>4.2.0</flyway.version>
         <jax.rs.api.version>2.1</jax.rs.api.version>
         <jackson.version>2.9.2</jackson.version>
         <jetty.version>9.4.3.v20170317</jetty.version>
         <jersey.version>2.26</jersey.version>
-        <spring.boot.version>2.0.0.M7</spring.boot.version>
-        <spring.security.version>5.0.0.RELEASE</spring.security.version>
+        <spring.boot.version>2.0.0.RELEASE</spring.boot.version>
+        <spring.version>5.0.4.RELEASE</spring.version>
+        <spring.security.version>5.0.4.RELEASE</spring.security.version>
+        <spring.security.ldap.version>5.0.3.RELEASE</spring.security.ldap.version>
     </properties>
 
     <dependencies>
@@ -831,33 +834,6 @@ limitations under the License.
             </dependency>
             <dependency>
                 <groupId>com.sun.jersey.contribs</groupId>
-                <artifactId>jersey-spring</artifactId>
-                <version>1.19.4</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-web</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.jersey.contribs</groupId>
                 <artifactId>jersey-multipart</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
@@ -975,11 +951,6 @@ limitations under the License.
             </dependency>
 
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>18.0</version>
-            </dependency>
-            <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>1.3.176</version>
@@ -1008,11 +979,6 @@ limitations under the License.
                 <groupId>com.fasterxml.jackson.module</groupId>
                 <artifactId>jackson-module-jaxb-annotations</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-annotations</artifactId>
-                <version>1.5.16</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>

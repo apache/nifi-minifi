@@ -27,6 +27,10 @@ limitations under the License.
     <artifactId>minifi-c2-web-api</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <swagger.ui.version>3.12.0</swagger.ui.version>
+    </properties>
+
     <build>
         <resources>
             <resource>
@@ -45,8 +49,156 @@ limitations under the License.
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
+            <plugin>
+                <!-- This plugin is for generating the a swagger.json as part of the build.
+                     It does not generate the swagger.json that is hosted by the web application. -->
+                <groupId>com.github.kongchen</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>3.1.5</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <apiSources>
+                                <apiSource>
+                                    <locations>
+                                        <location>org.apache.nifi.minifi.c2.web.api</location>
+                                    </locations>
+                                    <schemes>
+                                        <scheme>http</scheme>
+                                        <scheme>https</scheme>
+                                    </schemes>
+                                    <basePath>/c2-api</basePath>
+                                    <info>
+                                        <title>MiNiFi C2 Server REST API</title>
+                                        <version>${project.version}</version>
+                                        <description>
+                                            This REST API provides the ability to command and control MiNiFi Agents
+                                        </description>
+                                        <contact>
+                                            <name>Apache MiNiFi</name>
+                                            <email>dev@nifi.apache.org</email>
+                                            <url>https://nifi.apache.org</url>
+                                        </contact>
+                                        <license>
+                                            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+                                            <name>Apache 2.0 License</name>
+                                        </license>
+                                    </info>
+                                    <swaggerDirectory>${project.build.directory}/swagger-ui</swaggerDirectory>
+                                </apiSource>
+                            </apiSources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- TODO add license/notice info for bundling the swagger-ui static assets in the web-api.war -->
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>download-swagger-ui</id>
+                        <!-- This plugin downloads swagger UI static assets during the build, to be
+                             served by the web app to render the dynamically generated Swagger spec.
+                             For offline development, or to build without the swagger UI, activate
+                             the "no-swagger-ui" maven profile during the build with the "-P" flag -->
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>
+                                https://github.com/swagger-api/swagger-ui/archive/v${swagger.ui.version}.tar.gz
+                            </url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>bundle-swagger-ui</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <sequential>
+                                    <echo>Copy static Swagger UI files to target</echo>
+                                    <copy todir="${project.build.directory}/classes/static/swagger">
+                                        <fileset dir="${project.build.directory}/swagger-ui-${swagger.ui.version}/dist">
+                                            <include name="**"/>
+                                        </fileset>
+                                    </copy>
+                                    <echo>Rename 'index.html' to 'ui.html'</echo>
+                                    <move file="${project.build.directory}/classes/static/swagger/index.html"
+                                          tofile="${project.build.directory}/classes/static/swagger/ui.html"/>
+                                    <echo>Replace default swagger.json location</echo>
+                                    <replace token="http://petstore.swagger.io/v2/swagger.json"
+                                             value="/minifi-c2-api/swagger.json"
+                                             dir="${project.build.directory}/classes/static/swagger">
+                                        <include name="ui.html"/>
+                                    </replace>
+                                    <echo>Disable schema validation by removing validatorUrl</echo>
+                                    <replace token="https://online.swagger.io/validator"
+                                             value=""
+                                             dir="${project.build.directory}/classes/static/swagger">
+                                        <include name="swagger-ui-bundle.js"/>
+                                        <include name="swagger-ui-standalone-preset.js"/>
+                                    </replace>
+                                </sequential>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>no-swagger-ui</id>
+            <!-- Activate this profile with "-P no-swagger-ui" to disable the Swagger UI
+                 static assets from being downloaded and bundled with the web api WAR. -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>download-swagger-ui</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>bundle-swagger-ui</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <!-- Project dependencies -->
@@ -72,12 +224,13 @@ limitations under the License.
             <artifactId>spring-boot-starter-jersey</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-        <!-- Exclude micrometer-core because it creates a class cast issue with logback, revisit later -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${spring.boot.version}</version>
             <exclusions>
+                <!-- Exclude micrometer-core because it creates a
+                     class cast issue with logback, revisit later -->
                 <exclusion>
                     <groupId>io.micrometer</groupId>
                     <artifactId>micrometer-core</artifactId>
@@ -105,6 +258,19 @@ limitations under the License.
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Other dependencies -->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jersey2-jaxrs</artifactId>
+            <version>${io.swagger.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

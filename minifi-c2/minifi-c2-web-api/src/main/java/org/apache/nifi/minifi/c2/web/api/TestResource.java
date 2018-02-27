@@ -21,7 +21,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
 import org.apache.nifi.minifi.c2.core.service.C2Service;
 import org.apache.nifi.minifi.c2.model.TestObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +40,10 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Component
-@Path("/test")
+@Path("/tests")
 @Api(
-        value = "test",
-        description = "An example/test resource.",
-        authorizations = { @Authorization("Authorization") }
+        value = "Tests",
+        description = "An example/test resource."
 )
 public class TestResource {
 
@@ -74,7 +72,6 @@ public class TestResource {
     }
 
     @GET
-    @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Gets all test objects",
@@ -88,7 +85,6 @@ public class TestResource {
 
     @GET
     @Path("{id}")
-    @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Gets a test object",
@@ -132,7 +128,6 @@ public class TestResource {
 
     @DELETE
     @Path("{id}")
-    @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Deletes a test object",

@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.util;
+package org.apache.nifi.minifi.bootstrap.configuration.transformation;
 
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
 import org.apache.nifi.minifi.bootstrap.exception.InvalidConfigurationException;
+import org.apache.nifi.minifi.bootstrap.util.OrderedProperties;
+import org.apache.nifi.minifi.bootstrap.util.ParentGroupIdResolver;
 import org.apache.nifi.minifi.commons.schema.ComponentStatusRepositorySchema;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
@@ -72,6 +74,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -87,14 +90,23 @@ public final class ConfigTransformer {
     }
 
     public static void transformConfigFile(String sourceFile, String destPath) throws Exception {
+
+        transformConfigFile(sourceFile, destPath, new Properties());
+    }
+
+    public static void transformConfigFile(String sourceFile, String destPath, Properties inputProperties) throws Exception {
         File ymlConfigFile = new File(sourceFile);
         InputStream ios = new FileInputStream(ymlConfigFile);
 
-        transformConfigFile(ios, destPath);
+        transformConfigFile(ios, destPath, inputProperties);
     }
 
     public static void transformConfigFile(InputStream sourceStream, String destPath) throws Exception {
-        ConvertableSchema<ConfigSchema> convertableSchema = throwIfInvalid(SchemaLoader.loadConvertableSchemaFromYaml(sourceStream));
+        transformConfigFile(sourceStream, destPath, new Properties());
+    }
+
+    public static void transformConfigFile(InputStream sourceStream, String destPath, Properties inputProperties) throws Exception {
+        ConvertableSchema<ConfigSchema> convertableSchema = throwIfInvalid(SchemaLoader.loadConvertableSchemaFromYaml(sourceStream, inputProperties));
         ConfigSchema configSchema = throwIfInvalid(convertableSchema.convert());
 
         // Create nifi.properties and flow.xml.gz in memory

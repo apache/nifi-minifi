@@ -45,6 +45,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.Properties;
+
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.BOOTSTRAP_CONFIG_PROPERTY_PREFIX;
 
 public class ConfigMain {
     public static final int ERR_INVALID_ARGS = 1;
@@ -91,10 +94,22 @@ public class ConfigMain {
     }
 
     public int validate(String[] args) {
-        if (args.length != 2) {
+        if (args.length != 2 && args.length != 3) {
             printValidateUsage();
             return ERR_INVALID_ARGS;
         }
+
+        final Properties properties;
+        if (args.length == 3) {
+            try {
+                properties = readPropertiesFile(args[2]);
+            } catch (IOException e) {
+                return handleErrorLoadingConfiguration(e, ConfigMain::printUpgradeUsage);
+            }
+        } else {
+            properties = new Properties();
+        }
+
         try (InputStream inputStream = pathInputStreamFactory.create(args[1])) {
             try {
                 return loadAndPrintValidationErrors(inputStream, (configSchema, valid) -> {
@@ -103,7 +118,7 @@ public class ConfigMain {
                     } else {
                         return ERR_INVALID_CONFIG;
                     }
-                });
+                }, properties);
             } catch (IOException | SchemaLoaderException e) {
                 return handleErrorLoadingConfiguration(e, ConfigMain::printValidateUsage);
             }
@@ -118,14 +133,14 @@ public class ConfigMain {
     public static void printTransformUsage() {
         System.out.println("Transform Usage:");
         System.out.println();
-        System.out.println(" transform INPUT_FILE OUTPUT_FILE");
+        System.out.println(" transform INPUT_FILE OUTPUT_FILE OPTIONAL_PROPERTIES_FILE");
         System.out.println();
     }
 
     public static void printUpgradeUsage() {
         System.out.println("Upgrade Usage:");
         System.out.println();
-        System.out.println(" upgrade INPUT_FILE OUTPUT_FILE");
+        System.out.println(" upgrade INPUT_FILE OUTPUT_FILE OPTIONAL_PROPERTIES_FILE");
         System.out.println();
     }
 
@@ -167,9 +182,20 @@ public class ConfigMain {
 
 
     public int upgrade(String[] args) {
-        if (args.length != 3) {
+        if (args.length != 3 && args.length != 4) {
             printUpgradeUsage();
             return ERR_INVALID_ARGS;
+        }
+
+        final Properties properties;
+        if (args.length == 4) {
+            try {
+                properties = readPropertiesFile(args[3]);
+            } catch (IOException e) {
+                return handleErrorLoadingConfiguration(e, ConfigMain::printUpgradeUsage);
+            }
+        } else {
+            properties = new Properties();
         }
 
         ConfigSchema currentSchema = null;
@@ -181,7 +207,7 @@ public class ConfigMain {
                         System.out.println();
                     }
                     return configSchema;
-                });
+                }, properties);
             } catch (IOException | SchemaLoaderException e) {
                 return handleErrorLoadingConfiguration(e, ConfigMain::printUpgradeUsage);
             }
@@ -206,8 +232,8 @@ public class ConfigMain {
         return SUCCESS;
     }
 
-    public <T> T loadAndPrintValidationErrors(InputStream inputStream, BiFunction<ConfigSchema, Boolean, T> resultHandler) throws IOException, SchemaLoaderException {
-        ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream);
+    public <T> T loadAndPrintValidationErrors(InputStream inputStream, BiFunction<ConfigSchema, Boolean, T> resultHandler, Properties inputProperties) throws IOException, SchemaLoaderException {
+        ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(inputStream, inputProperties);
         boolean valid = true;
         if (!configSchema.isValid()) {
             System.out.println("Found the following errors when parsing the configuration according to its version. (" + configSchema.getVersion() + ")");
@@ -342,6 +368,24 @@ public class ConfigMain {
         System.out.println();
         System.out.println("Valid commands include:");
         commandMap.forEach((s, command) -> System.out.println(s + ": " + command.description));
+    }
+
+    private Properties readPropertiesFile(String pathToFile) throws IOException {
+        final Properties properties = new Properties();
+        try (final FileInputStream fis = new FileInputStream(pathToFile)) {
+            properties.load(fis);
+        }
+
+        final Properties returnProps = new Properties();
+
+        for (final String name: properties.stringPropertyNames()) {
+            if (name.startsWith(BOOTSTRAP_CONFIG_PROPERTY_PREFIX)) {
+                final String value = properties.getProperty(name);
+
+                returnProps.setProperty(name.substring(BOOTSTRAP_CONFIG_PROPERTY_PREFIX.length()), value);
+            }
+        }
+        return returnProps;
     }
 
     public class Command {

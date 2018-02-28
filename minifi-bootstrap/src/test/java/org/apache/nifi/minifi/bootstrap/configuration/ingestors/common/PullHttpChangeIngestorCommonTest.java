@@ -124,7 +124,7 @@ public abstract class PullHttpChangeIngestorCommonTest {
         ArgumentCaptor<ByteBuffer> argument = ArgumentCaptor.forClass(ByteBuffer.class);
         verify(testNotifier, Mockito.times(1)).notifyListeners(argument.capture());
 
-        ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new ByteBufferInputStream(argument.getValue()));
+        ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new ByteBufferInputStream(argument.getValue()), properties);
         ConfigSchema newSchema = configSchema.convert();
 
         assertNotNull(newSchema.getSecurityProperties().getKeystore());

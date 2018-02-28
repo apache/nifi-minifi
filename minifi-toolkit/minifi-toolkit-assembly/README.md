@@ -49,6 +49,9 @@ After downloading the binary and extracting it, to run the MiNiFi Toolkit Conver
       Valid commands include:
       transform: Transform template xml into MiNiFi config YAML
       validate: Validate config YAML
+      upgrade: Upgrade a previous version YAML to the latest
+
+Configs utilizing the bootstrap property replacement can pass in a properties file for proper validation. Any escaped values will not be persisted through upgrades.
 
 Note: Currently MiNiFi does not support external Input Ports or Output Ports. Any templates that contain these will fail transformation.
 

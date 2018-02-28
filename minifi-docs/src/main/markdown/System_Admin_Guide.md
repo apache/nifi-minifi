@@ -23,311 +23,6 @@
 
 This documentation is for MiNiFi ${project.version}.
 
-# Automatic Warm-Redeploy
-
-When many MiNiFi agents running on the edge, it may not be possible to manually stop, edit the config.yml and then restart every one every time their configuration needs to change. The Config Change Coordinator and its Ingestors were designed to automatically redeploy in response to a configuration update.
-
-The Config Change Ingestors are the means by which the agent is notified of a potential new configuration. Currently there are three:
-
- - FileChangeIngestor
- - RestChangeIngestor
- - PullHttpChangeIngestor
-
-After a new configuration has been pulled/received the Ingestors use a Differentiator in order to determine if the currently running config is different than the new config. Which Differentiator is used, is configurable for each Ingestor. Currently there is only one Differentiator:
-
- - WholeConfigDifferentiator: Compares the entire new config with the currently running one, byte for byte.
-
-After a new config is determined to be new, the MiNiFi agent will attempt to restart. The bootstrap first saves the old config into a swap file. The bootstrap monitors the agent as it restarts and if it fails it will roll back to the old config. If it succeeds then the swap file will be deleted and the agent will start processing using the new config.
-
-**Note:** Data left in connections when the agent attempts to restart will either be mapped to a connection with the same ID in the new config, or orphaned and deleted.
-
-The configuration for Warm-Redeploy is done in the bootstrap.conf and primarily revolve around the Config Change Ingestors. The configuration in the bootstrap.conf is done using the "nifi.minifi.notifier.ingestors" key followed by the full path name of the desired Ingestor implementation to run. Use a comma separated list  to define more than one Ingestor implementation. For example:
-
-```
-nifi.minifi.notifier.ingestors=org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor
-```
-
-Ingestor specific configuration is also necessary and done in the bootstrap.conf as well. Specifics for each are detailed below.
-
-## FileChangeIngestor
-
-class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.FileChangeIngestor
-
-This Config Change Ingestor watches a file and when the file is updated, the file is ingested as a new config.
-
-Note: The config file path configured here and in "nifi.minifi.config" cannot be the same. This is due to the swapping mechanism and other implementation limitations.
-
-Below are the configuration options. The file config path is the only required property.
-
-Option | Description
------- | -----------
-nifi.minifi.notifier.ingestors.file.config.path | Path of the file to monitor for changes.  When these occur, the FileChangeNotifier, if configured, will begin the configuration reloading process
-nifi.minifi.notifier.ingestors.file.polling.period.seconds | How frequently the file specified by 'nifi.minifi.notifier.file.config.path' should be evaluated for changes. If not set then a default polling period of 15 seconds will be used.
-nifi.minifi.notifier.ingestors.file.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
-
-## RestChangeIngestor
-
-class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.RestChangeIngestor
-
-This Config Change Ingestor sets up a light-weight Jetty HTTP(S) REST service in order to listen to HTTP(S) requests. A potential new configuration is sent via a POST request with the BODY being the potential new config.
-
-**Note:** The encoding is expected to be Unicode and the exact version specified by the BOM mark ('UTF-8','UTF-16BE' or 'UTF-16LE'). If there is no BOM mark, then UTF-8 is used.
-
-Here is an example post request using 'curl' hitting the local machine on pot 8338 and it is executed with the config file "config.yml" in the directory the command is run from:
-
-```
-curl --request POST --data-binary "@config.yml" http://localhost:8338/
-```
-
-Below are the configuration options. There are no required options. If no properties are set then the server will bind to hostname "localhost" on a random open port, will only connect via HTTP and will use the WholeConfigDifferentiator.
-
-Option | Description
------- | -----------
-nifi.minifi.notifier.ingestors.receive.http.host | Hostname on which the Jetty server will bind to. If not specified then it will bind to localhost.
-nifi.minifi.notifier.ingestors.receive.http.port | Port on which the Jetty server will bind to. If not specified then it will bind to a random open port.
-nifi.minifi.notifier.ingestors.receive.http.truststore.location | If using HTTPS, this specifies the location of the truststore.
-nifi.minifi.notifier.ingestors.receive.http.truststore.password | If using HTTPS, this specifies the password of the truststore.
-nifi.minifi.notifier.ingestors.receive.http.truststore.type | If using HTTPS, this specifies the type of the truststore.
-nifi.minifi.notifier.ingestors.receive.http.keystore.location | If using HTTPS, this specifies the location of the keystore.
-nifi.minifi.notifier.ingestors.receive.http.keystore.password | If using HTTPS, this specifies the password of the keystore.
-nifi.minifi.notifier.ingestors.receive.http.keystore.type | If using HTTPS, this specifies the type of the keystore.
-nifi.minifi.notifier.ingestors.receive.http.need.client.auth | If using HTTPS, this specifies whether or not to require client authentication.
-nifi.minifi.notifier.ingestors.receive.http.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
-
-## PullHttpChangeIngestor
-
-class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor
-
-This Config Change Ingestor periodically sends a GET request to a REST endpoint using HTTP(S) to order to pull the potential new config.
-
-Below are the configuration options. The hostname and port are the only required properties.
-
-Option | Description
------- | -----------
-nifi.minifi.notifier.ingestors.pull.http.hostname | Hostname on which to pull configurations from
-nifi.minifi.notifier.ingestors.pull.http.port | Port on which to pull configurations from
-nifi.minifi.notifier.ingestors.pull.http.proxy.hostname | Proxy server hostname
-nifi.minifi.notifier.ingestors.pull.http.proxy.port | Proxy server port
-nifi.minifi.notifier.ingestors.pull.http.proxy.username | Proxy username
-nifi.minifi.notifier.ingestors.pull.http.proxy.password | Proxy password
-nifi.minifi.notifier.ingestors.pull.http.path | Path on which to pull configurations from
-nifi.minifi.notifier.ingestors.pull.http.period.ms | Period on which to pull configurations from, defaults to 5 minutes if not set.
-nifi.minifi.notifier.ingestors.pull.http.query | Querystring value for the URL
-nifi.minifi.notifier.ingestors.pull.http.use.etag | If the destination server is set up with cache control ability and utilizes an "ETag" header, then this should be set to true to utilize it. Very simply, the Ingestor remembers the "ETag" of the last successful pull (returned 200) then uses that "ETag" in a "If-None-Match" header on the next request.
-nifi.minifi.notifier.ingestors.pull.http.connect.timeout.ms | Sets the connect timeout for new connections. A value of 0 means no timeout, otherwise values must be a positive whole number in milliseconds.
-nifi.minifi.notifier.ingestors.pull.http.read.timeout.ms | Sets the read timeout for new connections. A value of 0 means no timeout, otherwise values must be a positive whole number in milliseconds.
-nifi.minifi.notifier.ingestors.pull.http.truststore.location | If using HTTPS, this specifies the location of the truststore.
-nifi.minifi.notifier.ingestors.pull.http.truststore.password | If using HTTPS, this specifies the password of the truststore.
-nifi.minifi.notifier.ingestors.pull.http.truststore.type | If using HTTPS, this specifies the type of the truststore.
-nifi.minifi.notifier.ingestors.pull.http.keystore.location | If using HTTPS, this specifies the location of the keystore.
-nifi.minifi.notifier.ingestors.pull.http.keystore.password | If using HTTPS, this specifies the password of the keystore.
-nifi.minifi.notifier.ingestors.pull.http.keystore.type | If using HTTPS, this specifies the type of the keystore.
-nifi.minifi.notifier.ingestors.pull.http.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
-
-
-# Status Reporting and Querying
-
-In NiFi there is a lot of information, such as stats and bulletins, that is only available to view through the UI. MiNiFi provides access to this information through a query mechanism. You can query FlowStatus either using the MiNiFi.sh script or by configuring one of the Periodic Status Reporters. The API for the query is the same for the reporters and the "flowStatus" script option. The API is outlined in the "FlowStatus Query Options" section below.
-
-## FlowStatus Script Query
-
-From the minifi.sh script, you can manually query to get the current status of your  dataflow. The following is an example of a minifi.sh query you might run to view health, stats, and bulletins for the TailFile processor. This query returns information to your command-line.
-
-```
-minifi.sh flowStatus processor:TailFile:health,stats,bulletins
-```
-Currently the script only accepts one high level option at a time. Also any names of connections, remote process groups, or processors that contain " " (a space), ":", ";" or "," cause parsing errors when querying.
-
-## Periodic Status Reporters
-
-You can set up Periodic Status Reporters to periodically report the status of your dataflow. The query executes at configurable intervals and the results are reported using the configured implementation. Configure the Reporters in the bootstrap.conf file, using the "nifi.minifi.status.reporter.components" key followed by the full path name of the desired Reporter implementation to run. Use a comma separated list  to define more than one Reporter implementation. For example:
-
-```
-nifi.minifi.status.reporter.components=org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger
-```
-
-
-### StatusLogger
-
-class name: org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger
-
-The Periodic Status Reporter logs the results of the query to the logs. By default it is logged to the minifi-bootstrap.log but you can modify logback.xml to log to an alternate file and location.
-
-Option | Description
------- | -----------
-nifi.minifi.status.reporter.log.query | The FlowStatus query to run.
-nifi.minifi.status.reporter.log.level | The log level at which to log the status. Available options are "TRACE", "DEBUG", "INFO", "WARN" and "ERROR".
-nifi.minifi.status.reporter.log.period | The delay (in milliseconds) between each query.
-
-Example bootstrap.conf configuration:
-
-```
-# The FlowStatus query to submit to the MiNiFi instance
-nifi.minifi.status.reporter.log.query=instance:health,bulletins
-# The log level at which the status will be logged
-nifi.minifi.status.reporter.log.level=INFO
-# The period (in milliseconds) at which to log the status
-nifi.minifi.status.reporter.log.period=60000
-```
-
-Example logback.xml configuration to output the status to its own rolling log file:
-
-```
-<appender name="STATUS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/minifi-status.log</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <!--
-          For daily rollover, use 'user_%d.log'.
-          For hourly rollover, use 'user_%d{yyyy-MM-dd_HH}.log'.
-          To GZIP rolled files, replace '.log' with '.log.gz'.
-          To ZIP rolled files, replace '.log' with '.log.zip'.
-        -->
-        <fileNamePattern>./logs/minifi-status_%d.log</fileNamePattern>
-        <!-- keep 5 log files worth of history -->
-        <maxHistory>5</maxHistory>
-    </rollingPolicy>
-    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-        <pattern>%date %level [%thread] %logger{40} %msg%n</pattern>
-    </encoder>
-</appender>
-
-<logger name="org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger" level="INFO" additivity="false">
-    <appender-ref ref="STATUS_LOG_FILE" />
-</logger>
-```
-
-## FlowStatus Query Options
-
-This section outlines each option to query the MiNiFi instance for the FlowStatus.
-
-### Processors
-
-To query the processors use the "processor" flag followed by the processor ID to get (or "all") followed by one of the processor options. The processor options are below.
-
-Option | Description
------- | -----------
-health | The processor's run status, whether or not it has bulletins and the validation errors (if there are any).
-bulletins | A list of all the current bulletins (if there are any).
-stats | The current stats of the processor. This includes but is not limited to active threads and FlowFiles sent/received.
-
-An example query to get the health, bulletins and stats of the "TailFile" processor is below.
-```
-minifi.sh flowStatus processor:TailFile:health,stats,bulletins
-```
-### Connections
-
-To query the connections use the "connection" flag followed by the connection ID to get (or "all") followed by one of the connection options. The connection options are below.
-
-Option | Description
------- | -----------
-health | The connections's queued bytes and queued FlowFile count.
-stats | The current stats of the connection. This includes input/output count and input/output bytes.
-
-An example query to get the health and stats of the "TailToS2S" connection is below.
-```
-minifi.sh flowStatus connection:TailToS2S:health,stats
-```
-
-### Remote Process Groups
-
-To query the remote process groups (RPG) use the "remoteProcessGroup" flag followed by the RPG ID to get (or "all") followed by one of the remote process group options. The remote process group options are below.
-
-Option | Description
------- | -----------
-health | The connections's queued bytes and queued FlowFile count.
-bulletins | A list of all the current bulletins (if there are any).
-inputPorts | A list of every input port for this RPG and their status. Their status includes its name, whether the target exists and whether it's currently running.
-outputPorts | A list of every output port for this RPG and their status. Their status includes its name, whether the target exists and whether it's currently running.
-stats | The current stats of the RPG. This includes the active threads, sent content size and count.
-
-An example query to get the health, bulletins, input ports and stats of all the RPGS is below.
-
-```
-minifi.sh flowStatus remoteprocessgroup:all:health,bulletins,inputports,stats
-```
-
-### Controller Services
-
-To query the controller services use the "controllerServices" flag followed by one of the controller service options. The controller service options are below.
-
-Option | Description
------- | -----------
-health | The controller service's state, whether or not it has bulletins and any validation errors.
-bulletins | A list of all the current bulletins (if there are any).
-
-An example query to get the health and bulletins of all the controller services is below.
-
-```
-minifi.sh flowStatus controllerservices:health,bulletins
-```
-
-### Provenance Reporting
-
-To query the status of the provenance reporting use the "provenancereporting" flag followed by one of the provenance reporting  options. The provenance reporting options are below.
-
-Option | Description
------- | -----------
-health | The provenance reporting state, active threads, whether or not it has bulletins and any validation errors.
-bulletins | A list of all the current bulletins (if there are any).
-
-An example query to get the health and bulletins of the provenance reporting is below.
-
-```
-minifi.sh flowStatus provenancereporting:health,bulletins
-```
-
-### Instance
-
-To query the status of the MiNiFi instance use the "instance" flag followed by one of the instance options. The instance options are below.
-
-Option | Description
------- | -----------
-health | The provenance reporting state, active threads, whether or not it has bulletins and any validation errors.
-bulletins | A list of all the current bulletins (if there are any).
-stats | The current stats of the instance. This including but not limited to bytes read/written and FlowFiles sent/transferred.
-
-An example query to get the health, stats and bulletins of the instance is below.
-
-```
-minifi.sh flowStatus instance:health,stats,bulletins
-```
-
-### System Diagnostics
-
-To query the system diagnostics use the "systemdiagnostics" flag followed by one of the system diagnostics options. The system diagnostics options are below.
-
-Option | Description
------- | -----------
-heap | Information detailing the state of the JVM heap.
-processorstats | The system processor stats. This includes the available processors and load average.
-contentrepositoryusage | A list of each content repository and stats detailing its usage.
-flowfilerepositoryusage | Stats about the current usage of the FlowFile repository.
-garbagecollection | A list of the garbage collection events, detailing their name, collection count and time.
-
-An example query to get the heap, processor stats, content repository usage, FlowFile repository usage and garbage collection from the system diagnostics is below.
-
-```
-minifi.sh flowStatus systemdiagnostics:heap,processorstats,contentrepositoryusage,flowfilerepositoryusage,garbagecollection
-```
-
-### Example
-
-This is an example of a simple query to get the health of all the processors and its results from a simple flow:
-
-```
-User:minifi-0.0.1-SNAPSHOT user ./bin/minifi.sh flowStatus processor:all:health
-
-Java home: /Library/Java/JavaVirtualMachines/jdk1.8.0_74.jdk/Contents/Home
-MiNiFi home: /Users/user/projects/nifi-minifi/minifi-assembly/target/minifi-0.0.1-SNAPSHOT-bin/minifi-0.0.1-SNAPSHOT
-
-Bootstrap Config File: /Users/user/projects/nifi-minifi/minifi-assembly/target/minifi-0.0.1-SNAPSHOT-bin/minifi-0.0.1-SNAPSHOT/conf/bootstrap.conf
-
-{"controllerServiceStatusList":null,"processorStatusList":[{"name":"Connection Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"UpdateAttribute","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"Processor Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"System Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"GenerateFlowFile","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null}],"connectionStatusList":null,"remoteProcessGroupStatusList":null,"instanceStatus":null,"systemDiagnosticsStatus":null,"reportingTaskStatusList":null,"errorsGeneratingReport":[]}
-```
-
-# Periodic Status Reporters
-
-
 # Config File
 
 The config.yml in the _conf_ directory is the main configuration file for controlling how MiNiFi runs. This section provides an overview of the properties in this file. The file is a YAML
@@ -654,6 +349,43 @@ NiFi Properties Overrides:
   nifi.database.directory: ./database_repository_override
 ```
 
+## Bootstrap Properties in Config Transformation
+
+In order to facilitate to have reusable config files across many different MiNiFi agents, bootstrap properties can be used to replace values within the config.yml file. All that is needed is to set bootstrap properties with a key starting with `config.prop.` (such as `config.prop.rpg.url`) and in the config.yml put the property name escaped with three underscores (i.e. `___rpg.url___`). This method of property evaluation can be used to replace things that normal Expression Language cannot, such as an RPG URL or the path/password for a cert in the Security Properties. This evaluation is done before parsing the config.yml as YAML so the resulting value can include anything normally written in YAML 
+
+These properties can be passed when validating a config file using the toolkit as well.
+
+After a config change update using the Warm Redeploy feature (described more below), this property evaluation will take place as well. So if a config file update is seen via the file change notifier or pulled using the HTTP change ingestor, the properties will be accounted for and evaluated as expected.
+
+Using the evaluated properties to replace more than just values is powerful, but care must be given to the whitespace of the value. For example, take the following config.yml and bootstrap.conf snippets:
+
+```yaml
+Flow Controller:
+  ___controller.name___
+  comment: >
+    ___controller.comment___ 
+```
+
+```
+config.prop.controller.name = name: MiNiFi names
+config.prop.controller.comment = this comment is\n    across multiple\n    lines
+```
+
+Together they result in the following effective YAML file:
+
+```yaml
+Flow Controller:
+  name: MiNiFi names
+  comment: >
+    this comments
+    is
+    across multiple
+    lines
+```
+If the formatting is off, you will probably see an exception on start-up with the message `Exception in thread "main" java.io.IOException: Unable to successfully transform the provided configuration`.
+
+Note that if there is an escaped property in the config.yml that doesn't have a corresponding bootstrap property to replace it, the escaped property name will be unchanged. For example, using the above value of `___controller.comment___`, if the bootstrap.conf didn't have `config.prop.controller.comment` defined, then the resulting YAML would have `___controller.comment___` still in the config.
+
 # Running as a Windows Service
 
 MiNiFi can run as a Windows service. To do so, you must modify the `conf/bootstrap.conf` to set absolute paths for some properties. The properties are:
@@ -666,10 +398,311 @@ You can now install the MiNiFi service by running the `install-service.bat` scri
 
 The `minifi.exe` in MiNiFi `bin` directory is used to run MiNiFi Windows service. The bundled one is for 64 bit architecture and requires 64 bit JRE. If you have to use 32 bit JRE for some reason, you need to replace the `minifi.exe` file with the one for 32 bit to make MiNiFi service runs successfully. To do so, go to [Commons Daemon project download page](https://commons.apache.org/proper/commons-daemon/download_daemon.cgi), download the binary (e.g. commons-daemon-1.1.0-bin.zip), extract it and replace `bin/minifi.exe` by copying `commons-daemon-x.x.x-bin/prunsrv.exe` into MiNiFi `bin` directory as `minifi.exe` to overwrite the 64 bit exe with the 32 bit one.
 
-# Example Config File
+# Automatic Warm-Redeploy
+
+When many MiNiFi agents running on the edge, it may not be possible to manually stop, edit the config.yml and then restart every one every time their configuration needs to change. The Config Change Coordinator and its Ingestors were designed to automatically redeploy in response to a configuration update.
+
+The Config Change Ingestors are the means by which the agent is notified of a potential new configuration. Currently there are three:
+
+ - FileChangeIngestor
+ - RestChangeIngestor
+ - PullHttpChangeIngestor
+
+After a new configuration has been pulled/received the Ingestors use a Differentiator in order to determine if the currently running config is different than the new config. Which Differentiator is used, is configurable for each Ingestor. Currently there is only one Differentiator:
+
+ - WholeConfigDifferentiator: Compares the entire new config with the currently running one, byte for byte.
+
+After a new config is determined to be new, the MiNiFi agent will attempt to restart. The bootstrap first saves the old config into a swap file. The bootstrap monitors the agent as it restarts and if it fails it will roll back to the old config. If it succeeds then the swap file will be deleted and the agent will start processing using the new config.
+
+**Note:** Data left in connections when the agent attempts to restart will either be mapped to a connection with the same ID in the new config, or orphaned and deleted.
+
+The configuration for Warm-Redeploy is done in the bootstrap.conf and primarily revolve around the Config Change Ingestors. The configuration in the bootstrap.conf is done using the "nifi.minifi.notifier.ingestors" key followed by the full path name of the desired Ingestor implementation to run. Use a comma separated list  to define more than one Ingestor implementation. For example:
+
+```
+nifi.minifi.notifier.ingestors=org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor
+```
+
+Ingestor specific configuration is also necessary and done in the bootstrap.conf as well. Specifics for each are detailed below.
+
+## FileChangeIngestor
+
+class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.FileChangeIngestor
+
+This Config Change Ingestor watches a file and when the file is updated, the file is ingested as a new config.
+
+Note: The config file path configured here and in "nifi.minifi.config" cannot be the same. This is due to the swapping mechanism and other implementation limitations.
+
+Below are the configuration options. The file config path is the only required property.
+
+Option | Description
+------ | -----------
+nifi.minifi.notifier.ingestors.file.config.path | Path of the file to monitor for changes.  When these occur, the FileChangeNotifier, if configured, will begin the configuration reloading process
+nifi.minifi.notifier.ingestors.file.polling.period.seconds | How frequently the file specified by 'nifi.minifi.notifier.file.config.path' should be evaluated for changes. If not set then a default polling period of 15 seconds will be used.
+nifi.minifi.notifier.ingestors.file.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
+
+## RestChangeIngestor
+
+class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.RestChangeIngestor
+
+This Config Change Ingestor sets up a light-weight Jetty HTTP(S) REST service in order to listen to HTTP(S) requests. A potential new configuration is sent via a POST request with the BODY being the potential new config.
+
+**Note:** The encoding is expected to be Unicode and the exact version specified by the BOM mark ('UTF-8','UTF-16BE' or 'UTF-16LE'). If there is no BOM mark, then UTF-8 is used.
+
+Here is an example post request using 'curl' hitting the local machine on pot 8338 and it is executed with the config file "config.yml" in the directory the command is run from:
+
+```
+curl --request POST --data-binary "@config.yml" http://localhost:8338/
+```
+
+Below are the configuration options. There are no required options. If no properties are set then the server will bind to hostname "localhost" on a random open port, will only connect via HTTP and will use the WholeConfigDifferentiator.
+
+Option | Description
+------ | -----------
+nifi.minifi.notifier.ingestors.receive.http.host | Hostname on which the Jetty server will bind to. If not specified then it will bind to localhost.
+nifi.minifi.notifier.ingestors.receive.http.port | Port on which the Jetty server will bind to. If not specified then it will bind to a random open port.
+nifi.minifi.notifier.ingestors.receive.http.truststore.location | If using HTTPS, this specifies the location of the truststore.
+nifi.minifi.notifier.ingestors.receive.http.truststore.password | If using HTTPS, this specifies the password of the truststore.
+nifi.minifi.notifier.ingestors.receive.http.truststore.type | If using HTTPS, this specifies the type of the truststore.
+nifi.minifi.notifier.ingestors.receive.http.keystore.location | If using HTTPS, this specifies the location of the keystore.
+nifi.minifi.notifier.ingestors.receive.http.keystore.password | If using HTTPS, this specifies the password of the keystore.
+nifi.minifi.notifier.ingestors.receive.http.keystore.type | If using HTTPS, this specifies the type of the keystore.
+nifi.minifi.notifier.ingestors.receive.http.need.client.auth | If using HTTPS, this specifies whether or not to require client authentication.
+nifi.minifi.notifier.ingestors.receive.http.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
+
+## PullHttpChangeIngestor
+
+class name: org.apache.nifi.minifi.bootstrap.configuration.ingestors.PullHttpChangeIngestor
+
+This Config Change Ingestor periodically sends a GET request to a REST endpoint using HTTP(S) to order to pull the potential new config.
+
+Below are the configuration options. The hostname and port are the only required properties.
+
+Option | Description
+------ | -----------
+nifi.minifi.notifier.ingestors.pull.http.hostname | Hostname on which to pull configurations from
+nifi.minifi.notifier.ingestors.pull.http.port | Port on which to pull configurations from
+nifi.minifi.notifier.ingestors.pull.http.proxy.hostname | Proxy server hostname
+nifi.minifi.notifier.ingestors.pull.http.proxy.port | Proxy server port
+nifi.minifi.notifier.ingestors.pull.http.proxy.username | Proxy username
+nifi.minifi.notifier.ingestors.pull.http.proxy.password | Proxy password
+nifi.minifi.notifier.ingestors.pull.http.path | Path on which to pull configurations from
+nifi.minifi.notifier.ingestors.pull.http.period.ms | Period on which to pull configurations from, defaults to 5 minutes if not set.
+nifi.minifi.notifier.ingestors.pull.http.query | Querystring value for the URL
+nifi.minifi.notifier.ingestors.pull.http.use.etag | If the destination server is set up with cache control ability and utilizes an "ETag" header, then this should be set to true to utilize it. Very simply, the Ingestor remembers the "ETag" of the last successful pull (returned 200) then uses that "ETag" in a "If-None-Match" header on the next request.
+nifi.minifi.notifier.ingestors.pull.http.connect.timeout.ms | Sets the connect timeout for new connections. A value of 0 means no timeout, otherwise values must be a positive whole number in milliseconds.
+nifi.minifi.notifier.ingestors.pull.http.read.timeout.ms | Sets the read timeout for new connections. A value of 0 means no timeout, otherwise values must be a positive whole number in milliseconds.
+nifi.minifi.notifier.ingestors.pull.http.truststore.location | If using HTTPS, this specifies the location of the truststore.
+nifi.minifi.notifier.ingestors.pull.http.truststore.password | If using HTTPS, this specifies the password of the truststore.
+nifi.minifi.notifier.ingestors.pull.http.truststore.type | If using HTTPS, this specifies the type of the truststore.
+nifi.minifi.notifier.ingestors.pull.http.keystore.location | If using HTTPS, this specifies the location of the keystore.
+nifi.minifi.notifier.ingestors.pull.http.keystore.password | If using HTTPS, this specifies the password of the keystore.
+nifi.minifi.notifier.ingestors.pull.http.keystore.type | If using HTTPS, this specifies the type of the keystore.
+nifi.minifi.notifier.ingestors.pull.http.differentiator | Which differentiator to use. If not set then it uses the WholeConfigDifferentiator as a default.
+
+
+# Status Reporting and Querying
+
+In NiFi there is a lot of information, such as stats and bulletins, that is only available to view through the UI. MiNiFi provides access to this information through a query mechanism. You can query FlowStatus either using the MiNiFi.sh script or by configuring one of the Periodic Status Reporters. The API for the query is the same for the reporters and the "flowStatus" script option. The API is outlined in the "FlowStatus Query Options" section below.
+
+## FlowStatus Script Query
+
+From the minifi.sh script, you can manually query to get the current status of your  dataflow. The following is an example of a minifi.sh query you might run to view health, stats, and bulletins for the TailFile processor. This query returns information to your command-line.
+
+```
+minifi.sh flowStatus processor:TailFile:health,stats,bulletins
+```
+Currently the script only accepts one high level option at a time. Also any names of connections, remote process groups, or processors that contain " " (a space), ":", ";" or "," cause parsing errors when querying.
+
+## Periodic Status Reporters
+
+You can set up Periodic Status Reporters to periodically report the status of your dataflow. The query executes at configurable intervals and the results are reported using the configured implementation. Configure the Reporters in the bootstrap.conf file, using the "nifi.minifi.status.reporter.components" key followed by the full path name of the desired Reporter implementation to run. Use a comma separated list  to define more than one Reporter implementation. For example:
+
+```
+nifi.minifi.status.reporter.components=org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger
+```
+
+
+### StatusLogger
+
+class name: org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger
+
+The Periodic Status Reporter logs the results of the query to the logs. By default it is logged to the minifi-bootstrap.log but you can modify logback.xml to log to an alternate file and location.
+
+Option | Description
+------ | -----------
+nifi.minifi.status.reporter.log.query | The FlowStatus query to run.
+nifi.minifi.status.reporter.log.level | The log level at which to log the status. Available options are "TRACE", "DEBUG", "INFO", "WARN" and "ERROR".
+nifi.minifi.status.reporter.log.period | The delay (in milliseconds) between each query.
+
+Example bootstrap.conf configuration:
+
+```
+# The FlowStatus query to submit to the MiNiFi instance
+nifi.minifi.status.reporter.log.query=instance:health,bulletins
+# The log level at which the status will be logged
+nifi.minifi.status.reporter.log.level=INFO
+# The period (in milliseconds) at which to log the status
+nifi.minifi.status.reporter.log.period=60000
+```
+
+Example logback.xml configuration to output the status to its own rolling log file:
+
+```
+<appender name="STATUS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/minifi-status.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <!--
+          For daily rollover, use 'user_%d.log'.
+          For hourly rollover, use 'user_%d{yyyy-MM-dd_HH}.log'.
+          To GZIP rolled files, replace '.log' with '.log.gz'.
+          To ZIP rolled files, replace '.log' with '.log.zip'.
+        -->
+        <fileNamePattern>./logs/minifi-status_%d.log</fileNamePattern>
+        <!-- keep 5 log files worth of history -->
+        <maxHistory>5</maxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <pattern>%date %level [%thread] %logger{40} %msg%n</pattern>
+    </encoder>
+</appender>
+
+<logger name="org.apache.nifi.minifi.bootstrap.status.reporters.StatusLogger" level="INFO" additivity="false">
+    <appender-ref ref="STATUS_LOG_FILE" />
+</logger>
+```
+
+## FlowStatus Query Options
+
+This section outlines each option to query the MiNiFi instance for the FlowStatus.
+
+### Processors
+
+To query the processors use the "processor" flag followed by the processor ID to get (or "all") followed by one of the processor options. The processor options are below.
+
+Option | Description
+------ | -----------
+health | The processor's run status, whether or not it has bulletins and the validation errors (if there are any).
+bulletins | A list of all the current bulletins (if there are any).
+stats | The current stats of the processor. This includes but is not limited to active threads and FlowFiles sent/received.
+
+An example query to get the health, bulletins and stats of the "TailFile" processor is below.
+```
+minifi.sh flowStatus processor:TailFile:health,stats,bulletins
+```
+### Connections
+
+To query the connections use the "connection" flag followed by the connection ID to get (or "all") followed by one of the connection options. The connection options are below.
+
+Option | Description
+------ | -----------
+health | The connections's queued bytes and queued FlowFile count.
+stats | The current stats of the connection. This includes input/output count and input/output bytes.
+
+An example query to get the health and stats of the "TailToS2S" connection is below.
+```
+minifi.sh flowStatus connection:TailToS2S:health,stats
+```
+
+### Remote Process Groups
+
+To query the remote process groups (RPG) use the "remoteProcessGroup" flag followed by the RPG ID to get (or "all") followed by one of the remote process group options. The remote process group options are below.
+
+Option | Description
+------ | -----------
+health | The connections's queued bytes and queued FlowFile count.
+bulletins | A list of all the current bulletins (if there are any).
+inputPorts | A list of every input port for this RPG and their status. Their status includes its name, whether the target exists and whether it's currently running.
+outputPorts | A list of every output port for this RPG and their status. Their status includes its name, whether the target exists and whether it's currently running.
+stats | The current stats of the RPG. This includes the active threads, sent content size and count.
+
+An example query to get the health, bulletins, input ports and stats of all the RPGS is below.
+
+```
+minifi.sh flowStatus remoteprocessgroup:all:health,bulletins,inputports,stats
+```
+
+### Controller Services
+
+To query the controller services use the "controllerServices" flag followed by one of the controller service options. The controller service options are below.
+
+Option | Description
+------ | -----------
+health | The controller service's state, whether or not it has bulletins and any validation errors.
+bulletins | A list of all the current bulletins (if there are any).
+
+An example query to get the health and bulletins of all the controller services is below.
+
+```
+minifi.sh flowStatus controllerservices:health,bulletins
+```
+
+### Provenance Reporting
+
+To query the status of the provenance reporting use the "provenancereporting" flag followed by one of the provenance reporting  options. The provenance reporting options are below.
+
+Option | Description
+------ | -----------
+health | The provenance reporting state, active threads, whether or not it has bulletins and any validation errors.
+bulletins | A list of all the current bulletins (if there are any).
+
+An example query to get the health and bulletins of the provenance reporting is below.
+
+```
+minifi.sh flowStatus provenancereporting:health,bulletins
+```
+
+### Instance
+
+To query the status of the MiNiFi instance use the "instance" flag followed by one of the instance options. The instance options are below.
+
+Option | Description
+------ | -----------
+health | The provenance reporting state, active threads, whether or not it has bulletins and any validation errors.
+bulletins | A list of all the current bulletins (if there are any).
+stats | The current stats of the instance. This including but not limited to bytes read/written and FlowFiles sent/transferred.
+
+An example query to get the health, stats and bulletins of the instance is below.
+
+```
+minifi.sh flowStatus instance:health,stats,bulletins
+```
+
+### System Diagnostics
+
+To query the system diagnostics use the "systemdiagnostics" flag followed by one of the system diagnostics options. The system diagnostics options are below.
+
+Option | Description
+------ | -----------
+heap | Information detailing the state of the JVM heap.
+processorstats | The system processor stats. This includes the available processors and load average.
+contentrepositoryusage | A list of each content repository and stats detailing its usage.
+flowfilerepositoryusage | Stats about the current usage of the FlowFile repository.
+garbagecollection | A list of the garbage collection events, detailing their name, collection count and time.
+
+An example query to get the heap, processor stats, content repository usage, FlowFile repository usage and garbage collection from the system diagnostics is below.
+
+```
+minifi.sh flowStatus systemdiagnostics:heap,processorstats,contentrepositoryusage,flowfilerepositoryusage,garbagecollection
+```
+
+### Example
+
+This is an example of a simple query to get the health of all the processors and its results from a simple flow:
+
+```
+User:minifi-0.0.1-SNAPSHOT user ./bin/minifi.sh flowStatus processor:all:health
+
+Java home: /Library/Java/JavaVirtualMachines/jdk1.8.0_74.jdk/Contents/Home
+MiNiFi home: /Users/user/projects/nifi-minifi/minifi-assembly/target/minifi-0.0.1-SNAPSHOT-bin/minifi-0.0.1-SNAPSHOT
+
+Bootstrap Config File: /Users/user/projects/nifi-minifi/minifi-assembly/target/minifi-0.0.1-SNAPSHOT-bin/minifi-0.0.1-SNAPSHOT/conf/bootstrap.conf
+
+{"controllerServiceStatusList":null,"processorStatusList":[{"name":"Connection Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"UpdateAttribute","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"Processor Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"System Diagnostics","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null},{"name":"GenerateFlowFile","processorHealth":{"runStatus":"Running","hasBulletins":false,"validationErrorList":[]},"processorStats":null,"bulletinList":null}],"connectionStatusList":null,"remoteProcessGroupStatusList":null,"instanceStatus":null,"systemDiagnosticsStatus":null,"reportingTaskStatusList":null,"errorsGeneratingReport":[]}
+```
+
+# Example Config Files
 
 Below are two example config YAML files. The first tails the minifi-app.log, send the tailed log and provenance data back to a secure instance of NiFi. The second uses a series of processors to tail the app log, routes off only lines that contain "WriteAheadFlowFileRepository" and puts it as a file in the "./" directory.
-
 
 ``` yaml
 MiNiFi Config Version: 1

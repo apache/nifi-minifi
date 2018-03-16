@@ -51,6 +51,10 @@ public class C2Properties extends Properties {
     public static final String SECURITY_IDENTITY_MAPPING_PATTERN_PREFIX = "minifi.c2.server.security.identity.mapping.pattern.";
     public static final String SECURITY_IDENTITY_MAPPING_VALUE_PREFIX = "minifi.c2.server.security.identity.mapping.value.";
 
+    // NiFi Registry properties
+    public static final String NIFI_REGISTRY_URL = "minifi.c2.server.nifi.registry.url";
+    public static final String NIFI_REGISTRY_BUCKET_ID = "minifi.c2.server.nifi.registry.bucket.id";
+
     // Default Values
     public static final String DEFAULT_WEB_WORKING_DIR = "./work/jetty";
     public static final String DEFAULT_WAR_DIR = "./lib";
@@ -142,6 +146,13 @@ public class C2Properties extends Properties {
         return getProperty(SECURITY_TLS_TRUSTSTORE_PASSWD);
     }
 
+    public String getNifiRegistryUrl() {
+        return getProperty(NIFI_REGISTRY_URL);
+    }
+
+    public String getNifiRegistryBucketId() {
+        return getProperty(NIFI_REGISTRY_BUCKET_ID);
+    }
 
     // Helper functions for common ways of interpreting property values
 

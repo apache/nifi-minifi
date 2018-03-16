@@ -210,7 +210,7 @@ limitations under the License.
         <dependency>
             <groupId>org.apache.nifi.registry</groupId>
             <artifactId>nifi-registry-security-utils</artifactId>
-            <version>0.1.0</version>
+            <version>${nifi.registry.version}</version>
         </dependency>
 
         <!-- Spring dependencies -->

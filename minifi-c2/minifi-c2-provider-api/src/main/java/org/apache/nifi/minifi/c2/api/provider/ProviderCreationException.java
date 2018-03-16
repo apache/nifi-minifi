@@ -5,31 +5,33 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.minifi.c2.core.persistence;
+package org.apache.nifi.minifi.c2.api.provider;
 
-import org.apache.nifi.minifi.c2.model.TestObject;
+/**
+ * An exception that will be thrown if a provider can not be created.
+ */
+public class ProviderCreationException extends RuntimeException {
 
-import java.util.Iterator;
+    public ProviderCreationException() {
+    }
 
-public interface C2Repository {
+    public ProviderCreationException(String message) {
+        super(message);
+    }
 
-    TestObject createTestObject(TestObject testObject);
+    public ProviderCreationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    Iterator<TestObject> getTestObjects();
-
-    TestObject getTestObjectById(String identifier);
-
-    TestObject updateTestObject(TestObject testObject);
-
-    TestObject deleteTestObject(String identifier);
+    public ProviderCreationException(Throwable cause) {
+        super(cause);
+    }
 
 }

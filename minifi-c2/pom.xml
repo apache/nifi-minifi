@@ -37,10 +37,30 @@ limitations under the License.
         <module>minifi-c2-framework</module>
         <module>minifi-c2-integration-tests</module>
         <module>minifi-c2-jetty</module>
+        <module>minifi-c2-provider-api</module>
         <module>minifi-c2-web-api</module>
     </modules>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>addTestSources</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <properties>
+        <nifi.registry.version>0.1.0</nifi.registry.version>
         <io.swagger.version>1.5.18</io.swagger.version>
         <nifi.registry.version>0.1.0</nifi.registry.version>
     </properties>

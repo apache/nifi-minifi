@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@ApiModel  // TODO Swagger docs description
+@ApiModel
 public class Processor extends ExtensionComponent {
 
     private Map<String, PropertyDescriptor> propertyDescriptors;

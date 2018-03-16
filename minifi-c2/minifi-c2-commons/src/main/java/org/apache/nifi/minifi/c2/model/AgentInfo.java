@@ -17,9 +17,12 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+
 @ApiModel
 public class AgentInfo {
 
+    @NotBlank
     private String identifier;
     // TODO, do we also need identity. e.g., cert DN
     private String agentClass;
@@ -29,7 +32,8 @@ public class AgentInfo {
 
     @ApiModelProperty(
             value = "A unique identifier for the Agent",
-            notes = "Usually set when the agent is provisioned and deployed")
+            notes = "Usually set when the agent is provisioned and deployed",
+            required = true)
     public String getIdentifier() {
         return identifier;
     }
@@ -65,5 +69,15 @@ public class AgentInfo {
 
     public void setStatus(AgentStatus status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "AgentInfo{" +
+                "identifier='" + identifier + '\'' +
+                ", agentClass='" + agentClass + '\'' +
+                ", agentManifest=" + agentManifest +
+                ", status=" + status +
+                '}';
     }
 }

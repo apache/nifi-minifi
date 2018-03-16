@@ -33,7 +33,7 @@ public class Device extends DeviceInfo {
         this.name = name;
     }
 
-    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the first time a device was seen by this C2 server")
+    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the first time the device was seen by this C2 server")
     public Long getFirstSeen() {
         return firstSeen;
     }
@@ -42,7 +42,7 @@ public class Device extends DeviceInfo {
         this.firstSeen = firstSeen;
     }
 
-    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the most recent time time a device was seen by this C2 server")
+    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the most recent time the device was seen by this C2 server")
     public Long getLastSeen() {
         return lastSeen;
     }

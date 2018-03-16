@@ -38,6 +38,9 @@ limitations under the License.
         <minifi.c2.server.truststorePasswd />
 
         <minifi.c2.server.provider.nifi.rest.api.url>http://localhost:8080/nifi-api</minifi.c2.server.provider.nifi.rest.api.url>
+
+        <minifi.c2.server.nifi.registry.url />
+        <minifi.c2.server.nifi.registry.bucket.id />
     </properties>
     <build>
         <plugins>

@@ -64,4 +64,12 @@ public class SystemInfo {
         this.vCores = vCores;
     }
 
+    @Override
+    public String toString() {
+        return "SystemInfo{" +
+                "machineArch='" + machineArch + '\'' +
+                ", physicalMem=" + physicalMem +
+                ", vCores=" + vCores +
+                '}';
+    }
 }

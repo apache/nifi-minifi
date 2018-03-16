@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.minifi.c2.core.persistence;
+package org.apache.nifi.minifi.c2.api.provider.agent;
 
-import org.apache.nifi.minifi.c2.model.TestObject;
+import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
+import org.apache.nifi.minifi.c2.model.Agent;
 
-import java.util.Iterator;
+/**
+ * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
+ * change across releases until the the C2 Server APIs mature.
+ */
+public interface AgentPersistenceProvider extends PersistenceProvider<Agent, String> {
 
-public interface C2Repository {
-
-    TestObject createTestObject(TestObject testObject);
-
-    Iterator<TestObject> getTestObjects();
-
-    TestObject getTestObjectById(String identifier);
-
-    TestObject updateTestObject(TestObject testObject);
-
-    TestObject deleteTestObject(String identifier);
+    /**
+     * Returns all agents of the specified agent class
+     *
+     * @param agentClassName the name of the class to match
+     * @return agents matching the specified agent class name
+     */
+    Iterable<Agent> getByClassName(String agentClassName);
 
 }

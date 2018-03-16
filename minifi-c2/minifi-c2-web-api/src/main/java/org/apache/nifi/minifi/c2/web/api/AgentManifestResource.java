@@ -17,12 +17,14 @@ package org.apache.nifi.minifi.c2.web.api;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.nifi.minifi.c2.core.service.C2Service;
 import org.apache.nifi.minifi.c2.model.AgentManifest;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotSupportedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,10 +32,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Optional;
 
 @Path("/agent-manifests")
 @Api(value = "Agent Manifests", description = "Register and manage agent manifest definitions")
-public class AgentManifestResource {
+public class AgentManifestResource extends ApplicationResource {
+
+    private C2Service c2Service;
+
+    @Autowired
+    public AgentManifestResource(C2Service c2Service) {
+        this.c2Service = c2Service;
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -47,7 +58,13 @@ public class AgentManifestResource {
                     String className,
             @ApiParam
                     AgentManifest agentManifest) {
-        throw new NotSupportedException("This method is not yet implemented for this resource.");
+
+        final AgentManifest createdAgentManifest = c2Service.createAgentManifest(agentManifest);
+        return Response
+                .created(generateResourceUri("agent-manifests", createdAgentManifest.getIdentifier()))
+                .entity(agentManifest)
+                .build();
+
     }
 
     @GET
@@ -61,7 +78,15 @@ public class AgentManifestResource {
             @QueryParam("class")
             @ApiParam("Optionally, filter the results to match a class label")
                     String className) {
-        throw new NotSupportedException("This method is not yet implemented for this resource.");
+
+        final List<AgentManifest> agentManifests;
+        if (className != null) {
+            agentManifests = c2Service.getAgentManifests(className);
+        } else {
+            agentManifests = c2Service.getAgentManifests();
+        }
+        return Response.ok(agentManifests).build();
+
     }
 
     @GET
@@ -74,7 +99,13 @@ public class AgentManifestResource {
             @PathParam("id")
             @ApiParam
                     String id) {
-        throw new NotSupportedException("This method is not yet implemented for this resource.");
+
+        final Optional<AgentManifest> agentManifest = c2Service.getAgentManifest(id);
+        if (!agentManifest.isPresent()) {
+            throw new NotFoundException("No agent manifest with matching id " + id);
+        }
+        return Response.ok(agentManifest).build();
+
     }
 
     @DELETE
@@ -87,7 +118,11 @@ public class AgentManifestResource {
             @PathParam("id")
             @ApiParam
                     String id) {
-        throw new NotSupportedException("This method is not yet implemented for this resource.");
+
+        final AgentManifest deletedAgentManifest = c2Service.deleteAgentManifest(id);
+        return Response.ok(deletedAgentManifest).build();
+
+
     }
 
 }

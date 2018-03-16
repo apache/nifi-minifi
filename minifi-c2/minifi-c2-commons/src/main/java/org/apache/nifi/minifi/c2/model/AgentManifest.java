@@ -113,4 +113,14 @@ public class AgentManifest {
                 .append(identifier)
                 .toHashCode();
     }
+
+    @Override
+    public String toString() {
+        return "AgentManifest{" +
+                "identifier='" + identifier + '\'' +
+                ", agentType='" + agentType + '\'' +
+                ", version='" + version + '\'' +
+                ", buildInfo=" + buildInfo +
+                '}';
+    }
 }

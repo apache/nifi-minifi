@@ -80,4 +80,16 @@ public class BuildInfo {
     public void setCompilerFlags(String compilerFlags) {
         this.compilerFlags = compilerFlags;
     }
+
+    @Override
+    public String toString() {
+        return "BuildInfo{" +
+                "version='" + version + '\'' +
+                ", revision='" + revision + '\'' +
+                ", timestamp=" + timestamp +
+                ", targetArch='" + targetArch + '\'' +
+                ", compiler='" + compiler + '\'' +
+                ", compilerFlags='" + compilerFlags + '\'' +
+                '}';
+    }
 }

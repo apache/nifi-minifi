@@ -5,9 +5,7 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,44 +14,97 @@
  */
 package org.apache.nifi.minifi.c2.core.service;
 
-import org.apache.nifi.minifi.c2.core.persistence.C2Repository;
-import org.apache.nifi.minifi.c2.model.TestObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.apache.nifi.minifi.c2.model.Agent;
+import org.apache.nifi.minifi.c2.model.AgentClass;
+import org.apache.nifi.minifi.c2.model.AgentManifest;
+import org.apache.nifi.minifi.c2.model.Device;
+import org.apache.nifi.minifi.c2.model.OperationRequest;
+import org.apache.nifi.minifi.c2.model.OperationState;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@Service
-public class C2Service {
+/**
+ *  Standard CRUD method semantics apply to these methods. That is:
+ *
+ *    - getWidgets: return List of Widget,
+ *                  or empty List if no Widgets exist
+ *
+ *    - getWidget(String): return Optional Widget with matching id,
+ *                         or empty Optional if no Widget with matching id exists
+ *
+ *    - createWidget(Widget): create Widget and assign it a generated id,
+ *                            return created widget (including any fields that got generated such as id or creation timestamp),
+ *                            throw IllegalStateException if Widget with matching id already exists
+ *                            throw IllegalArgumentException if Widget is not valid (e.g., missing required fields)
+ *
+ *    - updateWidget(Widget): update Widget with the id to match the incoming Widget
+ *                            return updated Widget
+ *                            throw IllegalArgumentException if Widget is not valid (e.g., missing required fields. Note, id is required when updating existing Widget)
+ *                            throw ResourceNotFoundException if no Widget with matching id exists
+ *
+ *    - deleteWidget(String): delete Widget with id,
+ *                            return Widget that was deleted,
+ *                            throw ResourceNotFoundException if no Widget with matching id exists
+ *
+ *  Any invalid arguments (eg, null where required) will result in an IllegalArgumentException
+ */
+public interface C2Service {
 
-    C2Repository c2Repository;
+    //**********************************
+    //***  Agent Class CRUD methods  ***
+    //**********************************
 
-    @Autowired
-    public C2Service(C2Repository c2Repository) {
-        this.c2Repository = c2Repository;
-    }
+    AgentClass createAgentClass(AgentClass agentClass);
+    List<AgentClass> getAgentClasses();
+    Optional<AgentClass> getAgentClass(String name);
+    AgentClass updateAgentClass(AgentClass agentClass);
+    AgentClass deleteAgentClass(String name);
 
-    public TestObject createTestObject(TestObject testObject) {
-        return c2Repository.createTestObject(testObject);
-    }
 
-    public List<TestObject> getTestObjects() {
-        List<TestObject> objects = new ArrayList<>();
-        c2Repository.getTestObjects().forEachRemaining(objects::add);
-        return objects;
-    }
+    //*************************************
+    //***  Agent Manifest CRUD methods  ***
+    //*************************************
 
-    public TestObject getTestObjectById(String identifier) {
-        return c2Repository.getTestObjectById(identifier);
-    }
+    AgentManifest createAgentManifest(AgentManifest agentManifest);
+    List<AgentManifest> getAgentManifests();
+    List<AgentManifest> getAgentManifests(String agentClassName);
+    Optional<AgentManifest> getAgentManifest(String manifestId);
+    AgentManifest deleteAgentManifest(String manifestId);
 
-    public TestObject updateTestObject(TestObject testObject) {
-        return c2Repository.updateTestObject(testObject);
-    }
 
-    public TestObject deleteTestObject(String identifier) {
-        return c2Repository.deleteTestObject(identifier);
-    }
+    //****************************
+    //***  Agent CRUD methods  ***
+    //****************************
+
+    Agent createAgent(Agent agent);
+    List<Agent> getAgents();
+    List<Agent> getAgents(String agentClassName);
+    Optional<Agent> getAgent(String agentId);
+    Agent updateAgent(Agent agent);
+    Agent deleteAgent(String agentId);
+
+
+    //*****************************
+    //***  Device CRUD methods  ***
+    //*****************************
+
+    Device createDevice(Device device);
+    List<Device> getDevices();
+    Optional<Device> getDevice(String deviceId);
+    Device updateDevice(Device device);
+    Device deleteDevice(String deviceId);
+
+
+    //***********************************
+    //***  C2 Operation CRUD methods  ***
+    //***********************************
+
+    OperationRequest createOperation(OperationRequest operationRequest);
+    List<OperationRequest> getOperations();
+    List<OperationRequest> getOperationsByAgent(String agentId);
+    Optional<OperationRequest> getOperation(String operationId);
+    OperationRequest updateOperationState(String operationId, OperationState state);
+    OperationRequest deleteOperation(String operationId);
 
 }

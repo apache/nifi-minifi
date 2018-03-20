@@ -17,37 +17,38 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel
-public class AgentClass {
+@ApiModel("Uniform Resource Identifier for NiFi Versioned Flows saved to a NiFi Registry")
+public class FlowUri {
 
-    private String name;
-    private String description;
-    private FlowUri trackedFlow;
+    private String registryUrl;
+    private String bucketId;
+    private String flowId;
 
-    @ApiModelProperty(value = "A unique class name for the agent", required = true)
-    public String getName() {
-        return name;
+    @ApiModelProperty(value = "The URL of the NiFi Registry storing the flow.",
+            notes = "For example, 'https://registry.myorganization.org'")
+    public String getRegistryUrl() {
+        return registryUrl;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRegistryUrl(String registryUrl) {
+        this.registryUrl = registryUrl;
     }
 
-    @ApiModelProperty("An optional description of this agent class")
-    public String getDescription() {
-        return description;
+    @ApiModelProperty("The identifier of the bucket at the NiFi Registry that contains the flow")
+    public String getBucketId() {
+        return bucketId;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setBucketId(String bucketId) {
+        this.bucketId = bucketId;
     }
 
-    @ApiModelProperty("The URI for the versioned MiNiFi flow mapped to this agent class")
-    public FlowUri getTrackedFlow() {
-        return trackedFlow;
+    @ApiModelProperty("The identifier of the flow in the NiFi Registry bucket")
+    public String getFlowId() {
+        return flowId;
     }
 
-    public void setTrackedFlow(FlowUri trackedFlow) {
-        this.trackedFlow = trackedFlow;
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
     }
 }

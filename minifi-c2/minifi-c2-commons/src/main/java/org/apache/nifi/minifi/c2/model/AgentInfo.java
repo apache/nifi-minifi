@@ -17,15 +17,12 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.Collection;
-
 @ApiModel
 public class AgentInfo {
 
     private String identifier;
     // TODO, do we also need identity. e.g., cert DN
     private String agentClass;
-    private Collection<String> tags;
     private AgentManifest agentManifest;
     private AgentStatus status;
     // private Map<String, String> configProperties;  // TODO we should add this information eventually, but we need to handle the best way to handle sharing sensitive properties.
@@ -50,15 +47,6 @@ public class AgentInfo {
 
     public void setAgentClass(String agentClass) {
         this.agentClass = agentClass;
-    }
-
-    @ApiModelProperty("Arbitrary tags that describe the agent in addition to the class")
-    public Collection<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Collection<String> tags) {
-        this.tags = tags;
     }
 
     @ApiModelProperty("The specification of the agent's capabilities")

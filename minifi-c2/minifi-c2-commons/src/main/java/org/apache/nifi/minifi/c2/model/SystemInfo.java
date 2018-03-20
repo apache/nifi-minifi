@@ -17,13 +17,22 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 @ApiModel
 public class SystemInfo {
 
     private String machineArch;
-    private long physicalMem;
-    private int vCores;
-    // TODO timezone / UTC offset?
+    // TODO timezone / UTC offset? Keeping in mind it could change whereas other fields such as "machineArch" should not
+
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long physicalMem;
+
+    @Min(0)
+    @Max(Integer.MAX_VALUE)
+    private Integer vCores;
 
     @ApiModelProperty("Machine architecture of the device, e.g., ARM, x86")
     public String getMachineArch() {
@@ -34,7 +43,7 @@ public class SystemInfo {
         this.machineArch = machineArch;
     }
 
-    @ApiModelProperty("Size of physical memory of the device in bytes")
+    @ApiModelProperty(value = "Size of physical memory of the device in bytes", allowableValues = "range[0, 9223372036854775807]")
     public long getPhysicalMem() {
         return physicalMem;
     }
@@ -43,12 +52,15 @@ public class SystemInfo {
         this.physicalMem = physicalMem;
     }
 
-    @ApiModelProperty(value ="Number of virtual cores on the device", name = "vCores")
-    public int getvCores() {
+    @ApiModelProperty(
+            value ="Number of virtual cores on the device",
+            name = "vCores",
+            allowableValues = "range[0, 2147483647]")
+    public Integer getvCores() {
         return vCores;
     }
 
-    public void setvCores(int vCores) {
+    public void setvCores(Integer vCores) {
         this.vCores = vCores;
     }
 

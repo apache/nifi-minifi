@@ -16,6 +16,8 @@ package org.apache.nifi.minifi.c2.model.extension;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * A reference to a defined type identified by bundle and fully qualified class type identifiers
@@ -65,5 +67,31 @@ public class DefinedType {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefinedType that = (DefinedType) o;
+
+        return new EqualsBuilder()
+                .append(group, that.group)
+                .append(artifact, that.artifact)
+                .append(version, that.version)
+                .append(type, that.type)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(group)
+                .append(artifact)
+                .append(version)
+                .append(type)
+                .toHashCode();
     }
 }

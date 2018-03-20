@@ -17,15 +17,31 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 @ApiModel
 public class AgentRepositoryStatus {
 
+    @Min(0)
+    @Max(Long.MAX_VALUE)
     private Long size;
-    private Long sizeMax;
-    private Long count;
-    private Long countMax;
 
-    @ApiModelProperty("The size (in Bytes) of the data in the repository")
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long sizeMax;
+
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long dataSize;
+
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long dataSizeMax;
+
+    @ApiModelProperty(
+            value = "The number of items in the repository",
+            allowableValues = "range[0, 9223372036854775807]")
     public Long getSize() {
         return size;
     }
@@ -34,7 +50,9 @@ public class AgentRepositoryStatus {
         this.size = size;
     }
 
-    @ApiModelProperty("The maximum size (in Bytes) that the repository is configured to hold")
+    @ApiModelProperty(
+            value = "The maximum number of items that the repository is configured to hold",
+            allowableValues = "range[0, 9223372036854775807]")
     public Long getSizeMax() {
         return sizeMax;
     }
@@ -43,21 +61,26 @@ public class AgentRepositoryStatus {
         this.sizeMax = sizeMax;
     }
 
-    @ApiModelProperty("The number of items in the repository")
-    public Long getCount() {
-        return count;
+    @ApiModelProperty(
+            value = "The size (in Bytes) of the data in the repository",
+            allowableValues = "range[0, 9223372036854775807]")
+    public Long getDataSize() {
+        return dataSize;
     }
 
-    public void setCount(Long count) {
-        this.count = count;
+    public void setDataSize(Long dataSize) {
+        this.dataSize = dataSize;
     }
 
-    @ApiModelProperty("The maximum number of items that the repository is configured to hold")
-    public Long getCountMax() {
-        return countMax;
+    @ApiModelProperty(
+            value = "The maximum size (in Bytes) that the repository is configured to hold",
+            allowableValues = "range[0, 9223372036854775807]")
+    public Long getDataSizeMax() {
+        return dataSizeMax;
     }
 
-    public void setCountMax(Long countMax) {
-        this.countMax = countMax;
+    public void setDataSizeMax(Long dataSizeMax) {
+        this.dataSizeMax = dataSizeMax;
     }
+
 }

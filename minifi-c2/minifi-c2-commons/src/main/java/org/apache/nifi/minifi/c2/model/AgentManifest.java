@@ -16,8 +16,11 @@ package org.apache.nifi.minifi.c2.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.nifi.minifi.c2.model.extension.Bundle;
 
+import java.util.Collections;
 import java.util.List;
 
 @ApiModel
@@ -73,10 +76,30 @@ public class AgentManifest {
 
     @ApiModelProperty("All extension bundles included with this agent")
     public List<Bundle> getBundles() {
-        return bundles;
+        return (bundles != null ? Collections.unmodifiableList(bundles) : null);
     }
 
     public void setBundles(List<Bundle> bundles) {
         this.bundles = bundles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AgentManifest that = (AgentManifest) o;
+
+        return new EqualsBuilder()
+                .append(identifier, that.identifier)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(identifier)
+                .toHashCode();
     }
 }

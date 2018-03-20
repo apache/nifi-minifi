@@ -17,8 +17,6 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.Map;
-
 /**
  * Status of the aspects of the agent, including any agent components that are controllable by the C2 server, ie:
  *   - Repositories that can be cleared and their current state
@@ -27,7 +25,7 @@ import java.util.Map;
 public class AgentStatus {
 
     private long uptime;
-    private Map<String, AgentRepositoryStatus> repositories;
+    private AgentRepositories repositories;
 
     @ApiModelProperty("The number of milliseconds since the agent started.")
     public long getUptime() {
@@ -38,13 +36,12 @@ public class AgentStatus {
         this.uptime = uptime;
     }
 
-    @ApiModelProperty("Status and metrics for each repository")
-    public Map<String, AgentRepositoryStatus> getRepositories() {
+    @ApiModelProperty("Status and metrics for the agent repositories")
+    public AgentRepositories getRepositories() {
         return repositories;
     }
 
-    public void setRepositories(Map<String, AgentRepositoryStatus> repositories) {
+    public void setRepositories(AgentRepositories repositories) {
         this.repositories = repositories;
     }
-
 }

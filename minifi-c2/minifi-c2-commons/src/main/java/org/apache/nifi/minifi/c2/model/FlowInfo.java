@@ -24,7 +24,7 @@ public class FlowInfo {
 
     @NotBlank
     private String flowId;
-    private String versionedFlowSnapshotURI;
+    private FlowUri versionedFlowSnapshotURI;
     private FlowStatus status;
 
     @ApiModelProperty(value = "A unique identifier of the flow currently deployed on the agent", required = true)
@@ -37,11 +37,11 @@ public class FlowInfo {
     }
 
     @ApiModelProperty("The URI to the Versioned Flow Snapshot, when the flow corresponds to a Versioned Flow in a NiFi Registry.")
-    public String getVersionedFlowSnapshotURI() {
+    public FlowUri getVersionedFlowSnapshotURI() {
         return versionedFlowSnapshotURI;
     }
 
-    public void setVersionedFlowSnapshotURI(String versionedFlowSnapshotURI) {
+    public void setVersionedFlowSnapshotURI(FlowUri versionedFlowSnapshotURI) {
         this.versionedFlowSnapshotURI = versionedFlowSnapshotURI;
     }
 

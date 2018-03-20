@@ -21,13 +21,9 @@ import io.swagger.annotations.ApiModelProperty;
 public class BuildInfo {
 
     private String version;
-
     private String revision;
-
     private String timestamp;
-
     private String compiler;
-
     private String compilerFlags;
 
     @ApiModelProperty

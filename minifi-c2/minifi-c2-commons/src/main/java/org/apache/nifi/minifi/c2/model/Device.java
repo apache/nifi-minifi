@@ -17,7 +17,7 @@ package org.apache.nifi.minifi.c2.model;
 public class Device extends DeviceInfo {
 
     private String name;
-    private String firstSeen;
+    private String firstSeen;  // TODO, decide on standard JSON format for timestamps in the C2 REST API
     private String lastSeen;
 
     public String getName() {

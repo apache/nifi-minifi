@@ -17,6 +17,7 @@ package org.apache.nifi.minifi.c2.model.extension;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +39,8 @@ public class ExtensionComponent extends DefinedType {
 
     @ApiModelProperty("If this type represents a provider for an interface, this lists the APIs it implements")
     public List<DefinedType> getProvidedApiImplementations() {
-        return providedApiImplementations;
+        return (providedApiImplementations != null ? Collections.unmodifiableList(providedApiImplementations) : null);
+
     }
 
     public void setProvidedApiImplementations(List<DefinedType> providedApiImplementations) {
@@ -56,7 +58,7 @@ public class ExtensionComponent extends DefinedType {
 
     @ApiModelProperty("The tags associated with this type")
     public Set<String> getTags() {
-        return tags;
+        return (tags != null ? Collections.unmodifiableSet(tags) : null);
     }
 
     public void setTags(Set<String> tags) {

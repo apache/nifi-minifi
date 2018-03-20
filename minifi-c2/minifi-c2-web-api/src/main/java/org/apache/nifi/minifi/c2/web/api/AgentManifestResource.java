@@ -83,7 +83,7 @@ public class AgentManifestResource {
     @ApiOperation(
             value = "Delete the agent manifest specified by id",
             response = AgentManifest.class)
-    public Response deleteAgentClass(
+    public Response deleteAgentManifest(
             @PathParam("id")
             @ApiParam
                     String id) {

@@ -17,6 +17,7 @@ package org.apache.nifi.minifi.c2.model.extension;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Collections;
 import java.util.List;
 
 @ApiModel
@@ -29,7 +30,7 @@ public class BundleManifest {
 
     @ApiModelProperty("Public interfaces defined in this bundle")
     public List<DefinedType> getApis() {
-        return apis;
+        return (apis != null ? Collections.unmodifiableList(apis) : null);
     }
 
     public void setApis(List<DefinedType> apis) {
@@ -38,7 +39,7 @@ public class BundleManifest {
 
     @ApiModelProperty("Controller Services provided in this bundle")
     public List<ControllerService> getControllerServices() {
-        return controllerServices;
+        return (controllerServices != null ? Collections.unmodifiableList(controllerServices) : null);
     }
 
     public void setControllerServices(List<ControllerService> controllerServices) {
@@ -47,7 +48,7 @@ public class BundleManifest {
 
     @ApiModelProperty("Processors provided in this bundle")
     public List<Processor> getProcessors() {
-        return processors;
+        return (processors != null ? Collections.unmodifiableList(processors) : null);
     }
 
     public void setProcessors(List<Processor> processors) {
@@ -56,7 +57,7 @@ public class BundleManifest {
 
     @ApiModelProperty("Reporting Tasks provided in this bundle")
     public List<ReportingTask> getReportingTasks() {
-        return reportingTasks;
+        return (reportingTasks != null ? Collections.unmodifiableList(reportingTasks) : null);
     }
 
     public void setReportingTasks(List<ReportingTask> reportingTasks) {

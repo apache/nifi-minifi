@@ -17,8 +17,6 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.Map;
-
 @ApiModel
 public class C2Heartbeat {
 
@@ -26,7 +24,6 @@ public class C2Heartbeat {
     private DeviceInfo deviceInfo;
     private AgentInfo agentInfo;
     private FlowInfo flowInfo;
-    private Map<String, String> metrics;
 
     @ApiModelProperty("Metadata for the device")
     public DeviceInfo getDeviceInfo() {
@@ -55,12 +52,4 @@ public class C2Heartbeat {
         this.flowInfo = flowInfo;
     }
 
-    @ApiModelProperty("Key-value pairs of metrics collected by the C2 agent")
-    public Map<String, String> getMetrics() {
-        return metrics;
-    }
-
-    public void setMetrics(Map<String, String> metrics) {
-        this.metrics = metrics;
-    }
 }

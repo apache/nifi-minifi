@@ -17,15 +17,29 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 @ApiModel
 public class FlowQueueStatus {
 
+    @Min(0)
+    @Max(Long.MAX_VALUE)
     private Long size;
-    private Long sizeMax;
-    private Long count;
-    private Long countMax;
 
-    @ApiModelProperty("The size (in Bytes) of all flow files in the queue")
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long sizeMax;
+
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long dataSize;
+
+    @Min(0)
+    @Max(Long.MAX_VALUE)
+    private Long dataSizeMax;
+
+    @ApiModelProperty(value = "The number of flow files in the queue", allowableValues = "range[0, 9223372036854775807]")
     public Long getSize() {
         return size;
     }
@@ -34,7 +48,7 @@ public class FlowQueueStatus {
         this.size = size;
     }
 
-    @ApiModelProperty("The maximum size (in Bytes) that the queue is configured to hold")
+    @ApiModelProperty(value = "The maximum number of flow files that the queue is configured to hold", allowableValues = "range[0, 9223372036854775807]")
     public Long getSizeMax() {
         return sizeMax;
     }
@@ -43,21 +57,22 @@ public class FlowQueueStatus {
         this.sizeMax = sizeMax;
     }
 
-    @ApiModelProperty("The number of flow files in the queue")
-    public Long getCount() {
-        return count;
+    @ApiModelProperty(value = "The size (in Bytes) of all flow files in the queue", allowableValues = "range[0, 9223372036854775807]")
+    public Long getDataSize() {
+        return dataSize;
     }
 
-    public void setCount(Long count) {
-        this.count = count;
+    public void setDataSize(Long dataSize) {
+        this.dataSize = dataSize;
     }
 
-    @ApiModelProperty("The maximum number of flow files that the queue is configured to hold")
-    public Long getCountMax() {
-        return countMax;
+    @ApiModelProperty(value = "The maximum size (in Bytes) that the queue is configured to hold", allowableValues = "range[0, 9223372036854775807]")
+    public Long getDataSizeMax() {
+        return dataSizeMax;
     }
 
-    public void setCountMax(Long countMax) {
-        this.countMax = countMax;
+    public void setDataSizeMax(Long dataSizeMax) {
+        this.dataSizeMax = dataSizeMax;
     }
+
 }

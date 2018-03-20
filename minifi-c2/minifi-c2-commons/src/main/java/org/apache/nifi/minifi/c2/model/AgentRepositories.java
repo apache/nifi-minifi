@@ -18,36 +18,26 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
-public class AgentClass {
+public class AgentRepositories {
 
-    private String name;
-    private String description;
-    private FlowUri trackedFlow;
+    private AgentRepositoryStatus flowfile;
+    private AgentRepositoryStatus provenance;
 
-    @ApiModelProperty(value = "A unique class name for the agent", required = true)
-    public String getName() {
-        return name;
+    @ApiModelProperty
+    public AgentRepositoryStatus getFlowfile() {
+        return flowfile;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFlowfile(AgentRepositoryStatus flowfile) {
+        this.flowfile = flowfile;
     }
 
-    @ApiModelProperty("An optional description of this agent class")
-    public String getDescription() {
-        return description;
+    @ApiModelProperty
+    public AgentRepositoryStatus getProvenance() {
+        return provenance;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @ApiModelProperty("The URI for the versioned MiNiFi flow mapped to this agent class")
-    public FlowUri getTrackedFlow() {
-        return trackedFlow;
-    }
-
-    public void setTrackedFlow(FlowUri trackedFlow) {
-        this.trackedFlow = trackedFlow;
+    public void setProvenance(AgentRepositoryStatus provenance) {
+        this.provenance = provenance;
     }
 }

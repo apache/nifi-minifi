@@ -16,8 +16,8 @@ package org.apache.nifi.minifi.c2.model.extension;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-
-import java.util.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @ApiModel
 public class Bundle {
@@ -92,15 +92,24 @@ public class Bundle {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
+
         Bundle bundle = (Bundle) o;
-        return Objects.equals(group, bundle.group)
-                && Objects.equals(artifact, bundle.artifact)
-                && Objects.equals(version, bundle.version);
+
+        return new EqualsBuilder()
+                .append(group, bundle.group)
+                .append(artifact, bundle.artifact)
+                .append(version, bundle.version)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(group, artifact, version);
+        return new HashCodeBuilder(17, 37)
+                .append(group)
+                .append(artifact)
+                .append(version)
+                .toHashCode();
     }
 }

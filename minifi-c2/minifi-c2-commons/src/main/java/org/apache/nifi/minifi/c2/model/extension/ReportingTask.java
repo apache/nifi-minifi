@@ -17,6 +17,7 @@ package org.apache.nifi.minifi.c2.model.extension;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class ReportingTask extends ExtensionComponent {
 
     @ApiModelProperty("Descriptions of configuration properties applicable to this reporting task")
     public Map<String, PropertyDescriptor> getPropertyDescriptors() {
-        return propertyDescriptors;
+        return (propertyDescriptors != null ? Collections.unmodifiableMap(propertyDescriptors) : null);
     }
 
     public void setPropertyDescriptors(Map<String, PropertyDescriptor> propertyDescriptors) {
@@ -39,7 +40,7 @@ public class ReportingTask extends ExtensionComponent {
 
     @ApiModelProperty
     public List<String> getSupportedSchedulingStrategies() {
-        return supportedSchedulingStrategies;
+        return (supportedSchedulingStrategies != null ? Collections.unmodifiableList(supportedSchedulingStrategies) : null);
     }
 
     public void setSupportedSchedulingStrategies(List<String> supportedSchedulingStrategies) {
@@ -57,7 +58,7 @@ public class ReportingTask extends ExtensionComponent {
 
     @ApiModelProperty
     public Map<String, Map<String, String>> getDefaultValuesBySchedulingStrategy() {
-        return defaultValuesBySchedulingStrategy;
+        return (defaultValuesBySchedulingStrategy != null ? Collections.unmodifiableMap(defaultValuesBySchedulingStrategy) : null);
     }
 
     public void setDefaultValuesBySchedulingStrategy(Map<String, Map<String, String>> defaultValuesBySchedulingStrategy) {

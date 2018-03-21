@@ -14,12 +14,17 @@
  */
 package org.apache.nifi.minifi.c2.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel
 public class Device extends DeviceInfo {
 
     private String name;
     private String firstSeen;  // TODO, decide on standard JSON format for timestamps in the C2 REST API
     private String lastSeen;
 
+    @ApiModelProperty
     public String getName() {
         return name;
     }
@@ -28,6 +33,7 @@ public class Device extends DeviceInfo {
         this.name = name;
     }
 
+    @ApiModelProperty("A timestamp for the first time a device was seen by this C2 server")
     public String getFirstSeen() {
         return firstSeen;
     }
@@ -36,6 +42,7 @@ public class Device extends DeviceInfo {
         this.firstSeen = firstSeen;
     }
 
+    @ApiModelProperty("A timestamp for the most recent time time a device was seen by this C2 server")
     public String getLastSeen() {
         return lastSeen;
     }

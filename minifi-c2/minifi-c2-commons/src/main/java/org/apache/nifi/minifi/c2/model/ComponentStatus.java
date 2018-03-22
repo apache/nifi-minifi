@@ -18,7 +18,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
-public class FlowComponentStatus {
+public class ComponentStatus {
 
     private Boolean running;
 

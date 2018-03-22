@@ -30,7 +30,7 @@ public class Bundle {
     private String artifact;
     private String version;
     // TODO md5sum?
-    private BundleManifest bundleManifest;
+    private ComponentManifest componentManifest;
 
     public Bundle() {}
 
@@ -81,12 +81,12 @@ public class Bundle {
             notes = "This is optional, as the group, artifact, and version are " +
                     "also enough to reference a bundle in the case the bundle " +
                     "specification has been published to a registry.")
-    public BundleManifest getBundleManifest() {
-        return bundleManifest;
+    public ComponentManifest getComponentManifest() {
+        return componentManifest;
     }
 
-    public void setBundleManifest(BundleManifest bundleManifest) {
-        this.bundleManifest = bundleManifest;
+    public void setComponentManifest(ComponentManifest componentManifest) {
+        this.componentManifest = componentManifest;
     }
 
     @Override

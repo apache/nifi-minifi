@@ -19,6 +19,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.nifi.minifi.c2.model.extension.Bundle;
+import org.apache.nifi.minifi.c2.model.extension.ComponentManifest;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,7 @@ public class AgentManifest {
     private String version;
     private BuildInfo buildInfo;
     private List<Bundle> bundles;
+    private ComponentManifest componentManifest;
 
     @ApiModelProperty(
             value = "A unique identifier for the manifest",
@@ -81,6 +83,15 @@ public class AgentManifest {
 
     public void setBundles(List<Bundle> bundles) {
         this.bundles = bundles;
+    }
+
+    @ApiModelProperty("All components of this agent that are not part of a bundle.")
+    public ComponentManifest getComponentManifest() {
+        return componentManifest;
+    }
+
+    public void setComponentManifest(ComponentManifest componentManifest) {
+        this.componentManifest = componentManifest;
     }
 
     @Override

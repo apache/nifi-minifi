@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ApiModel
-public class BundleManifest {
+public class ComponentManifest {
 
     private List<DefinedType> apis;
     private List<ControllerService> controllerServices;

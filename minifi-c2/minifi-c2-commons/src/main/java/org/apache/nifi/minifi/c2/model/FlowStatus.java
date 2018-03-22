@@ -27,15 +27,15 @@ import java.util.Map;
 @ApiModel
 public class FlowStatus {
 
-    private Map<String, FlowComponentStatus> components;
+    private Map<String, ComponentStatus> components;
     private Map<String, FlowQueueStatus> queues;
 
-    @ApiModelProperty("Status and for each component")
-    public Map<String, FlowComponentStatus> getComponents() {
+    @ApiModelProperty("Status and for each component that is part of the flow (e.g., processors)")
+    public Map<String, ComponentStatus> getComponents() {
         return components;
     }
 
-    public void setComponents(Map<String, FlowComponentStatus> components) {
+    public void setComponents(Map<String, ComponentStatus> components) {
         this.components = components;
     }
 

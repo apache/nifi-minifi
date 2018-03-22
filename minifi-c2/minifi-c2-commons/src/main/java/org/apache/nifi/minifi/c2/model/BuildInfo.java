@@ -22,11 +22,12 @@ public class BuildInfo {
 
     private String version;
     private String revision;
-    private String timestamp;
+    private Long timestamp;
+    private String targetArch;
     private String compiler;
     private String compilerFlags;
 
-    @ApiModelProperty
+    @ApiModelProperty("The version number of the built component.")
     public String getVersion() {
         return version;
     }
@@ -35,7 +36,7 @@ public class BuildInfo {
         this.version = version;
     }
 
-    @ApiModelProperty
+    @ApiModelProperty("The SCM revision id of the source code used for this build.")
     public String getRevision() {
         return revision;
     }
@@ -44,16 +45,25 @@ public class BuildInfo {
         this.revision = revision;
     }
 
-    @ApiModelProperty
-    public String getTimestamp() {
+    @ApiModelProperty("The timestamp (milliseconds since Epoch) of the build.")
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
-    @ApiModelProperty
+    @ApiModelProperty("The target architecture of the built component.")
+    public String getTargetArch() {
+        return targetArch;
+    }
+
+    public void setTargetArch(String targetArch) {
+        this.targetArch = targetArch;
+    }
+
+    @ApiModelProperty("The compiler used for the build")
     public String getCompiler() {
         return compiler;
     }
@@ -62,7 +72,7 @@ public class BuildInfo {
         this.compiler = compiler;
     }
 
-    @ApiModelProperty
+    @ApiModelProperty("The compiler flags used for the build.")
     public String getCompilerFlags() {
         return compilerFlags;
     }

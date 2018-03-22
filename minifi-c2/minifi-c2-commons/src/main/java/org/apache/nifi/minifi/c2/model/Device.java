@@ -21,8 +21,8 @@ import io.swagger.annotations.ApiModelProperty;
 public class Device extends DeviceInfo {
 
     private String name;
-    private String firstSeen;  // TODO, decide on standard JSON format for timestamps in the C2 REST API
-    private String lastSeen;
+    private Long firstSeen;
+    private Long lastSeen;
 
     @ApiModelProperty
     public String getName() {
@@ -33,21 +33,21 @@ public class Device extends DeviceInfo {
         this.name = name;
     }
 
-    @ApiModelProperty("A timestamp for the first time a device was seen by this C2 server")
-    public String getFirstSeen() {
+    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the first time a device was seen by this C2 server")
+    public Long getFirstSeen() {
         return firstSeen;
     }
 
-    public void setFirstSeen(String firstSeen) {
+    public void setFirstSeen(Long firstSeen) {
         this.firstSeen = firstSeen;
     }
 
-    @ApiModelProperty("A timestamp for the most recent time time a device was seen by this C2 server")
-    public String getLastSeen() {
+    @ApiModelProperty("A timestamp (milliseconds since Epoch) for the most recent time time a device was seen by this C2 server")
+    public Long getLastSeen() {
         return lastSeen;
     }
 
-    public void setLastSeen(String lastSeen) {
+    public void setLastSeen(Long lastSeen) {
         this.lastSeen = lastSeen;
     }
 

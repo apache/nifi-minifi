@@ -19,6 +19,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @ApiModel
@@ -29,6 +30,8 @@ public class C2Operation {
     private OperationType operation;
     private String operand;
     private Map<String, String> args;
+
+    private List<String> dependencies;
 
     @ApiModelProperty(
             value = "A unique identifier for the operation",
@@ -81,5 +84,15 @@ public class C2Operation {
 
     public void setArgs(Map<String, String> args) {
         this.args = args;
+    }
+
+    @ApiModelProperty("Optional list operation ids that this operation depends on. " +
+            "Executing this operation is conditional on the success of all dependency operations.")
+    public List<String> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(List<String> dependencies) {
+        this.dependencies = dependencies;
     }
 }

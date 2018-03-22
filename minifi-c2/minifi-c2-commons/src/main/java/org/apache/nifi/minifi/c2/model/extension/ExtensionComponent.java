@@ -16,6 +16,9 @@ package org.apache.nifi.minifi.c2.model.extension;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.nifi.minifi.c2.model.BuildInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +30,7 @@ import java.util.Set;
 @ApiModel
 public class ExtensionComponent extends DefinedType {
 
-    // TODO, does arch/binary/compiler metadata need to be added here?
+    private BuildInfo buildInfo;
 
     private List<DefinedType> providedApiImplementations;
 
@@ -36,6 +39,15 @@ public class ExtensionComponent extends DefinedType {
 
     private Boolean deprecated;
     private String deprecationReason;
+
+    @ApiModelProperty("The build metadata for this component")
+    public BuildInfo getBuildInfo() {
+        return buildInfo;
+    }
+
+    public void setBuildInfo(BuildInfo buildInfo) {
+        this.buildInfo = buildInfo;
+    }
 
     @ApiModelProperty("If this type represents a provider for an interface, this lists the APIs it implements")
     public List<DefinedType> getProvidedApiImplementations() {
@@ -83,5 +95,25 @@ public class ExtensionComponent extends DefinedType {
         this.deprecationReason = deprecationReason;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
 
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExtensionComponent that = (ExtensionComponent) o;
+
+        return new EqualsBuilder()
+                .appendSuper(super.equals(o))
+                .append(buildInfo, that.buildInfo)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
+                .append(buildInfo)
+                .toHashCode();
+    }
 }

@@ -16,11 +16,17 @@
  */
 package org.apache.nifi.minifi.c2.core.service
 
+import org.apache.nifi.minifi.c2.api.provider.agent.AgentClassPersistenceProvider
+import org.apache.nifi.minifi.c2.api.provider.agent.AgentManifestPersistenceProvider
 import org.apache.nifi.minifi.c2.api.provider.agent.AgentPersistenceProvider
 import org.apache.nifi.minifi.c2.api.provider.device.DevicePersistenceProvider
 import org.apache.nifi.minifi.c2.api.provider.operations.OperationPersistenceProvider
 import org.apache.nifi.minifi.c2.core.exception.ResourceNotFoundException
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatilePersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentClassPersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentManifestPersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentPersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileDevicePersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileOperationPersistenceProvider
 import org.apache.nifi.minifi.c2.model.*
 import spock.lang.Specification
 
@@ -30,17 +36,26 @@ import javax.validation.Validation
 class StandardC2ServiceSpec extends Specification{
 
     AgentPersistenceProvider agentPersistenceProvider
+    AgentClassPersistenceProvider agentClassPersistenceProvider
+    AgentManifestPersistenceProvider agentManifestPersistenceProvider
     DevicePersistenceProvider devicePersistenceProvider
     OperationPersistenceProvider operationPersistenceProvider
     C2Service c2Service
 
     def setup() {
-        def persistenceProvider = new VolatilePersistenceProvider()
-        agentPersistenceProvider = persistenceProvider
-        devicePersistenceProvider = persistenceProvider
-        operationPersistenceProvider = persistenceProvider
-        def validator = Validation.buildDefaultValidatorFactory().getValidator();
-        c2Service = new StandardC2Service(persistenceProvider, persistenceProvider, persistenceProvider, validator)
+        agentPersistenceProvider = new VolatileAgentPersistenceProvider()
+        agentClassPersistenceProvider = new VolatileAgentClassPersistenceProvider()
+        agentManifestPersistenceProvider = new VolatileAgentManifestPersistenceProvider()
+        devicePersistenceProvider = new VolatileDevicePersistenceProvider()
+        operationPersistenceProvider = new VolatileOperationPersistenceProvider()
+        def validator = Validation.buildDefaultValidatorFactory().getValidator()
+        c2Service = new StandardC2Service(
+                agentPersistenceProvider,
+                agentClassPersistenceProvider,
+                agentManifestPersistenceProvider,
+                devicePersistenceProvider,
+                operationPersistenceProvider,
+                validator)
     }
 
     //**********************************
@@ -62,7 +77,6 @@ class StandardC2ServiceSpec extends Specification{
         then: "exception is thrown"
         thrown ConstraintViolationException
 
-
         when: "valid class is created"
         def createdClass = c2Service.createAgentClass(new AgentClass([name: "myClass", description: "myDescription"]))
 
@@ -72,14 +86,21 @@ class StandardC2ServiceSpec extends Specification{
             description == "myDescription"
         }
 
+        when: "class with same name already exists"
+        c2Service.createAgentClass(new AgentClass([name: "myDupeClass", description: "myDescription1"]))
+        c2Service.createAgentClass(new AgentClass([name: "myDupeClass", description: "myDescription2"]))
+
+        then: "exception is thrown"
+        thrown IllegalStateException
+
     }
 
     def "get agent classes"() {
 
         setup:
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "class1"]))
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "class2"]))
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "class3"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "class1"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "class2"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "class3"]))
 
         when:
         def classes = c2Service.getAgentClasses()
@@ -100,7 +121,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "class does exist"
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "myClass"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "myClass"]))
         def ac2 = c2Service.getAgentClass("myClass")
 
         then: "class is returned"
@@ -121,7 +142,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "class exists"
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "myClass"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "myClass"]))
         def updatedClass = c2Service.updateAgentClass(new AgentClass([name: "myClass", description: "new description"]))
 
         then:
@@ -142,7 +163,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "class exists"
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "myClass"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "myClass"]))
         def deletedClass = c2Service.deleteAgentClass("myClass")
 
         then:
@@ -151,7 +172,7 @@ class StandardC2ServiceSpec extends Specification{
         }
 
         and: "class no longer exists in persistence provider"
-        agentPersistenceProvider.getAgentClassCount() == 0
+        agentClassPersistenceProvider.getCount() == 0
 
     }
 
@@ -169,7 +190,7 @@ class StandardC2ServiceSpec extends Specification{
         thrown IllegalArgumentException
 
 
-        when: "valid manifest is created"
+        when: "valid manifest is created without client-set id"
         def created = c2Service.createAgentManifest(new AgentManifest([agentType: "java"]))
 
         then: "manifest is created and assigned an id"
@@ -177,14 +198,31 @@ class StandardC2ServiceSpec extends Specification{
             identifier != null
         }
 
+
+        when: "valid manifest is created with client-set id"
+        def created2 = c2Service.createAgentManifest(new AgentManifest([identifier: "manifest1", agentType: "java"]))
+
+        then: "manifest is created with client-set id"
+        with(created2) {
+            identifier == "manifest1"
+        }
+
+
+        when: "manifest is created with client-set id that already exists"
+        c2Service.createAgentManifest(new AgentManifest([identifier: "manifest1", agentType: "java"]))
+        c2Service.createAgentManifest(new AgentManifest([identifier: "manifest1", agentType: "cpp"]))
+
+        then: "exception is thrown"
+        thrown IllegalStateException
+
     }
 
     def "get agent manifests"() {
 
         setup:
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest1"]))
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest2"]))
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest3"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest1"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest2"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest3"]))
 
         when:
         def manifests = c2Service.getAgentManifests()
@@ -198,10 +236,10 @@ class StandardC2ServiceSpec extends Specification{
     def "get agent manifests by class name"() {
 
         setup:
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest1"]))
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest2"]))
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "manifest3"]))
-        agentPersistenceProvider.saveAgentClass(new AgentClass([name: "myClass", agentManifests: ["manifest2"]]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest1"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest2"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "manifest3"]))
+        agentClassPersistenceProvider.save(new AgentClass([name: "myClass", agentManifests: ["manifest2"]]))
 
         when:
         def manifests = c2Service.getAgentManifests("myClass")
@@ -223,7 +261,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "manifest exists"
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "myManifest"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "myManifest"]))
         def manifest2 = c2Service.getAgentManifest("myManifest")
 
         then: "manifest is returned"
@@ -244,7 +282,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "manifest exists"
-        agentPersistenceProvider.saveAgentManifest(new AgentManifest([identifier: "myManifest"]))
+        agentManifestPersistenceProvider.save(new AgentManifest([identifier: "myManifest"]))
         def deleted = c2Service.deleteAgentManifest("myManifest")
 
         then: "manifest is returned"
@@ -253,7 +291,7 @@ class StandardC2ServiceSpec extends Specification{
         }
 
         and: "manifest no longer exists in persistence provider"
-        agentPersistenceProvider.getAgentManifestCount() == 0
+        agentManifestPersistenceProvider.getCount() == 0
 
     }
 
@@ -279,14 +317,22 @@ class StandardC2ServiceSpec extends Specification{
             identifier == "agent1"
         }
 
+
+        when: "agent is created with id that already exists"
+        c2Service.createAgent(new Agent([identifier: "agent1"]))
+        c2Service.createAgent(new Agent([identifier: "agent1"]))
+
+        then: "exception is thrown"
+        thrown IllegalStateException
+
     }
 
     def "get agents"() {
 
         setup:
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent1"]))
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent2"]))
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent3"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent1"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent2"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent3"]))
 
         when:
         def agents = c2Service.getAgents()
@@ -299,9 +345,9 @@ class StandardC2ServiceSpec extends Specification{
     def "get agents by class name"() {
 
         setup:
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent1"]))
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent2", agentClass: "myClass"]))
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent3", agentClass: "yourClass"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent1"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent2", agentClass: "myClass"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent3", agentClass: "yourClass"]))
 
         when:
         def agents = c2Service.getAgents("myClass")
@@ -322,7 +368,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "agent exists"
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent2"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent2"]))
         def agent2 = c2Service.getAgent("agent2")
 
         then: "agent is returned"
@@ -343,7 +389,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "agent exists"
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent1"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent1"]))
         def updated = c2Service.updateAgent(new Agent([identifier: "agent1", name: "a better agent"]))
 
         then:
@@ -364,7 +410,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "agent exists"
-        agentPersistenceProvider.saveAgent(new Agent([identifier: "agent1"]))
+        agentPersistenceProvider.save(new Agent([identifier: "agent1"]))
         def deleted = c2Service.deleteAgent("agent1")
 
         then:
@@ -402,14 +448,22 @@ class StandardC2ServiceSpec extends Specification{
             identifier == "device1"
         }
 
+
+        when: "device is created with existing id"
+        c2Service.createDevice(new Device([identifier: "device1"]))
+        c2Service.createDevice(new Device([identifier: "device2"]))
+
+        then: "exception is thrown"
+        thrown IllegalStateException
+
     }
 
     def "get devices"() {
 
         setup:
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device1"]))
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device2"]))
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device3"]))
+        devicePersistenceProvider.save(new Device([identifier: "device1"]))
+        devicePersistenceProvider.save(new Device([identifier: "device2"]))
+        devicePersistenceProvider.save(new Device([identifier: "device3"]))
 
         when:
         def devices = c2Service.getDevices()
@@ -429,7 +483,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "device exists"
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device2"]))
+        devicePersistenceProvider.save(new Device([identifier: "device2"]))
         def device2 = c2Service.getDevice("device2")
 
         then: "device is returned"
@@ -450,7 +504,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "agent exists"
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device1"]))
+        devicePersistenceProvider.save(new Device([identifier: "device1"]))
         def updated = c2Service.updateDevice(new Device([identifier: "device1", name: "MiNiFi Device"]))
 
         then:
@@ -471,7 +525,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "agent exists"
-        devicePersistenceProvider.saveDevice(new Device([identifier: "device1"]))
+        devicePersistenceProvider.save(new Device([identifier: "device1"]))
         def deleted = c2Service.deleteDevice("device1")
 
         then:
@@ -521,12 +575,12 @@ class StandardC2ServiceSpec extends Specification{
     def "get operations"() {
 
         setup:
-        operationPersistenceProvider.saveOperation(new OperationRequest([
+        operationPersistenceProvider.save(new OperationRequest([
                 operation: new C2Operation([identifier: "operation1", operation: OperationType.DESCRIBE]),
                 targetAgentIdentifier: "agent1",
                 state: OperationState.NEW
         ]))
-        operationPersistenceProvider.saveOperation(new OperationRequest([
+        operationPersistenceProvider.save(new OperationRequest([
                 operation: new C2Operation([identifier: "operation2", operation: OperationType.RESTART]),
                 targetAgentIdentifier: "agent2",
                 state: OperationState.NEW
@@ -557,7 +611,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "operation exists"
-        operationPersistenceProvider.saveOperation(new OperationRequest([
+        operationPersistenceProvider.save(new OperationRequest([
                 operation: new C2Operation([identifier: "operation1", operation: OperationType.DESCRIBE]),
                 targetAgentIdentifier: "agent1",
                 state: OperationState.NEW
@@ -582,7 +636,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "operation exists"
-        operationPersistenceProvider.saveOperation(new OperationRequest([
+        operationPersistenceProvider.save(new OperationRequest([
                 operation: new C2Operation([identifier: "operation1", operation: OperationType.DESCRIBE]),
                 targetAgentIdentifier: "agent1",
                 state: OperationState.NEW
@@ -606,7 +660,7 @@ class StandardC2ServiceSpec extends Specification{
 
 
         when: "operation exists"
-        operationPersistenceProvider.saveOperation(new OperationRequest([
+        operationPersistenceProvider.save(new OperationRequest([
                 operation: new C2Operation([identifier: "operation1", operation: OperationType.DESCRIBE]),
                 targetAgentIdentifier: "agent1",
                 state: OperationState.NEW

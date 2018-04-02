@@ -17,20 +17,11 @@
 package org.apache.nifi.minifi.c2.api.provider.agent;
 
 import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
-import org.apache.nifi.minifi.c2.model.Agent;
+import org.apache.nifi.minifi.c2.model.AgentClass;
 
 /**
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
  * change across releases until the the C2 Server APIs mature.
  */
-public interface AgentPersistenceProvider extends PersistenceProvider<Agent, String> {
-
-    /**
-     * Returns all agents of the specified agent class
-     *
-     * @param agentClassName the name of the class to match
-     * @return agents matching the specified agent class name
-     */
-    Iterable<Agent> getByClassName(String agentClassName);
-
+public interface AgentClassPersistenceProvider extends PersistenceProvider<AgentClass, String> {
 }

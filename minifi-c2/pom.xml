@@ -62,7 +62,6 @@ limitations under the License.
     <properties>
         <nifi.registry.version>0.1.0</nifi.registry.version>
         <io.swagger.version>1.5.18</io.swagger.version>
-        <nifi.registry.version>0.1.0</nifi.registry.version>
     </properties>
 
     <dependencyManagement>

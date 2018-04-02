@@ -16,33 +16,25 @@
  */
 package org.apache.nifi.minifi.c2.api.provider.heartbeat;
 
+import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
 import org.apache.nifi.minifi.c2.api.provider.Provider;
 import org.apache.nifi.minifi.c2.model.C2Heartbeat;
 
 import java.util.List;
 import java.util.Optional;
 
-
 /**
- * Note: This is an unstable interface that is expected to change.
- *
- * TODO - normalize heartbeat objects into sensible RDB ERM.
- * Will need heartbeat id/key, heartbeat summary, etc.
+ * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
+ * change across releases until the the C2 Server APIs mature.
  */
-public interface HeartbeatPersistenceProvider extends Provider {
+public interface HeartbeatPersistenceProvider extends PersistenceProvider<C2Heartbeat, String> {
 
-    C2Heartbeat saveHeartbeat(C2Heartbeat heartbeat);
-
-    List<C2Heartbeat> getHeartbeats();
-
-    List<C2Heartbeat> getHeartbeatsByAgent(String agentId);
-
-    List<C2Heartbeat> getHeartbeatsByDevice(String deviceId);
-
-    Optional<C2Heartbeat> getHeartbeat(String heartbeatId);
-
-    void deleteHeartbeat(String heartbeatId);
-
-    void deleteAllHeartbeats();
+    /**
+     * Returns all heartbeats from the specified agent
+     *
+     * @param agentId the id of the agent to match
+     * @return heartbeats matching the specified agent id
+     */
+    Iterable<C2Heartbeat> getByAgent(String agentId);
 
 }

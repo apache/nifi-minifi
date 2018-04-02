@@ -16,6 +16,8 @@
  */
 package org.apache.nifi.minifi.c2.core.service;
 
+import org.apache.nifi.minifi.c2.api.provider.agent.AgentClassPersistenceProvider;
+import org.apache.nifi.minifi.c2.api.provider.agent.AgentManifestPersistenceProvider;
 import org.apache.nifi.minifi.c2.api.provider.agent.AgentPersistenceProvider;
 import org.apache.nifi.minifi.c2.api.provider.device.DevicePersistenceProvider;
 import org.apache.nifi.minifi.c2.api.provider.operations.OperationPersistenceProvider;
@@ -34,12 +36,15 @@ import org.springframework.stereotype.Service;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class StandardC2Service implements C2Service {
@@ -47,21 +52,29 @@ public class StandardC2Service implements C2Service {
     private static final Logger logger = LoggerFactory.getLogger(StandardC2Service.class);
 
     private final AgentPersistenceProvider agentPersistenceProvider;
+    private final AgentClassPersistenceProvider agentClassPersistenceProvider;
+    private final AgentManifestPersistenceProvider agentManifestPersistenceProvider;
     private final DevicePersistenceProvider devicePersistenceProvider;
     private final OperationPersistenceProvider operationPersistenceProvider;
     private final Validator validator;
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Lock readLock = lock.readLock();
-    private final Lock writeLock = lock.writeLock();
+    private final Lock agentLock = new ReentrantLock();
+    private final Lock agentClassLock = new ReentrantLock();
+    private final Lock agentManifestLock = new ReentrantLock();
+    private final Lock deviceLock = new ReentrantLock();
+    private final Lock operationLock = new ReentrantLock();
 
     @Autowired
     public StandardC2Service(
-            final AgentPersistenceProvider agentPersistenceProvider,
+            final AgentPersistenceProvider agentPersistenceProviderFactory,
+            final AgentClassPersistenceProvider agentClassPersistenceProvider,
+            final AgentManifestPersistenceProvider agentManifestPersistenceProvider,
             final DevicePersistenceProvider devicePersistenceProvider,
             final OperationPersistenceProvider operationPersistenceProvider,
             final Validator validator) {
-        this.agentPersistenceProvider = agentPersistenceProvider;
+        this.agentPersistenceProvider = agentPersistenceProviderFactory;
+        this.agentClassPersistenceProvider = agentClassPersistenceProvider;
+        this.agentManifestPersistenceProvider = agentManifestPersistenceProvider;
         this.devicePersistenceProvider = devicePersistenceProvider;
         this.operationPersistenceProvider = operationPersistenceProvider;
         this.validator = validator;
@@ -84,23 +97,22 @@ public class StandardC2Service implements C2Service {
 
     @Override
     public List<AgentClass> getAgentClasses() {
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentClasses();
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(agentClassPersistenceProvider.getAll());
     }
 
     @Override
     public AgentClass createAgentClass(AgentClass agentClass) {
         validate(agentClass, "Cannot create agent class");
 
-        writeLock.lock();
+        agentClassLock.lock();
         try {
-            return agentPersistenceProvider.saveAgentClass(agentClass);
+            if (agentClassPersistenceProvider.existsById(agentClass.getName())) {
+                throw new IllegalStateException(
+                        String.format("Agent class not found with name='%s'", agentClass.getName()));
+            }
+            return agentClassPersistenceProvider.save(agentClass);
         } finally {
-            writeLock.unlock();
+            agentClassLock.unlock();
         }
     }
 
@@ -110,26 +122,21 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("Name cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentClass(name);
-        } finally {
-            readLock.unlock();
-        }
+        return agentClassPersistenceProvider.getById(name);
     }
 
     @Override
     public AgentClass updateAgentClass(AgentClass agentClass) {
         validate(agentClass, "Cannot update agent class");
-        writeLock.lock();
+        agentClassLock.lock();
         try {
-            if (!agentPersistenceProvider.agentClassExists(agentClass.getName())) {
+            if (!agentClassPersistenceProvider.existsById(agentClass.getName())) {
                 throw new ResourceNotFoundException(
-                        String.format("Agent class with name '%s' not found.", agentClass.getName()));
+                        String.format("Agent class not found with name='%s'", agentClass.getName()));
             }
-            return agentPersistenceProvider.saveAgentClass(agentClass);
+            return agentClassPersistenceProvider.save(agentClass);
         } finally {
-            writeLock.unlock();
+            agentClassLock.unlock();
         }
     }
 
@@ -138,17 +145,17 @@ public class StandardC2Service implements C2Service {
         if (name == null) {
             throw new IllegalArgumentException("Name cannot be null");
         }
-        writeLock.lock();
+        agentClassLock.lock();
         try {
-            Optional<AgentClass> deletedAgentClass = agentPersistenceProvider.getAgentClass(name);
+            Optional<AgentClass> deletedAgentClass = agentClassPersistenceProvider.getById(name);
             if (!deletedAgentClass.isPresent()) {
                 throw new ResourceNotFoundException(
-                        String.format("Agent class with name '%s' not found.", name));
+                        String.format("Agent class not found with name='%s'", name));
             }
-            agentPersistenceProvider.deleteAgentClass(name);
+            agentClassPersistenceProvider.deleteById(name);
             return deletedAgentClass.get();
         } finally {
-            writeLock.unlock();
+            agentClassLock.unlock();
         }
     }
 
@@ -160,24 +167,25 @@ public class StandardC2Service implements C2Service {
     @Override
     public AgentManifest createAgentManifest(AgentManifest agentManifest) {
         validate(agentManifest, "Could not create agent manifest");
-
-        writeLock.lock();
-        try {
+        if (agentManifest.getIdentifier() == null) {
             agentManifest.setIdentifier(UUID.randomUUID().toString());
-            return agentPersistenceProvider.saveAgentManifest(agentManifest);
+        }
+
+        agentManifestLock.lock();
+        try {
+            if (agentManifestPersistenceProvider.existsById(agentManifest.getIdentifier())) {
+                throw new IllegalStateException(
+                        String.format("Agent manifest already exists with identifier='%s", agentManifest.getIdentifier()));
+            }
+            return agentManifestPersistenceProvider.save(agentManifest);
         } finally {
-            writeLock.unlock();
+            agentManifestLock.unlock();
         }
     }
 
     @Override
     public List<AgentManifest> getAgentManifests() {
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentManifests();
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(agentManifestPersistenceProvider.getAll());
     }
 
     @Override
@@ -186,12 +194,14 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("Agent class name cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentManifestsByClass(agentClassName);
-        } finally {
-            readLock.unlock();
+        Optional<AgentClass> agentClass = agentClassPersistenceProvider.getById(agentClassName);
+        if (agentClass.isPresent()) {
+            Iterable<String> manifestIds = agentClass.get().getAgentManifests();
+            if (manifestIds != null) {
+                return iterableToList(agentManifestPersistenceProvider.getAllById(manifestIds));
+            }
         }
+        return Collections.emptyList();
     }
 
     @Override
@@ -200,12 +210,7 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("Agent manifest id must not be null");
         }
 
-        writeLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentManifest(manifestId);
-        } finally {
-            writeLock.unlock();
-        }
+        return agentManifestPersistenceProvider.getById(manifestId);
     }
 
     @Override
@@ -214,17 +219,17 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("Agent manifest id must not be null");
         }
 
-        writeLock.lock();
+        agentManifestLock.lock();
         try {
-            final Optional<AgentManifest> deletedAgentManifest = agentPersistenceProvider.getAgentManifest(manifestId);
+            final Optional<AgentManifest> deletedAgentManifest = agentManifestPersistenceProvider.getById(manifestId);
             if (!deletedAgentManifest.isPresent()) {
                 throw new ResourceNotFoundException(
                         String.format("Agent manifest with id '%s' not found.", manifestId));
             }
-            agentPersistenceProvider.deleteAgentManifest(manifestId);
+            agentManifestPersistenceProvider.deleteById(manifestId);
             return deletedAgentManifest.get();
         } finally {
-            writeLock.unlock();
+            agentManifestLock.unlock();
         }
     }
 
@@ -236,22 +241,21 @@ public class StandardC2Service implements C2Service {
     @Override
     public Agent createAgent(Agent agent) {
         validate(agent, "Cannot create agent");
-        writeLock.lock();
+        agentLock.lock();
         try {
-            return agentPersistenceProvider.saveAgent(agent);
+            if (agentPersistenceProvider.existsById(agent.getIdentifier())) {
+                throw new IllegalStateException(
+                        String.format("Agent not found with identifier='%s'", agent.getIdentifier()));
+            }
+            return agentPersistenceProvider.save(agent);
         } finally {
-            writeLock.unlock();
+            agentLock.unlock();
         }
     }
 
     @Override
     public List<Agent> getAgents() {
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgents();
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(agentPersistenceProvider.getAll());
     }
 
     @Override
@@ -260,12 +264,7 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("agentClassName cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgentsByClassName(agentClassName);
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(agentPersistenceProvider.getByClassName(agentClassName));
     }
 
     @Override
@@ -274,28 +273,23 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("agentId cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return agentPersistenceProvider.getAgent(agentId);
-        } finally {
-            readLock.unlock();
-        }
+        return agentPersistenceProvider.getById(agentId);
     }
 
     @Override
     public Agent updateAgent(Agent agent) {
         validate(agent, "Cannot update agent");
 
-        writeLock.lock();
+        agentLock.lock();
         try {
-            final Optional<Agent> oldAgent = agentPersistenceProvider.getAgent(agent.getIdentifier());
+            final Optional<Agent> oldAgent = agentPersistenceProvider.getById(agent.getIdentifier());
             if (!oldAgent.isPresent()) {
                 throw new ResourceNotFoundException("Agent not found with id " + agent.getIdentifier());
             }
             agent.setFirstSeen(oldAgent.get().getFirstSeen());  // firstSeen timestamp is immutable
-            return agentPersistenceProvider.saveAgent(agent);
+            return agentPersistenceProvider.save(agent);
         } finally {
-            writeLock.unlock();
+            agentLock.unlock();
         }
     }
 
@@ -305,16 +299,16 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("agentId cannot be null");
         }
 
-        writeLock.lock();
+        agentLock.lock();
         try {
-            final Optional<Agent> deletedAgent = agentPersistenceProvider.getAgent(agentId);
+            final Optional<Agent> deletedAgent = agentPersistenceProvider.getById(agentId);
             if (!deletedAgent.isPresent()) {
                 throw new ResourceNotFoundException("Agent not found with id " + agentId);
             }
-            agentPersistenceProvider.deleteAgent(agentId);
+            agentPersistenceProvider.deleteById(agentId);
             return deletedAgent.get();
         } finally {
-            writeLock.unlock();
+            agentLock.unlock();
         }
     }
 
@@ -326,22 +320,21 @@ public class StandardC2Service implements C2Service {
     @Override
     public Device createDevice(Device device) {
         validate(device, "Cannot create device");
-        writeLock.lock();
+        deviceLock.lock();
         try {
-            return devicePersistenceProvider.saveDevice(device);
+            if (devicePersistenceProvider.existsById(device.getIdentifier())) {
+                throw new IllegalStateException(
+                        String.format("Device already exists with id='%s", device.getIdentifier()));
+            }
+            return devicePersistenceProvider.save(device);
         } finally {
-            writeLock.unlock();
+            deviceLock.unlock();
         }
     }
 
     @Override
     public List<Device> getDevices() {
-        readLock.lock();
-        try {
-            return devicePersistenceProvider.getDevices();
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(devicePersistenceProvider.getAll());
     }
 
     @Override
@@ -350,28 +343,23 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("devicId cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return devicePersistenceProvider.getDevice(deviceId);
-        } finally {
-            readLock.unlock();
-        }
+        return devicePersistenceProvider.getById(deviceId);
     }
 
     @Override
     public Device updateDevice(Device device) {
         validate(device, "Cannot update device");
 
-        writeLock.lock();
+        deviceLock.lock();
         try {
-            final Optional<Device> oldDevice = devicePersistenceProvider.getDevice(device.getIdentifier());
+            final Optional<Device> oldDevice = devicePersistenceProvider.getById(device.getIdentifier());
             if (!oldDevice.isPresent()) {
                 throw new ResourceNotFoundException("Device not found with id " + device.getIdentifier());
             }
             device.setFirstSeen(oldDevice.get().getFirstSeen());  // firstSeen timestamp is immutable
-            return devicePersistenceProvider.saveDevice(device);
+            return devicePersistenceProvider.save(device);
         } finally {
-            writeLock.unlock();
+            deviceLock.unlock();
         }
     }
 
@@ -381,16 +369,16 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("devicId cannot be null");
         }
 
-        writeLock.lock();
+        deviceLock.lock();
         try {
-            final Optional<Device> deletedDevice = devicePersistenceProvider.getDevice(deviceId);
+            final Optional<Device> deletedDevice = devicePersistenceProvider.getById(deviceId);
             if (!deletedDevice.isPresent()) {
                 throw new ResourceNotFoundException("Device not found with id " + deviceId);
             }
-            devicePersistenceProvider.deleteDevice(deviceId);
+            devicePersistenceProvider.deleteById(deviceId);
             return deletedDevice.get();
         } finally {
-            writeLock.unlock();
+            deviceLock.unlock();
         }
     }
 
@@ -404,22 +392,12 @@ public class StandardC2Service implements C2Service {
         validate(operationRequest, "Cannot create operation");
         operationRequest.getOperation().setIdentifier(UUID.randomUUID().toString());
 
-        writeLock.lock();
-        try {
-            return operationPersistenceProvider.saveOperation(operationRequest);
-        } finally {
-            writeLock.unlock();
-        }
+        return operationPersistenceProvider.save(operationRequest);
     }
 
     @Override
     public List<OperationRequest> getOperations() {
-        readLock.lock();
-        try {
-            return operationPersistenceProvider.getOperations();
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(operationPersistenceProvider.getAll());
     }
 
     @Override
@@ -428,12 +406,7 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("agentId cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return operationPersistenceProvider.getOperationsByAgent(agentId);
-        } finally {
-            readLock.unlock();
-        }
+        return iterableToList(operationPersistenceProvider.getByAgent(agentId));
     }
 
     @Override
@@ -442,12 +415,7 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("operationId cannot be null");
         }
 
-        readLock.lock();
-        try {
-            return operationPersistenceProvider.getOperation(operationId);
-        } finally {
-            readLock.unlock();
-        }
+        return operationPersistenceProvider.getById(operationId);
     }
 
     @Override
@@ -459,17 +427,18 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("state cannot be null");
         }
 
-        writeLock.lock();
+        operationLock.lock();
         try {
-            final Optional<OperationRequest> existingOperation = operationPersistenceProvider.getOperation(operationId);
+            final Optional<OperationRequest> existingOperation = operationPersistenceProvider.getById(operationId);
             if (!existingOperation.isPresent()) {
                 throw new ResourceNotFoundException("Operation not found with id " + operationId);
             }
             final OperationRequest updatedOperation = existingOperation.get();
+            logger.debug("C2 operation state transition for operationId={}, fromState={}, toState={}", operationId, updatedOperation.getState(), state);
             updatedOperation.setState(state);
-            return operationPersistenceProvider.saveOperation(updatedOperation);
+            return operationPersistenceProvider.save(updatedOperation);
         } finally {
-            writeLock.unlock();
+            operationLock.unlock();
         }
     }
 
@@ -479,16 +448,30 @@ public class StandardC2Service implements C2Service {
             throw new IllegalArgumentException("operationId cannot be null");
         }
 
-        writeLock.lock();
+        operationLock.lock();
         try {
-            final Optional<OperationRequest> deletedOperation = operationPersistenceProvider.getOperation(operationId);
+            final Optional<OperationRequest> deletedOperation = operationPersistenceProvider.getById(operationId);
             if (!deletedOperation.isPresent()) {
                 throw new ResourceNotFoundException("Operation not found with id " + operationId);
             }
-            operationPersistenceProvider.deleteOperation(operationId);
+            operationPersistenceProvider.deleteById(operationId);
             return deletedOperation.get();
         } finally {
-            writeLock.unlock();
+            operationLock.unlock();
         }
     }
+
+    private static <T> List<T> iterableToList(Iterable<T> iterable) {
+        final List<T> retList;
+        if (iterable instanceof List) {
+           retList = (List<T>)iterable;
+        } else if (iterable instanceof Collection) {
+            retList = new ArrayList<>((Collection<T>)iterable);
+        } else {
+            retList = new ArrayList<>();
+            iterable.forEach(retList::add);
+        }
+        return retList;
+    }
+
 }

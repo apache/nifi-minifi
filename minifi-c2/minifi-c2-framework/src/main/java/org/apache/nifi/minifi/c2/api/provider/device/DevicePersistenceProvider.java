@@ -16,6 +16,7 @@
  */
 package org.apache.nifi.minifi.c2.api.provider.device;
 
+import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
 import org.apache.nifi.minifi.c2.api.provider.Provider;
 import org.apache.nifi.minifi.c2.model.Device;
 
@@ -25,54 +26,6 @@ import java.util.Optional;
 /**
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
  * change across releases until the the C2 Server APIs mature.
- *
- * TODO, we may want to consider creating a separate entity model rather than reusing the REST API object model.
- * Currently, this design assumes the Provider implementation will do that translation.
- * This requires adding a dependency on minifi-c2-commons here for the data model.
  */
-public interface DevicePersistenceProvider extends Provider {
-
-    /**
-     * Returns the number of saved Devices.
-     *
-     * @return the number of saved Devices
-     */
-    long getDeviceCount();
-
-    /**
-     * Saves a given Device. Use the returned instance as the save operation might have side effects.
-     *
-     * @param device must not be null
-     * @return the saved Device
-     * @throws IllegalArgumentException if device is null
-     */
-    Device saveDevice(Device device);
-
-    /**
-     * Retrieves all saved Devices.
-     *
-     * TODO: Change this interface to support pagination and sorting
-     *
-     * @return a List of all Devices, or an empty List if there are no saved Devices
-     */
-    List<Device> getDevices();
-
-    /**
-     * Retrieves a Device by id.
-     *
-     * @param deviceId must not be null
-     * @return the Device with the specified id (or empty Optional)
-     * @throws IllegalArgumentException if deviceId is null
-     */
-    Optional<Device> getDevice(String deviceId);
-
-    /**
-     * Delete a Device by name.
-     *
-     * @param deviceId must not be null
-     * @throws IllegalArgumentException if deviceId is null
-     */
-    void deleteDevice(String deviceId);
-
-
+public interface DevicePersistenceProvider extends PersistenceProvider<Device, String> {
 }

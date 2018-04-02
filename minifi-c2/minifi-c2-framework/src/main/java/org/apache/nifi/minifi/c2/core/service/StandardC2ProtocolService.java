@@ -104,7 +104,7 @@ public class StandardC2ProtocolService implements C2ProtocolService {
 
     private void persistHeartbeat(C2Heartbeat heartbeat) {
         try {
-            heartbeatPersistenceProvider.saveHeartbeat(heartbeat);
+            heartbeatPersistenceProvider.save(heartbeat);
         } catch (Exception e) {
             logger.warn("Encountered exception while trying to record heartbeat", e);
         }

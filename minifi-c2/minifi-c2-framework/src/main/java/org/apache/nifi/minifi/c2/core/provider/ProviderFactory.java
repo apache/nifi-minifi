@@ -14,11 +14,6 @@
  */
 package org.apache.nifi.minifi.c2.core.provider;
 
-import org.apache.nifi.minifi.c2.api.provider.agent.AgentPersistenceProvider;
-import org.apache.nifi.minifi.c2.api.provider.device.DevicePersistenceProvider;
-import org.apache.nifi.minifi.c2.api.provider.heartbeat.HeartbeatPersistenceProvider;
-import org.apache.nifi.minifi.c2.api.provider.operations.OperationPersistenceProvider;
-
 /**
  * A factory for obtaining the configured providers.
  */
@@ -30,13 +25,5 @@ public interface ProviderFactory {
      * @throws ProviderFactoryException if an error occurs during initialization
      */
     void initialize() throws ProviderFactoryException;
-
-    AgentPersistenceProvider getAgentPersistenceProvider();
-
-    DevicePersistenceProvider getDevicePersistenceProvider();
-
-    HeartbeatPersistenceProvider getHeartbeatPersistenceProvider();
-
-    OperationPersistenceProvider getOperationsPersistenceProvider();
 
 }

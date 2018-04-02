@@ -16,29 +16,23 @@
  */
 package org.apache.nifi.minifi.c2.api.provider.operations;
 
-import org.apache.nifi.minifi.c2.api.provider.Provider;
+import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
 import org.apache.nifi.minifi.c2.model.OperationRequest;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Interface for a persistence provider for C2Operations.
- *
- * Note: This is an unstable interface that is expected to change.
+ * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
+ * change across releases until the the C2 Server APIs mature.
  */
-public interface OperationPersistenceProvider extends Provider {
+public interface OperationPersistenceProvider extends PersistenceProvider<OperationRequest, String> {
 
-    long getOperationCount();
-
-    OperationRequest saveOperation(OperationRequest operationRequest);
-
-    List<OperationRequest> getOperations();
-
-    List<OperationRequest> getOperationsByAgent(String agentId);
-
-    Optional<OperationRequest> getOperation(String operationId);
-
-    void deleteOperation(String operationId);
+    /**
+     * Returns all operations targeting a given agent
+     *
+     * @param agentId the agent to match
+     * @return operations targeting the specified agent id
+     */
+    Iterable<OperationRequest> getByAgent(String agentId);
 
 }

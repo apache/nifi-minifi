@@ -16,37 +16,41 @@
  */
 package org.apache.nifi.minifi.c2.core.provider.persistence;
 
-import org.apache.nifi.minifi.c2.api.provider.ProviderConfigurationContext;
-import org.apache.nifi.minifi.c2.api.provider.ProviderCreationException;
 import org.apache.nifi.minifi.c2.api.provider.heartbeat.HeartbeatPersistenceProvider;
 import org.apache.nifi.minifi.c2.model.C2Heartbeat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
- * A test provider that only persists the most recent heartbeat for every agent/device.
+ * A simple, in-memory "persistence" provider in order to test the service layer.
  *
- * This implementation is not intended for use outside of development and testing.
+ * This is not designed for real use outside of development. For example:
+ *   - it only keeps an in-memory record of saved entities, there is no real persistence
+ *   - it does not support transactions
+ *   - it does not clone objects on save/retrieval, so any modifications made after interacting with this service
+ *     also modify the "persisted" copies.
  *
- * TODO, deep copy objects on save/get so that they cannot be modified outside this class.
- *
+ * TODO, deep copy objects on save/get so that they cannot be modified outside this class without modifying the persisted copy.
  */
 class VolatileHeartbeatPersistenceProvider implements HeartbeatPersistenceProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(VolatileHeartbeatPersistenceProvider.class);
 
     private Map<String, C2Heartbeat> heartbeats = new ConcurrentHashMap<>();
-    private Map<String, C2Heartbeat> heartbeatsByAgentId = new ConcurrentHashMap<>();
-    private Map<String, C2Heartbeat> heartbeatsByDeviceId = new ConcurrentHashMap<>();
 
     @Override
-    public C2Heartbeat saveHeartbeat(C2Heartbeat heartbeat) {
+    public long getCount() {
+        return heartbeats.size();
+    }
+
+    @Override
+    public C2Heartbeat save(C2Heartbeat heartbeat) {
 
         if (heartbeat == null || heartbeat.getIdentifier() == null) {
             throw new IllegalArgumentException("Heartbeat must be not null and must have an id in order to be saved.");
@@ -54,12 +58,6 @@ class VolatileHeartbeatPersistenceProvider implements HeartbeatPersistenceProvid
 
         // TODO, atomic transaction
         heartbeats.put(heartbeat.getIdentifier(), heartbeat);
-        if (heartbeat.getAgentInfo() != null && heartbeat.getAgentInfo().getIdentifier() != null) {
-            heartbeatsByAgentId.put(heartbeat.getAgentInfo().getIdentifier(), heartbeat);
-        }
-        if (heartbeat.getDeviceInfo() != null && heartbeat.getDeviceInfo().getIdentifier() != null) {
-            heartbeatsByDeviceId.put(heartbeat.getDeviceInfo().getIdentifier(), heartbeat);
-        }
 
         logger.debug("Saved heartbeat with id={}", heartbeat.getIdentifier());
         return heartbeat;
@@ -67,38 +65,32 @@ class VolatileHeartbeatPersistenceProvider implements HeartbeatPersistenceProvid
     }
 
     @Override
-    public List<C2Heartbeat> getHeartbeats() {
+    public Iterable<C2Heartbeat> getAll() {
         return new ArrayList<>(heartbeats.values());
     }
 
     @Override
-    public List<C2Heartbeat> getHeartbeatsByAgent(String agentId) {
+    public Iterable<C2Heartbeat> getByAgent(String agentId) {
         if (agentId == null) {
             throw new IllegalArgumentException("Agent id cannot be null");
         }
-        List<C2Heartbeat> heartbeats = new ArrayList<>();
-        C2Heartbeat hb = heartbeatsByAgentId.get(agentId);
-        if (hb != null) {
-            heartbeats.add(hb);
-        }
-        return heartbeats;
+
+        return heartbeats.values().stream()
+                .filter(hb -> hb.getAgentInfo() != null)
+                .filter(hb -> agentId.equals(hb.getAgentInfo().getIdentifier()) )
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<C2Heartbeat> getHeartbeatsByDevice(String deviceId) {
-        if (deviceId == null) {
-            throw new IllegalArgumentException("Device id cannot be null");
+    public boolean existsById(String heartbeatId) {
+        if (heartbeatId == null) {
+            throw new IllegalArgumentException("Heartbeat id cannot be null");
         }
-        List<C2Heartbeat> heartbeats = new ArrayList<>();
-        C2Heartbeat hb = heartbeatsByDeviceId.get(deviceId);
-        if (hb != null) {
-            heartbeats.add(hb);
-        }
-        return heartbeats;
+        return heartbeats.containsKey(heartbeatId);
     }
 
     @Override
-    public Optional<C2Heartbeat> getHeartbeat(String heartbeatId) {
+    public Optional<C2Heartbeat> getById(String heartbeatId) {
         if (heartbeatId == null) {
             throw new IllegalArgumentException("Heartbeat id cannot be null");
         }
@@ -106,7 +98,7 @@ class VolatileHeartbeatPersistenceProvider implements HeartbeatPersistenceProvid
     }
 
     @Override
-    public void deleteHeartbeat(String heartbeatId) {
+    public void deleteById(String heartbeatId) {
         if (heartbeatId == null) {
             throw new IllegalArgumentException("Heartbeat id cannot be null");
         }
@@ -114,14 +106,16 @@ class VolatileHeartbeatPersistenceProvider implements HeartbeatPersistenceProvid
     }
 
     @Override
-    public void deleteAllHeartbeats() {
-        heartbeats.clear();
-        heartbeatsByDeviceId.clear();
-        heartbeatsByAgentId.clear();
+    public void delete(C2Heartbeat heartbeat) {
+        if (heartbeat == null || heartbeat.getIdentifier() == null) {
+            throw new IllegalArgumentException("heartbeat cannot be null and must have an id");
+        }
+        deleteById(heartbeat.getIdentifier());
     }
 
     @Override
-    public void onConfigured(ProviderConfigurationContext configurationContext) throws ProviderCreationException {
-        // do nothing
+    public void deleteAll() {
+        heartbeats.clear();
     }
+
 }

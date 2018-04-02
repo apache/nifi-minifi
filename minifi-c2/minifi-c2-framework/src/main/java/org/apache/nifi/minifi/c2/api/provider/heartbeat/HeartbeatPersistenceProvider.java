@@ -17,11 +17,7 @@
 package org.apache.nifi.minifi.c2.api.provider.heartbeat;
 
 import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
-import org.apache.nifi.minifi.c2.api.provider.Provider;
 import org.apache.nifi.minifi.c2.model.C2Heartbeat;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may

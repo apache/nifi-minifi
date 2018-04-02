@@ -22,11 +22,7 @@ import org.apache.nifi.minifi.c2.api.provider.agent.AgentPersistenceProvider
 import org.apache.nifi.minifi.c2.api.provider.device.DevicePersistenceProvider
 import org.apache.nifi.minifi.c2.api.provider.operations.OperationPersistenceProvider
 import org.apache.nifi.minifi.c2.core.exception.ResourceNotFoundException
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentClassPersistenceProvider
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentManifestPersistenceProvider
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileAgentPersistenceProvider
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileDevicePersistenceProvider
-import org.apache.nifi.minifi.c2.core.provider.persistence.VolatileOperationPersistenceProvider
+import org.apache.nifi.minifi.c2.core.provider.persistence.*
 import org.apache.nifi.minifi.c2.model.*
 import spock.lang.Specification
 

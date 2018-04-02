@@ -17,11 +17,7 @@
 package org.apache.nifi.minifi.c2.api.provider.device;
 
 import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
-import org.apache.nifi.minifi.c2.api.provider.Provider;
 import org.apache.nifi.minifi.c2.model.Device;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may

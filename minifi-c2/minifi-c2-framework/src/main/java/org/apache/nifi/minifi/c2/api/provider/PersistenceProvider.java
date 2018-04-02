@@ -25,8 +25,6 @@ import java.util.Optional;
  *
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
  * change across releases until the the C2 Server APIs mature.
- *
- * @param <T>
  */
 public interface PersistenceProvider<T, ID> {
 

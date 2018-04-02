@@ -19,8 +19,6 @@ package org.apache.nifi.minifi.c2.api.provider.operations;
 import org.apache.nifi.minifi.c2.api.provider.PersistenceProvider;
 import org.apache.nifi.minifi.c2.model.OperationRequest;
 
-import java.util.List;
-
 /**
  * NOTE: Although this interface is intended to be an extension point, it is not yet considered stable and thus may
  * change across releases until the the C2 Server APIs mature.

@@ -23,7 +23,6 @@ import org.apache.nifi.minifi.c2.properties.C2Properties;
 import org.apache.nifi.minifi.c2.web.api.AgentClassResource;
 import org.apache.nifi.minifi.c2.web.api.AgentManifestResource;
 import org.apache.nifi.minifi.c2.web.api.C2ProtocolResource;
-import org.apache.nifi.minifi.c2.web.api.TestResource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
@@ -59,8 +58,7 @@ public class MinifiC2ResourceConfig extends ResourceConfig {
         Class[] resources = {
                 AgentClassResource.class,
                 AgentManifestResource.class,
-                C2ProtocolResource.class,
-                TestResource.class
+                C2ProtocolResource.class
         };
         for (Class resourceClass : resources) {
             logger.info("Registering {}", resourceClass.getName());

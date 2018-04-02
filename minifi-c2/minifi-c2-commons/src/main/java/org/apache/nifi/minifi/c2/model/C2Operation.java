@@ -30,7 +30,6 @@ public class C2Operation {
     private OperationType operation;
     private String operand;
     private Map<String, String> args;
-
     private List<String> dependencies;
 
     @ApiModelProperty(
@@ -95,4 +94,5 @@ public class C2Operation {
     public void setDependencies(List<String> dependencies) {
         this.dependencies = dependencies;
     }
+
 }

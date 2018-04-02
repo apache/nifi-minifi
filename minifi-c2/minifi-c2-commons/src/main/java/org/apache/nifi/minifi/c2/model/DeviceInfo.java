@@ -17,14 +17,19 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+
 @ApiModel
 public class DeviceInfo {
 
+    @NotBlank
     private String identifier;
     private SystemInfo systemInfo;
     private NetworkInfo networkInfo;
 
-    @ApiModelProperty("A unique, long-lived identifier for the MiNiFi-enabled device")
+    @ApiModelProperty(
+            value = "A unique, long-lived identifier for the MiNiFi-enabled device",
+            required = true)
     public String getIdentifier() {
         return identifier;
     }
@@ -51,4 +56,12 @@ public class DeviceInfo {
         this.networkInfo = networkInfo;
     }
 
+    @Override
+    public String toString() {
+        return "DeviceInfo{" +
+                "identifier='" + identifier + '\'' +
+                ", systemInfo=" + systemInfo +
+                ", networkInfo=" + networkInfo +
+                '}';
+    }
 }

@@ -51,4 +51,12 @@ public class NetworkInfo {
         this.ipAddress = ipAddress;
     }
 
+    @Override
+    public String toString() {
+        return "NetworkInfo{" +
+                "deviceId='" + deviceId + '\'' +
+                ", hostname='" + hostname + '\'' +
+                ", ipAddress='" + ipAddress + '\'' +
+                '}';
+    }
 }

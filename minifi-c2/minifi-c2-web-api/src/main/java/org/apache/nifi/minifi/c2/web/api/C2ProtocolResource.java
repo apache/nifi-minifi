@@ -19,9 +19,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.nifi.minifi.c2.core.service.C2ProtocolService;
 import org.apache.nifi.minifi.c2.model.C2Heartbeat;
 import org.apache.nifi.minifi.c2.model.C2HeartbeatResponse;
 import org.apache.nifi.minifi.c2.model.C2OperationAck;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Consumes;
@@ -35,6 +37,13 @@ import javax.ws.rs.core.Response;
 @Path("/c2-protocol")
 @Api(value = "C2 Protocol", description = "An HTTP RESTful implementation of the MiNiFi C2 protocol.")
 public class C2ProtocolResource {
+
+    private C2ProtocolService c2ProtocolService;
+
+    @Autowired
+    public C2ProtocolResource(C2ProtocolService c2ProtocolService) {
+        this.c2ProtocolService = c2ProtocolService;
+    }
 
     @POST
     @Path("/heartbeat")
@@ -50,16 +59,9 @@ public class C2ProtocolResource {
             @ApiParam(required = true)
                     C2Heartbeat heartbeat) {
 
-        // TODO process heartbeat
-        // Processing a heartbeat will include things such as:
-        //  - Creating / updating AgentClassManifest definitions based on label
-        //  - Updating firstSeen/lastSeen timestamps, metrics, device/agent/flow info and status
-        //  - Resolving any pending/queued operations (e.g., flow updates) to send to the agent in the HeartbeatResponse
-        // These processing steps will be done in the service later, not this HTTP Rest endpoint, as we plan to support protocols in addition to HTTP one day.
-
-        C2HeartbeatResponse heartbeatResponse = new C2HeartbeatResponse();
-
+        C2HeartbeatResponse heartbeatResponse = c2ProtocolService.processHeartbeat(heartbeat);
         return Response.ok(heartbeatResponse).build();
+
     }
 
     @POST
@@ -91,11 +93,11 @@ public class C2ProtocolResource {
             @ApiResponse(code = 400, message = HttpStatusMessages.MESSAGE_400) })
     public Response acknowledge(
             @ApiParam(required = true)
-                    C2OperationAck c2OperationAck) {
+                    C2OperationAck operationAck) {
 
-        // TODO process ack
-
+        c2ProtocolService.processOperationAck(operationAck);
         return Response.ok().build();
+
     }
 
     @POST

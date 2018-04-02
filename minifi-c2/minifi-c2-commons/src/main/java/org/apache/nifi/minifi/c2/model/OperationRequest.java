@@ -17,11 +17,19 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 @ApiModel
 public class OperationRequest {
 
+    @NotNull
     private C2Operation operation;
+
+    @NotBlank
     private String targetAgentIdentifier;
+
+    private OperationState state = OperationState.NEW;
     private String operatorIdentity;
     private String operatorName;
 
@@ -41,6 +49,17 @@ public class OperationRequest {
 
     public void setTargetAgentIdentifier(String targetAgentIdentifier) {
         this.targetAgentIdentifier = targetAgentIdentifier;
+    }
+
+    @ApiModelProperty(
+            value = "The current state of the operation",
+            readOnly = true)
+    public OperationState getState() {
+        return state;
+    }
+
+    public void setState(OperationState state) {
+        this.state = state;
     }
 
     @ApiModelProperty(value = "The verified identity of the C2 server client that created the operation",

@@ -17,12 +17,17 @@ package org.apache.nifi.minifi.c2.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import java.util.Set;
+
 @ApiModel
 public class AgentClass {
 
+    @NotBlank
     private String name;
     private String description;
     private FlowUri trackedFlow;
+    private Set<String> agentManifests;
 
     @ApiModelProperty(value = "A unique class name for the agent", required = true)
     public String getName() {
@@ -50,4 +55,14 @@ public class AgentClass {
     public void setTrackedFlow(FlowUri trackedFlow) {
         this.trackedFlow = trackedFlow;
     }
+
+    @ApiModelProperty("A list of agent manifest ids belonging to this class")
+    public Set<String> getAgentManifests() {
+        return agentManifests;
+    }
+
+    public void setAgentManifests(Set<String> agentManifests) {
+        this.agentManifests = agentManifests;
+    }
+
 }

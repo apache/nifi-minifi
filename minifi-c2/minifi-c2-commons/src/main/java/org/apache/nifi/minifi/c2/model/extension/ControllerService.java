@@ -20,7 +20,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Collections;
 import java.util.Map;
 
-@ApiModel  // TODO Swagger docs description
+@ApiModel
 public class ControllerService extends ExtensionComponent {
 
     private Map<String, PropertyDescriptor> propertyDescriptors;

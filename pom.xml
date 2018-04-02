@@ -1076,6 +1076,11 @@ limitations under the License.
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.18</version>
                     <configuration>
+                        <includes>
+                            <include>**/*Test.class</include>
+                            <include>**/Test*.class</include>
+                            <include>**/*Spec.class</include>
+                        </includes>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <argLine combine.children="append">-Xmx1G -Djava.net.preferIPv4Stack=true</argLine>
                     </configuration>

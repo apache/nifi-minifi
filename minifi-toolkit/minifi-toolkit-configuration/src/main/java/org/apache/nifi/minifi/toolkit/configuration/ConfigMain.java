@@ -89,7 +89,7 @@ public class ConfigMain {
     public static void printValidateUsage() {
         System.out.println("Validate Usage:");
         System.out.println();
-        System.out.println(" validate INPUT_FILE");
+        System.out.println(" validate INPUT_FILE OPTIONAL_PROPERTIES_FILE");
         System.out.println();
     }
 

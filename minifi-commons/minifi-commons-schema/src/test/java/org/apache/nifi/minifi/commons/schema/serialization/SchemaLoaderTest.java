@@ -24,6 +24,7 @@ import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.junit.Test;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SchemaLoaderTest {
+
+    private static String TEST_BOOTSTRAP_FILE_LOCATION = "./src/test/resources/bootstrap.conf";
+
     @Test
     public void testMinimalConfigNoVersion() throws IOException, SchemaLoaderException {
         ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal.yml"));
@@ -87,7 +91,7 @@ public class SchemaLoaderTest {
 
     @Test
     public void testMinimalConfigV3VersionUnusedProperties() throws IOException, SchemaLoaderException {
-        Properties inputProperties = new Properties();
+        Properties inputProperties = getBootstrapProperties();
         inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
         inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
         inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
@@ -100,7 +104,7 @@ public class SchemaLoaderTest {
 
     @Test
     public void testMinimalConfigV3VersionWithBasicProperties() throws IOException, SchemaLoaderException {
-        Properties inputProperties = new Properties();
+        Properties inputProperties = getBootstrapProperties();
         inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
         inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
         inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
@@ -116,7 +120,7 @@ public class SchemaLoaderTest {
 
     @Test
     public void testMinimalConfigV3VersionWithMultipleRelationshipProperties() throws IOException, SchemaLoaderException {
-        Properties inputProperties = new Properties();
+        Properties inputProperties = getBootstrapProperties();
         inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
         inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
         inputProperties.setProperty("RELATIONSHIP_NAME", "- success\n      - failure");
@@ -147,7 +151,7 @@ public class SchemaLoaderTest {
 
     @Test
     public void testMinimalConfigV3VersionWithMultipleProperties() throws IOException, SchemaLoaderException {
-        Properties inputProperties = new Properties();
+        Properties inputProperties = getBootstrapProperties();
         inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
         inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
         inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
@@ -178,5 +182,13 @@ public class SchemaLoaderTest {
         processors.forEach(p -> assertNotNull(p.getId()));
 
         assertEquals("Expected no errors, got: " + configSchema.getValidationIssues(), 0, configSchema.getValidationIssues().size());
+    }
+
+    private Properties getBootstrapProperties() throws IOException {
+        final Properties bootstrapProperties = new Properties();
+        try (final FileInputStream fis = new FileInputStream(TEST_BOOTSTRAP_FILE_LOCATION)) {
+            bootstrapProperties.load(fis);
+        }
+        return bootstrapProperties;
     }
 }

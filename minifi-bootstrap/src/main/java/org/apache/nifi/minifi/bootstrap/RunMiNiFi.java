@@ -1198,7 +1198,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         final Properties transformationConfigProperties = getConfigTransformationProperties(bootstrapProperties);
 
         for(String name: transformationConfigProperties.stringPropertyNames()) {
-            defaultLogger.error("config property: name:[" + name + "] value:[" + transformationConfigProperties.getProperty(name) + "] ");
+            defaultLogger.info("config property: name:[" + name + "] value:[" + transformationConfigProperties.getProperty(name) + "] ");
         }
 
         try (InputStream inputStream = new FileInputStream(configFile)) {

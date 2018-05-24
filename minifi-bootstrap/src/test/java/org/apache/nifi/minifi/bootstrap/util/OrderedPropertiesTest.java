@@ -25,7 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static org.apache.nifi.minifi.bootstrap.util.ConfigTransformer.PROPERTIES_FILE_APACHE_2_0_LICENSE;
+import static org.apache.nifi.minifi.bootstrap.configuration.transformation.ConfigTransformer.PROPERTIES_FILE_APACHE_2_0_LICENSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 

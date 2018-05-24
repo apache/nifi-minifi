@@ -24,9 +24,11 @@ import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.commons.schema.v1.ConfigSchemaV1;
 import org.junit.Test;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +36,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SchemaLoaderTest {
+
+    private static String TEST_BOOTSTRAP_FILE_LOCATION = "./src/test/resources/bootstrap.conf";
+
     @Test
     public void testMinimalConfigNoVersion() throws IOException, SchemaLoaderException {
         ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal.yml"));
@@ -84,6 +89,84 @@ public class SchemaLoaderTest {
         }
     }
 
+    @Test
+    public void testMinimalConfigV3VersionUnusedProperties() throws IOException, SchemaLoaderException {
+        Properties inputProperties = getBootstrapProperties();
+        inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
+        inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
+        inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
+
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v3.yml"), inputProperties);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
+        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+        validateMinimalConfigVersion1Parse(configSchema);
+    }
+
+    @Test
+    public void testMinimalConfigV3VersionWithBasicProperties() throws IOException, SchemaLoaderException {
+        Properties inputProperties = getBootstrapProperties();
+        inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
+        inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
+        inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
+        inputProperties.setProperty("NOT_FOUND", "value");
+
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v3_properties.yml"), inputProperties);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
+        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+        validateMinimalConfigVersion1Parse(configSchema);
+
+        assertEquals("MiNiFi Flow", configSchema.getFlowControllerProperties().getName());
+    }
+
+    @Test
+    public void testMinimalConfigV3VersionWithMultipleRelationshipProperties() throws IOException, SchemaLoaderException {
+        Properties inputProperties = getBootstrapProperties();
+        inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
+        inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
+        inputProperties.setProperty("RELATIONSHIP_NAME", "- success\n      - failure");
+
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v3_properties.yml"), inputProperties);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
+        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+        validateMinimalConfigVersion1Parse(configSchema);
+
+        assertEquals("MiNiFi Flow", configSchema.getFlowControllerProperties().getName());
+        List<ConnectionSchema> connections = configSchema.getProcessGroupSchema().getConnections();
+        assertEquals("failure", connections.get(0).getSourceRelationshipNames().get(1));
+    }
+
+    @Test
+    public void testMinimalConfigV3VersionWithMissingProperty() throws IOException, SchemaLoaderException {
+        Properties inputProperties = new Properties();
+        inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
+        inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
+
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v3_properties.yml"), inputProperties);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
+        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+        validateMinimalConfigVersion1Parse(configSchema);
+
+        assertEquals("___FLOW_NAME___", configSchema.getFlowControllerProperties().getName());
+    }
+
+    @Test
+    public void testMinimalConfigV3VersionWithMultipleProperties() throws IOException, SchemaLoaderException {
+        Properties inputProperties = getBootstrapProperties();
+        inputProperties.setProperty("FLOW_NAME", "MiNiFi Flow");
+        inputProperties.setProperty("PROCESSOR_1_CLASS", "class: org.apache.nifi.processors.standard.TailFile");
+        inputProperties.setProperty("RELATIONSHIP_NAME", "- success");
+        inputProperties.setProperty("NOT_FOUND", "value");
+        inputProperties.setProperty("scheduling.strategy", "TIMER_DRIVEN");
+
+        Map<String, Object> yamlAsMap = SchemaLoader.loadYamlAsMap(SchemaLoaderTest.class.getClassLoader().getResourceAsStream("config-minimal-v3_multiple-properties.yml"), inputProperties);
+        yamlAsMap.put(ConfigSchema.VERSION, ConfigSchema.CONFIG_VERSION);
+        ConfigSchema configSchema = SchemaLoader.loadConfigSchemaFromYaml(yamlAsMap);
+        validateMinimalConfigVersion1Parse(configSchema);
+
+        List<ProcessorSchema> processors = configSchema.getProcessGroupSchema().getProcessors();
+        processors.forEach(p -> assertEquals("TIMER_DRIVEN", p.getSchedulingStrategy()));
+    }
+
     private void validateMinimalConfigVersion1Parse(ConfigSchema configSchema) {
         assertTrue(configSchema instanceof ConfigSchema);
 
@@ -91,6 +174,7 @@ public class SchemaLoaderTest {
         assertNotNull(connections);
         assertEquals(1, connections.size());
         assertNotNull(connections.get(0).getId());
+        assertEquals("success", connections.get(0).getSourceRelationshipNames().get(0));
 
         List<ProcessorSchema> processors = configSchema.getProcessGroupSchema().getProcessors();
         assertNotNull(processors);
@@ -98,5 +182,13 @@ public class SchemaLoaderTest {
         processors.forEach(p -> assertNotNull(p.getId()));
 
         assertEquals("Expected no errors, got: " + configSchema.getValidationIssues(), 0, configSchema.getValidationIssues().size());
+    }
+
+    private Properties getBootstrapProperties() throws IOException {
+        final Properties bootstrapProperties = new Properties();
+        try (final FileInputStream fis = new FileInputStream(TEST_BOOTSTRAP_FILE_LOCATION)) {
+            bootstrapProperties.load(fis);
+        }
+        return bootstrapProperties;
     }
 }

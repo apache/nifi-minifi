@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.nifi.minifi.bootstrap.util;
+package org.apache.nifi.minifi.bootstrap.configuration.transformation;
 
 public class ConfigTransformerException extends Exception {
     public ConfigTransformerException(String message) {

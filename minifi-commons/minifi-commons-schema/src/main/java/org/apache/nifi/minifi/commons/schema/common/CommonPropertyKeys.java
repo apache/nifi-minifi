@@ -56,6 +56,8 @@ public class CommonPropertyKeys {
     public static final String TYPE_KEY = "type";
     public static final String ANNOTATION_DATA_KEY = "annotation data";
 
+    public static final String BOOTSTRAP_CONFIG_PROPERTY_PREFIX = "config.prop.";
+
     public static final Map<String, Object> DEFAULT_PROPERTIES = Collections.emptyMap();
     private CommonPropertyKeys() {
     }

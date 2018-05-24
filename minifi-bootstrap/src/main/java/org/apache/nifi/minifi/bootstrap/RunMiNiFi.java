@@ -22,7 +22,7 @@ import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeCoordin
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeListener;
 import org.apache.nifi.minifi.bootstrap.status.PeriodicStatusReporter;
-import org.apache.nifi.minifi.bootstrap.util.ConfigTransformer;
+import org.apache.nifi.minifi.bootstrap.configuration.transformation.ConfigTransformer;
 import org.apache.nifi.minifi.commons.status.FlowStatusReport;
 import org.apache.nifi.util.Tuple;
 import org.apache.nifi.util.file.FileUtils;
@@ -79,6 +79,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.BOOTSTRAP_CONFIG_PROPERTY_PREFIX;
 
 /**
  * <p>
@@ -935,6 +936,20 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         return bootstrapProperties;
     }
 
+    private static Properties getConfigTransformationProperties(Properties allBootstrapProperties) {
+        final Properties returnProps = new Properties();
+
+        for (final String name: allBootstrapProperties.stringPropertyNames()) {
+            if (name.startsWith(BOOTSTRAP_CONFIG_PROPERTY_PREFIX)) {
+                final String value = allBootstrapProperties.getProperty(name);
+
+                returnProps.setProperty(name.substring(BOOTSTRAP_CONFIG_PROPERTY_PREFIX.length()), value);
+            }
+        }
+
+        return returnProps;
+    }
+
     private static List<String> getChildProcesses(final String ppid) throws IOException {
         final Process proc = Runtime.getRuntime().exec(new String[]{"ps", "-o", PID_KEY, "--no-headers", "--ppid", ppid});
         final List<String> childPids = new ArrayList<>();
@@ -1176,11 +1191,18 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void start() throws IOException, InterruptedException {
+        Properties bootstrapProperties = getBootstrapProperties();
 
-        final String confDir = getBootstrapProperties().getProperty(CONF_DIR_KEY);
-        final File configFile = new File(getBootstrapProperties().getProperty(MINIFI_CONFIG_FILE_KEY));
+        final String confDir = bootstrapProperties.getProperty(CONF_DIR_KEY);
+        final File configFile = new File(bootstrapProperties.getProperty(MINIFI_CONFIG_FILE_KEY));
+        final Properties transformationConfigProperties = getConfigTransformationProperties(bootstrapProperties);
+
+        for(String name: transformationConfigProperties.stringPropertyNames()) {
+            defaultLogger.info("config property: name:[" + name + "] value:[" + transformationConfigProperties.getProperty(name) + "] ");
+        }
+
         try (InputStream inputStream = new FileInputStream(configFile)) {
-            ByteBuffer tempConfigFile = performTransformation(inputStream, confDir);
+            ByteBuffer tempConfigFile = performTransformation(inputStream, confDir, transformationConfigProperties);
             currentConfigFileReference.set(tempConfigFile.asReadOnlyBuffer());
         } catch (ConfigurationChangeException e) {
             defaultLogger.error("The config file is malformed, unable to start.", e);
@@ -1267,17 +1289,20 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                         if (!previouslyStarted) {
                             final File swapConfigFile = getSwapFile(defaultLogger);
                             if (swapConfigFile.exists()) {
+                                Properties restartingBootstrapProperties = getBootstrapProperties();
+
                                 defaultLogger.info("Swap file exists, MiNiFi failed trying to change configuration. Reverting to old configuration.");
+                                final Properties restartingTransformationConfigProperties = getConfigTransformationProperties(restartingBootstrapProperties);
 
                                 try {
-                                    ByteBuffer tempConfigFile = performTransformation(new FileInputStream(swapConfigFile), confDir);
+                                    ByteBuffer tempConfigFile = performTransformation(new FileInputStream(swapConfigFile), confDir, restartingTransformationConfigProperties);
                                     currentConfigFileReference.set(tempConfigFile.asReadOnlyBuffer());
                                 } catch (ConfigurationChangeException e) {
                                     defaultLogger.error("The swap file is malformed, unable to restart from prior state. Will not attempt to restart MiNiFi. Swap File should be cleaned up manually.");
                                     return;
                                 }
 
-                                Files.copy(swapConfigFile.toPath(), Paths.get(getBootstrapProperties().getProperty(MINIFI_CONFIG_FILE_KEY)), REPLACE_EXISTING);
+                                Files.copy(swapConfigFile.toPath(), Paths.get(restartingBootstrapProperties.getProperty(MINIFI_CONFIG_FILE_KEY)), REPLACE_EXISTING);
 
                                 defaultLogger.info("Replacing config file with swap file and deleting swap file");
                                 if (!swapConfigFile.delete()) {
@@ -1630,7 +1655,8 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                             newConfigBais.reset();
 
                             logger.info("Performing transformation for input and saving outputs to {}", confDir);
-                            ByteBuffer tempConfigFile = performTransformation(newConfigBais, confDir);
+                            final Properties transformationConfigProperties = getConfigTransformationProperties(bootstrapProperties);
+                            ByteBuffer tempConfigFile = performTransformation(newConfigBais, confDir, transformationConfigProperties);
                             runner.currentConfigFileReference.set(tempConfigFile.asReadOnlyBuffer());
 
                             try {
@@ -1638,7 +1664,7 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
                                 restartInstance();
                             } catch (Exception e) {
                                 logger.debug("Transformation of new config file failed after transformation into Flow.xml and nifi.properties, reverting.");
-                                ByteBuffer resetConfigFile = performTransformation(new FileInputStream(swapConfigFile), confDir);
+                                ByteBuffer resetConfigFile = performTransformation(new FileInputStream(swapConfigFile), confDir, transformationConfigProperties);
                                 runner.currentConfigFileReference.set(resetConfigFile.asReadOnlyBuffer());
                                 throw e;
                             }
@@ -1701,11 +1727,11 @@ public class RunMiNiFi implements QueryableStatusAggregator, ConfigurationFileHo
         }
     }
 
-    private static ByteBuffer performTransformation(InputStream configIs, String configDestinationPath) throws ConfigurationChangeException, IOException {
+    private static ByteBuffer performTransformation(InputStream configIs, String configDestinationPath, Properties configTransformationProperties) throws ConfigurationChangeException, IOException {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 TeeInputStream teeInputStream = new TeeInputStream(configIs, byteArrayOutputStream)) {
 
-            ConfigTransformer.transformConfigFile(teeInputStream, configDestinationPath);
+            ConfigTransformer.transformConfigFile(teeInputStream, configDestinationPath, configTransformationProperties);
 
             return ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
         } catch (ConfigurationChangeException e){

@@ -19,6 +19,7 @@
 
 package org.apache.nifi.minifi.bootstrap.util;
 
+import org.apache.nifi.minifi.bootstrap.configuration.transformation.ConfigTransformer;
 import org.apache.nifi.minifi.commons.schema.exception.SchemaLoaderException;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
 import org.junit.Test;

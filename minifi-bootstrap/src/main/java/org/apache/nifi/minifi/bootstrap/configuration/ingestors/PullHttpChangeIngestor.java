@@ -281,12 +281,12 @@ public class PullHttpChangeIngestor extends AbstractPullChangeIngestor {
 
                 // get the current security properties from the current configuration file
                 final File configFile = new File(properties.get().getProperty(RunMiNiFi.MINIFI_CONFIG_FILE_KEY));
-                ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new FileInputStream(configFile));
+                ConvertableSchema<ConfigSchema> configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new FileInputStream(configFile), properties.get());
                 ConfigSchema currentSchema = configSchema.convert();
                 SecurityPropertiesSchema secProps = currentSchema.getSecurityProperties();
 
                 // override the security properties in the pulled configuration with the previous properties
-                configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new ByteBufferInputStream(bodyByteBuffer.duplicate()));
+                configSchema = SchemaLoader.loadConvertableSchemaFromYaml(new ByteBufferInputStream(bodyByteBuffer.duplicate()), properties.get());
                 ConfigSchema newSchema = configSchema.convert();
                 newSchema.setSecurityProperties(secProps);
 

@@ -26,14 +26,22 @@ import org.apache.nifi.minifi.commons.schema.v2.ConfigSchemaV2;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SchemaLoader {
+    private static final String ESCAPE_CHARACTERS = "___";
+
     private static final Map<String, Function<Map, ConvertableSchema<ConfigSchema>>> configSchemaFactories = initConfigSchemaFactories();
 
     private static Map<String, Function<Map, ConvertableSchema<ConfigSchema>>> initConfigSchemaFactories() {
@@ -46,13 +54,52 @@ public class SchemaLoader {
         return result;
     }
 
+    /*
+        Would've liked to not pull the config file into one String and instead replace as the sourceStream is read by the underlying yaml parser but SnakeYaml wrote it's
+        own 'StreamReader' and it would take relatively significant work to replace as the Stream is read (i.e. by writing an implementation of a bufferedReader). That said, the whole config
+        file shouldn't be that large and is going to all be in memory eventually as it's parsed by SnakeYaml so returning a String here is less worrying.
+     */
+    private static String readInputAndTranslateProperties(InputStream sourceStream, Properties inputProperties) throws IOException {
+        // Create a map of the patterns to look for and their respective replace values
+        final Map<Pattern, String> propertyPatterns = new HashMap<>();
+        for (String key :inputProperties.stringPropertyNames()) {
+            final Pattern propertyPattern = Pattern.compile(ESCAPE_CHARACTERS + "(" + key + ")" + ESCAPE_CHARACTERS);
+
+            propertyPatterns.put(propertyPattern, inputProperties.getProperty(key));
+        }
+
+        StringBuilder returnValue = new StringBuilder();
+        BufferedReader br = new BufferedReader(new InputStreamReader(sourceStream));
+
+        // Line by line, find and replace the properties using the compiled patterns
+        for(String line; (line = br.readLine()) != null; ) {
+            String lineToReturn = line;
+
+            for (Entry<Pattern, String> patternEntry: propertyPatterns.entrySet()) {
+                final Pattern pattern = patternEntry.getKey();
+
+                final Matcher matcher = pattern.matcher(lineToReturn);
+                lineToReturn = matcher.replaceAll(patternEntry.getValue());
+            }
+
+            returnValue.append(lineToReturn);
+            // Read by Yaml parser and not written to disk so no need to be configurable
+            returnValue.append(System.lineSeparator());
+        }
+        return returnValue.toString();
+    }
 
     public static Map<String, Object> loadYamlAsMap(InputStream sourceStream) throws IOException, SchemaLoaderException {
+        return loadYamlAsMap(sourceStream, new Properties());
+    }
+
+    public static Map<String, Object> loadYamlAsMap(InputStream sourceStream, Properties inputProperties) throws IOException, SchemaLoaderException {
         try {
+            String configString = readInputAndTranslateProperties(sourceStream, inputProperties);
             Yaml yaml = new Yaml();
 
             // Parse the YAML file
-            final Object loadedObject = yaml.load(sourceStream);
+            final Object loadedObject = yaml.load(configString);
 
             // Verify the parsed object is a Map structure
             if (loadedObject instanceof Map) {
@@ -71,12 +118,20 @@ public class SchemaLoader {
         return loadConfigSchemaFromYaml(loadYamlAsMap(sourceStream));
     }
 
+    public static ConfigSchema loadConfigSchemaFromYaml(InputStream sourceStream, Properties inputProperties) throws IOException, SchemaLoaderException {
+        return loadConfigSchemaFromYaml(loadYamlAsMap(sourceStream, inputProperties));
+    }
+
     public static ConfigSchema loadConfigSchemaFromYaml(Map<String, Object> yamlAsMap) throws SchemaLoaderException {
         return loadConvertableSchemaFromYaml(yamlAsMap).convert();
     }
 
     public static ConvertableSchema<ConfigSchema> loadConvertableSchemaFromYaml(InputStream inputStream) throws SchemaLoaderException, IOException {
         return loadConvertableSchemaFromYaml(loadYamlAsMap(inputStream));
+    }
+
+    public static ConvertableSchema<ConfigSchema> loadConvertableSchemaFromYaml(InputStream inputStream, Properties inputProperties) throws SchemaLoaderException, IOException {
+        return loadConvertableSchemaFromYaml(loadYamlAsMap(inputStream, inputProperties));
     }
 
     public static ConvertableSchema<ConfigSchema> loadConvertableSchemaFromYaml(Map<String, Object> yamlAsMap) throws SchemaLoaderException {

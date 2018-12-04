@@ -63,7 +63,7 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
     public static final String DEFAULT_PROXY_PASSWORD = "";
     public static final String DEFAULT_NETWORK_INTERFACE = "";
 
-    private String url;
+    private final String url;
     private List<RemotePortSchema> inputPorts;
     private List<RemotePortSchema> outputPorts;
 
@@ -81,6 +81,7 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
         super(map, "RemoteProcessGroup(id: {id}, name: {name})");
         String wrapperName = getWrapperName();
         url = getRequiredKeyAsType(map, URL_KEY, String.class, wrapperName);
+
 
         inputPorts = convertListToType(getOptionalKeyAsType(map, INPUT_PORTS_KEY, List.class, wrapperName, new ArrayList<>()), "input port", RemotePortSchema.class, INPUT_PORTS_KEY);
         addIssuesIfNotNull(inputPorts);
@@ -151,7 +152,7 @@ public class RemoteProcessGroupSchema extends BaseSchemaWithIdAndName {
         return comment;
     }
 
-    public String getUrl() {
+    public String getUrls() {
         return url;
     }
 

@@ -33,6 +33,15 @@ limitations under the License.
         <minifi.version>${project.version}</minifi.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.nifi.minifi</groupId>
+            <artifactId>minifi-assembly</artifactId>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+        </dependency>
+    </dependencies>
+    
     <profiles>
         <!-- Profile for building official Docker images. Not bound to build phases since that would require anyone build to have the Docker engine installed on their machine -->       
         <profile>                                   

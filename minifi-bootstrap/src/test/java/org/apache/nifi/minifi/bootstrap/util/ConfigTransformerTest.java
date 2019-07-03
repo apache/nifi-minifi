@@ -121,6 +121,11 @@ public class ConfigTransformerTest {
     }
 
     @Test
+    public void testProcessGroupsVariablesTransform() throws Exception {
+        testConfigFileTransform("config-pg-variables.yml");
+    }
+
+    @Test
     public void testFunnelsTransform() throws Exception {
         testConfigFileTransform("stress-test-framework-funnel.yml");
     }
@@ -460,6 +465,8 @@ public class ConfigTransformerTest {
         assertEquals(processGroupSchema.getName(), getText(element, "name"));
         assertEquals(nullToEmpty(processGroupSchema.getComment()), nullToEmpty(getText(element, "comment")));
 
+        testVariables(element, processGroupSchema.getVariables());
+
         checkOrderOfChildren(element, PG_ELEMENT_ORDER_MAP);
 
         NodeList processorElements = (NodeList) xPathFactory.newXPath().evaluate("processor", element, XPathConstants.NODESET);
@@ -508,6 +515,16 @@ public class ConfigTransformerTest {
         for (int i = 0; i < connectionElements.getLength(); i++) {
             testConnection((Element) connectionElements.item(i), processGroupSchema.getConnections().get(i));
         }
+    }
+
+    private void testVariables(Element element, Map<String, String> expected) throws XPathExpressionException {
+        NodeList variablesElement = (NodeList) xPathFactory.newXPath().evaluate("variables/entry", element, XPathConstants.NODESET);
+        Map<String, String> variables = new HashMap<>();
+        for (int i = 0; i < variablesElement.getLength(); i++) {
+            Element item = (Element) variablesElement.item(i);
+            variables.put(getText(item, "key"), getText(item, "value"));
+        }
+        assertEquals(expected.entrySet().stream().collect(Collectors.toMap(Map.Entry<String, String>::getKey, e -> nullToEmpty(e.getValue()))), variables);
     }
 
     private void testProcessor(Element element, ProcessorSchema processorSchema) throws XPathExpressionException {

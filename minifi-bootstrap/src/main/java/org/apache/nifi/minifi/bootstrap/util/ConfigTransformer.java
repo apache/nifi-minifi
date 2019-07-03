@@ -384,6 +384,7 @@ public final class ConfigTransformer {
             addTextElement(element, "name", processGroupSchema.getName());
             addPosition(element);
             addTextElement(element, "comment", processGroupSchema.getComment());
+            addVariables(doc, element, processGroupSchema.getVariables());
 
             for (ProcessorSchema processorConfig : processGroupSchema.getProcessors()) {
                 addProcessor(element, processorConfig);
@@ -418,10 +419,27 @@ public final class ConfigTransformer {
             for (ControllerServiceSchema controllerServiceSchema : processGroupSchema.getControllerServices()) {
                 addControllerService(element, controllerServiceSchema);
             }
+
         } catch (ConfigurationChangeException e) {
             throw e;
         } catch (Exception e) {
             throw new ConfigurationChangeException("Failed to parse the config YAML while trying to creating the root Process Group", e);
+        }
+    }
+
+    protected static void addVariables(Document doc, Element parentElement, Map<String, String> variables) {
+        if (variables == null) {
+            return;
+        }
+
+        final Element element = doc.createElement("variables");
+        parentElement.appendChild(element);
+
+        for(String key : variables.keySet()) {
+            Element entryElement = doc.createElement("entry");
+            addTextElement(entryElement, "key", key);
+            addTextElement(entryElement, "value", variables.get(key));
+            element.appendChild(entryElement);
         }
     }
 

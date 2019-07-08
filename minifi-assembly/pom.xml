@@ -25,6 +25,17 @@ limitations under the License.
     <artifactId>minifi-assembly</artifactId>
     <packaging>pom</packaging>
     <description>This is the assembly of Apache NiFi - MiNiFi</description>
+
+    <properties>
+        <commons.daemon.version>1.2.0</commons.daemon.version>
+        <commons.daemon.sha512sum>8b6e0bb4172861338e0cb3238f6da715c3cef04a88e8bfab0cbb487ef638aa69fd34de9407b0b2ed54451fbbcbff8a999324289052a581a5d07d6f6ff84a83b6</commons.daemon.sha512sum>
+
+        <!--Bootstrap Properties -->
+        <minifi.jvm.heap.mb>256</minifi.jvm.heap.mb>
+        <minifi.jvm.permgen.mb>128</minifi.jvm.permgen.mb>
+        <minifi.run.as />
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -45,7 +56,7 @@ limitations under the License.
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
                                 <if>
                                     <available file="${basedir}/target/minifiw.exe" />
@@ -57,8 +68,7 @@ limitations under the License.
                                         <property name="commons.daemon.file" value="commons-daemon-1.2.0-bin-windows.zip" />
                                         <get src="https://apache.claz.org/commons/daemon/binaries/windows/${commons.daemon.file}" dest="${java.io.tmpdir}/${commons.daemon.file}" skipexisting="true" />
                                         <local name="checksum.matches" />
-                                        <property name="sha256sum" value="9e632e6b7d8cb3d575639a299150037fdca88f9567f91586e55f234dd627e7c3" />
-                                        <checksum file="${java.io.tmpdir}/${commons.daemon.file}" algorithm="SHA-256" property="${sha256sum}" verifyProperty="checksum.matches" />
+                                        <checksum file="${java.io.tmpdir}/${commons.daemon.file}" algorithm="SHA-512" property="${commons.daemon.sha512sum}" verifyProperty="checksum.matches" />
                                         <echo message="Checksum match = ${checksum.matches}" />
                                         <condition property="checksum.matches.fail">
                                             <equals arg1="${checksum.matches}" arg2="false" />
@@ -69,7 +79,7 @@ limitations under the License.
                                         <copy file="${java.io.tmpdir}/amd64/prunsrv.exe" tofile="${basedir}/target/minifi.exe" />
                                     </else>
                                 </if>
-                            </tasks>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
@@ -307,12 +317,5 @@ limitations under the License.
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
-    <properties>
-        <!--Bootstrap Properties -->
-        <minifi.jvm.heap.mb>256</minifi.jvm.heap.mb>
-        <minifi.jvm.permgen.mb>128</minifi.jvm.permgen.mb>
-        <minifi.run.as />
-    </properties>
 
 </project>

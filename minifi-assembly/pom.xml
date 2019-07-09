@@ -63,7 +63,7 @@ limitations under the License.
                                             <equals arg1="${checksum.matches}" arg2="false" />
                                         </condition>
                                         <fail if="checksum.matches.fail">Checksum error</fail>
-                                        <unzip src="${java.io.tmpdir}/commons-daemon-1.1.0-bin-windows.zip" dest="${java.io.tmpdir}" />
+                                        <unzip src="${java.io.tmpdir}/commons-daemon-1.2.0-bin-windows.zip" dest="${java.io.tmpdir}" />
                                         <copy file="${java.io.tmpdir}/prunmgr.exe" tofile="${basedir}/target/minifiw.exe" />
                                         <copy file="${java.io.tmpdir}/amd64/prunsrv.exe" tofile="${basedir}/target/minifi.exe" />
                                     </else>

@@ -52,10 +52,10 @@ limitations under the License.
                             </execution>
                         </executions>
                         <configuration>
-                            <imageName>apacheminifi</imageName>
+                            <imageName>apache/nifi-minifi</imageName>
                             <dockerDirectory>${project.basedir}/dockermaven</dockerDirectory>
                             <imageTags>
-                               <imageTag>${minifi.version}</imageTag>
+                               <imageTag>${minifi.version}-maven</imageTag>
                             </imageTags>
                             <buildArgs>
                                 <UID>1000</UID>

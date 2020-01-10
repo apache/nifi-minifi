@@ -43,7 +43,7 @@ RUN curl -fSL $MINIFI_BINARY_URL -o $MINIFI_BASE_DIR/minifi-$MINIFI_VERSION-bin.
 	&& rm $MINIFI_BASE_DIR/minifi-$MINIFI_VERSION-bin.tar.gz \
 	&& ln -s $MINIFI_BASE_DIR/minifi-$MINIFI_VERSION $MINIFI_HOME
 
-RUN chown -R minifi:minifi $MINIFI_HOME
+RUN chown -R -L minifi:minifi $MINIFI_HOME
 
 USER minifi
 

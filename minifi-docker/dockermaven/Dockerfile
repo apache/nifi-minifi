@@ -35,7 +35,7 @@ RUN mkdir -p $MINIFI_BASE_DIR
 
 ADD $MINIFI_BINARY $MINIFI_BASE_DIR
 RUN ln -s $MINIFI_BASE_DIR/minifi-$MINIFI_VERSION $MINIFI_HOME
-RUN chown -R minifi:minifi $MINIFI_HOME
+RUN chown -R -L minifi:minifi $MINIFI_HOME
 
 USER minifi
 

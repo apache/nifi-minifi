@@ -20,7 +20,7 @@
 ## Building
 The Docker image can be built using the following command:
 
-    docker build -t apache/nifi-minifi:latest .
+    docker build -t apache/nifi-minifi:arm64 .
 
 This build will result in an image tagged apache/nifi:latest
 

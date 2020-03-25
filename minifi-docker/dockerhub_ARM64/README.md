@@ -27,8 +27,7 @@ This build will result in an image tagged apache/nifi:latest
     # user @ puter in ~/Development/code/apache/nifi-minifi/minifi-docker/dockerhub
     $ docker images
     REPOSITORY               TAG                 IMAGE ID            CREATED                 SIZE
-    apache/nifi-minifi              latest              f0f564eed149        A long, long time ago   226MB
-
+    apache/nifi-minifi-arm64 latest                 ddc9dce6019e        About a minute ago   734MB
 **Note**: The default version of NiFi specified by the Dockerfile is typically that of one that is unreleased if working from source.
 To build an image for a prior released version, one can override the `NIFI_VERSION` build-arg with the following command:
     

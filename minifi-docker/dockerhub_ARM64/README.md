@@ -32,7 +32,7 @@ This build will result in an image tagged apache/nifi:latest
 **Note**: The default version of NiFi specified by the Dockerfile is typically that of one that is unreleased if working from source.
 To build an image for a prior released version, one can override the `NIFI_VERSION` build-arg with the following command:
     
-    docker build --build-arg=MINIFI_VERSION={Desired MiNiFi Version} -t apache/nifi-minifi:latest .
+    docker build --build-arg=MINIFI_VERSION={Desired MiNiFi Version} -t apache/nifi-minifi:arm64 .
 
 ## Running a container
 
@@ -49,12 +49,12 @@ The following example shows the usage of two volumes to provide both a `config.y
     docker run -d \
         -v ~/minifi-conf/config.yml:/opt/minifi/minifi-0.5.0/conf/config.yml \
         -v ~/minifi-conf/bootstrap.conf:/opt/minifi/minifi-0.5.0/conf/bootstrap.conf \
-        apache/nifi-minifi:0.5.0
+        apache/nifi-minifi:arm64
         
 #### Using volumes to provide configuration
 Alternatively, it is possible to create a custom image inheriting from the published image.  Creating a `Dockerfile` extending from the Apache NiFi MiNiFi base image allows users to overlay the configuration permanently into a newly built and custom image.  A simple example follows:
 
-    FROM apache/nifi-minifi
+    FROM apache/nifi-minifi-arm64
     
     ADD config.yml /opt/minifi/minifi-0.5.0/conf/config.yml
     ADD bootstrap.conf /opt/minifi/minifi-0.5.0/conf/bootstrap.conf

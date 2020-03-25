@@ -47,12 +47,6 @@ RUN curl -fSL $MINIFI_BINARY_URL -o $MINIFI_BASE_DIR/minifi-$MINIFI_VERSION-bin.
 
 RUN echo $MINIFI_BASE_DIR/minifi-current
 
-#USER minifi
-
-#RUN mkdir a
-
-#RUN ls -lrt 
-
 RUN chown -R -L minifi:minifi $MINIFI_HOME
 
 USER minifi

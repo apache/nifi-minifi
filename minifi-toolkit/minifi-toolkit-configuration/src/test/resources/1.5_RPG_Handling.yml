@@ -112,3 +112,5 @@ Remote Process Groups:
     use compression: false
   Output Ports: []
 NiFi Properties Overrides: {}
+Reporting Tasks: []
+Reporting Tasks: []

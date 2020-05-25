@@ -104,3 +104,4 @@ Provenance Reporting:
   use compression: true
   timeout: 30 secs
   batch size: 1000
+Reporting Tasks: []

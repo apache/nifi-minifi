@@ -66,6 +66,7 @@ public class FlowSnippetDTOEnricher {
             if (encodingVersion != null) {
                 switch (encodingVersion) {
                     case "1.2":
+                    case "1.3":
                         // Map all port DTOs to their respective targetIds
                         rpgIdToTargetIdMap.putAll(
                                 Stream.concat(rpgInputPortDtos.stream(), rpgOutputPortDtos.stream())

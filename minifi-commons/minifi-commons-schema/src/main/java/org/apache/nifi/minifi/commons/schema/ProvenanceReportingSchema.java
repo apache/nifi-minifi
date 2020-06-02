@@ -25,11 +25,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.nifi.minifi.commons.schema.RemoteProcessGroupSchema.TIMEOUT_KEY;
-import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.*;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CLASS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMMENT_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROPERTIES_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROVENANCE_REPORTING_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SCHEDULING_PERIOD_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SCHEDULING_STRATEGY_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.USE_COMPRESSION_KEY;
 
-/**
- *
- */
 public class ProvenanceReportingSchema extends BaseSchema implements WritableSchema {
     public static final String DEFAULT_PROV_REPORTING_TASK_CLASS = "org.apache.nifi.reporting.SiteToSiteProvenanceReportingTask";
     public static final String DESTINATION_URL_KEY = "destination url";
@@ -84,7 +87,6 @@ public class ProvenanceReportingSchema extends BaseSchema implements WritableSch
         properties.put("Communications Timeout", timeout);
         properties.put("SSL Context Service", SSL);
 
-        // TODO: Consider extends this from BaseWithId, and init with super.toMap().
         Map<String, Object> target = super.mapSupplier.get();
         target.put(CLASS_KEY, DEFAULT_PROV_REPORTING_TASK_CLASS);
         target.put(COMMENT_KEY, comment);

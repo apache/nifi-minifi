@@ -31,7 +31,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.*;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMPONENT_STATUS_REPO_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CONTENT_REPO_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CORE_PROPS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.FLOWFILE_REPO_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.FLOW_CONTROLLER_PROPS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.GENERAL_REPORTING_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.NIFI_PROPERTIES_OVERRIDES_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROVENANCE_REPORTING_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROVENANCE_REPO_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SECURITY_PROPS_KEY;
 
 public class ConfigSchema extends BaseSchema implements WritableSchema, ConvertableSchema<ConfigSchema> {
     public static final int CONFIG_VERSION = 3;
@@ -165,7 +174,10 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         putIfNotNull(result, SECURITY_PROPS_KEY, securityProperties);
         result.putAll(processGroupSchema.toMap());
         putIfNotNull(result, PROVENANCE_REPORTING_KEY, provenanceReportingProperties);
-        putListIfNotNull(result, GENERAL_REPORTING_KEY, reportingTasks);
+        if (!reportingTasks.isEmpty()) {
+            // for backward compatibility
+            putListIfNotNull(result, GENERAL_REPORTING_KEY, reportingTasks);
+        }
         result.put(NIFI_PROPERTIES_OVERRIDES_KEY, nifiPropertiesOverrides);
         return result;
     }

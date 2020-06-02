@@ -163,4 +163,3 @@ Connections:
   queue prioritizer class: org.apache.nifi.prioritizer.FirstInFirstOutPrioritizer
 Remote Process Groups: []
 NiFi Properties Overrides: {}
-Reporting Tasks: []

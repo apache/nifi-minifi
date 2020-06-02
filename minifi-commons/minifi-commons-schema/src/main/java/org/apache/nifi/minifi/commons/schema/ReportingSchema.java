@@ -24,12 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.*;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.CLASS_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.COMMENT_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.DEFAULT_PROPERTIES;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.PROPERTIES_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SCHEDULING_PERIOD_KEY;
+import static org.apache.nifi.minifi.commons.schema.common.CommonPropertyKeys.SCHEDULING_STRATEGY_KEY;
 import static org.apache.nifi.minifi.commons.schema.ProcessorSchema.IT_IS_NOT_A_VALID_SCHEDULING_STRATEGY;
 
-/**
- *
- */
 public class ReportingSchema extends BaseSchemaWithIdAndName {
     private String schedulingStrategy;
     private String schedulingPeriod;
@@ -41,7 +43,7 @@ public class ReportingSchema extends BaseSchemaWithIdAndName {
     public ReportingSchema(Map map) {
         super(map, "Reporting(id: {id}, name: {name})");
         if (this.getId().equals("")) {
-            // TODO: Consider moving this to BaseSchemaWithId...
+            // MiNiFi will throw an error if it can not find `id` of BaseSchemaWithIdAndName for YML config version 3
             this.setId(UUID.randomUUID().toString());
         }
         String wrapperName = getWrapperName();

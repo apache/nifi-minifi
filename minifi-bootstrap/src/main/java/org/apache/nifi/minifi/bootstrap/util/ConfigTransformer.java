@@ -22,7 +22,26 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.minifi.bootstrap.configuration.ConfigurationChangeException;
 import org.apache.nifi.minifi.bootstrap.exception.InvalidConfigurationException;
-import org.apache.nifi.minifi.commons.schema.*;
+import org.apache.nifi.minifi.commons.schema.ComponentStatusRepositorySchema;
+import org.apache.nifi.minifi.commons.schema.ConfigSchema;
+import org.apache.nifi.minifi.commons.schema.ConnectionSchema;
+import org.apache.nifi.minifi.commons.schema.ContentRepositorySchema;
+import org.apache.nifi.minifi.commons.schema.ControllerServiceSchema;
+import org.apache.nifi.minifi.commons.schema.CorePropertiesSchema;
+import org.apache.nifi.minifi.commons.schema.FlowControllerSchema;
+import org.apache.nifi.minifi.commons.schema.FlowFileRepositorySchema;
+import org.apache.nifi.minifi.commons.schema.FunnelSchema;
+import org.apache.nifi.minifi.commons.schema.PortSchema;
+import org.apache.nifi.minifi.commons.schema.ProcessGroupSchema;
+import org.apache.nifi.minifi.commons.schema.ProcessorSchema;
+import org.apache.nifi.minifi.commons.schema.ProvenanceReportingSchema;
+import org.apache.nifi.minifi.commons.schema.ProvenanceRepositorySchema;
+import org.apache.nifi.minifi.commons.schema.RemotePortSchema;
+import org.apache.nifi.minifi.commons.schema.RemoteProcessGroupSchema;
+import org.apache.nifi.minifi.commons.schema.ReportingSchema;
+import org.apache.nifi.minifi.commons.schema.SecurityPropertiesSchema;
+import org.apache.nifi.minifi.commons.schema.SensitivePropsSchema;
+import org.apache.nifi.minifi.commons.schema.SwapSchema;
 import org.apache.nifi.minifi.commons.schema.common.ConvertableSchema;
 import org.apache.nifi.minifi.commons.schema.common.Schema;
 import org.apache.nifi.minifi.commons.schema.common.StringUtil;
@@ -513,12 +532,6 @@ public final class ConfigTransformer {
             addTextElement(element, "schedulingPeriod", reportingSchema.getSchedulingPeriod());
             addTextElement(element, "scheduledState", "RUNNING");
             addTextElement(element, "schedulingStrategy", reportingSchema.getSchedulingStrategy());
-
-            // TODO: Clarify this
-//            SecurityPropertiesSchema securityProps = configSchema.getSecurityProperties();
-//            if (securityProps.useSSL()) {
-//                attributes.put("SSL Context Service", "SSL-Context-Service");
-//            }
 
             addConfiguration(element, reportingSchema.getProperties());
 

@@ -111,4 +111,3 @@ Remote Process Groups:
     max concurrent tasks: 1
     use compression: false
 NiFi Properties Overrides: {}
-Reporting Tasks: []

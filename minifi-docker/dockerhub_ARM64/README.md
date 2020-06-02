@@ -24,7 +24,7 @@ The Docker image can be built using the following command:
 
 This build will result in an image tagged apache/nifi:latest
 
-    # user @ puter in ~/Development/code/apache/nifi-minifi/minifi-docker/dockerhub
+    # user @ puter in ~/Development/code/apache/nifi-minifi/minifi-docker/dockerhub_ARM64
     $ docker images
     REPOSITORY               TAG                 IMAGE ID            CREATED                 SIZE
     apache/nifi-minifi-arm64 latest                 ddc9dce6019e        About a minute ago   734MB

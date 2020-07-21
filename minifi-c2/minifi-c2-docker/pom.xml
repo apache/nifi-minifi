@@ -52,7 +52,7 @@ limitations under the License.
                             </execution>
                         </executions>
                         <configuration>
-                            <imageName>apacheminific2</imageName>
+                            <imageName>apache/nifi-minifi-c2</imageName>
                             <dockerDirectory>${project.basedir}/dockermaven</dockerDirectory>
                             <imageTags>
                                <imageTag>${minifi.c2.version}</imageTag>

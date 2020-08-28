@@ -186,8 +186,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return flowControllerProperties;
     }
 
-    public void setFlowControllerProperties(final FlowControllerSchema flowControllerProperties)
-    {
+    public void setFlowControllerProperties(final FlowControllerSchema flowControllerProperties) {
         this.flowControllerProperties = flowControllerProperties;
     }
 
@@ -195,8 +194,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return coreProperties;
     }
 
-    public void setCoreProperties(final CorePropertiesSchema coreProperties)
-    {
+    public void setCoreProperties(final CorePropertiesSchema coreProperties) {
         this.coreProperties = coreProperties;
     }
 
@@ -204,8 +202,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return flowfileRepositoryProperties;
     }
 
-    public void setFlowfileRepositoryProperties(final FlowFileRepositorySchema flowfileRepositoryProperties)
-    {
+    public void setFlowfileRepositoryProperties(final FlowFileRepositorySchema flowfileRepositoryProperties) {
         this.flowfileRepositoryProperties = flowfileRepositoryProperties;
     }
 
@@ -213,8 +210,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return contentRepositoryProperties;
     }
 
-    public void setContentRepositoryProperties(final ContentRepositorySchema contentRepositoryProperties)
-    {
+    public void setContentRepositoryProperties(final ContentRepositorySchema contentRepositoryProperties) {
         this.contentRepositoryProperties = contentRepositoryProperties;
     }
 
@@ -230,8 +226,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return processGroupSchema;
     }
 
-    public void setProcessGroupSchema(final ProcessGroupSchema processGroupSchema)
-    {
+    public void setProcessGroupSchema(final ProcessGroupSchema processGroupSchema) {
         this.processGroupSchema = processGroupSchema;
     }
 
@@ -247,8 +242,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return reportingTasks;
     }
 
-    public void setReportingTasks(final List<ReportingSchema> reportingTasks)
-    {
+    public void setReportingTasks(final List<ReportingSchema> reportingTasks) {
         this.reportingTasks = reportingTasks;
     }
 
@@ -256,8 +250,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return componentStatusRepositoryProperties;
     }
 
-    public void setComponentStatusRepositoryProperties(final ComponentStatusRepositorySchema componentStatusRepositoryProperties)
-    {
+    public void setComponentStatusRepositoryProperties(final ComponentStatusRepositorySchema componentStatusRepositoryProperties) {
         this.componentStatusRepositoryProperties = componentStatusRepositoryProperties;
     }
 
@@ -265,8 +258,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return provenanceRepositorySchema;
     }
 
-    public void setProvenanceRepositorySchema(final ProvenanceRepositorySchema provenanceRepositorySchema)
-    {
+    public void setProvenanceRepositorySchema(final ProvenanceRepositorySchema provenanceRepositorySchema) {
         this.provenanceRepositorySchema = provenanceRepositorySchema;
     }
 
@@ -274,8 +266,7 @@ public class ConfigSchema extends BaseSchema implements WritableSchema, Converta
         return nifiPropertiesOverrides;
     }
 
-    public void setNifiPropertiesOverrides(final Map<String, String> nifiPropertiesOverrides)
-    {
+    public void setNifiPropertiesOverrides(final Map<String, String> nifiPropertiesOverrides) {
         this.nifiPropertiesOverrides = nifiPropertiesOverrides;
     }
 

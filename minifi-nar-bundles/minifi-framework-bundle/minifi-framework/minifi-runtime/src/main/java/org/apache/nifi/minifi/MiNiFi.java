@@ -246,7 +246,7 @@ public class MiNiFi {
     public static void main(String[] args) {
         logger.info("Launching MiNiFi...");
         try {
-            NiFiProperties niFiProperties = NiFiProperties.createBasicNiFiProperties(null, null);
+            NiFiProperties niFiProperties = NiFiProperties.createBasicNiFiProperties(null);
             new MiNiFi(niFiProperties);
         } catch (final Throwable t) {
             logger.error("Failure to launch MiNiFi due to " + t, t);

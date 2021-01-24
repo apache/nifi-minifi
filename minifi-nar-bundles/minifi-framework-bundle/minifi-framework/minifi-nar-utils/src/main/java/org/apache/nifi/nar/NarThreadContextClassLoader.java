@@ -77,6 +77,12 @@ public class NarThreadContextClassLoader extends URLClassLoader {
         super(new URL[0]);
     }
 
+    public static FlowFileSwapManager createInstance(final ExtensionManager extensionManager, final String implementationClassName, final Class<FlowFileSwapManager> flowFileSwapManagerClass,
+            final NiFiProperties nifiProperties)
+            throws IllegalAccessException, ClassNotFoundException, InstantiationException {
+        return createInstance(implementationClassName, flowFileSwapManagerClass, nifiProperties);
+    }
+
     @Override
     public void clearAssertionStatus() {
         lookupClassLoader().clearAssertionStatus();

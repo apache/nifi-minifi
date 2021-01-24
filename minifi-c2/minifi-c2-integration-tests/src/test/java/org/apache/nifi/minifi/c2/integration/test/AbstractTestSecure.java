@@ -22,8 +22,13 @@ import com.palantir.docker.compose.connection.DockerPort;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.minifi.commons.schema.ConfigSchema;
 import org.apache.nifi.minifi.commons.schema.serialization.SchemaLoader;
+import org.apache.nifi.security.util.ClientAuth;
 import org.apache.nifi.security.util.KeyStoreUtils;
+import org.apache.nifi.security.util.KeystoreType;
 import org.apache.nifi.security.util.SslContextFactory;
+import org.apache.nifi.security.util.StandardTlsConfiguration;
+import org.apache.nifi.security.util.TlsConfiguration;
+import org.apache.nifi.security.util.TlsException;
 import org.apache.nifi.toolkit.tls.standalone.TlsToolkitStandalone;
 import org.apache.nifi.toolkit.tls.standalone.TlsToolkitStandaloneCommandLine;
 import org.junit.Test;
@@ -90,7 +95,17 @@ public abstract class AbstractTestSecure extends AbstractTestUnsecure {
         final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(trustStore);
 
-        return SslContextFactory.createTrustSslContext(certificatesDirectory.resolve("c2").resolve("truststore.jks").toFile().getAbsolutePath(), "badTrustPass".toCharArray(), "jks", "TLS");
+        TlsConfiguration tlsConfiguration = new StandardTlsConfiguration(
+                certificatesDirectory.resolve("c2").resolve("truststore.jks").toFile().getAbsolutePath(),
+                "badTrustPass",
+                KeystoreType.JKS,
+                certificatesDirectory.resolve("c2").resolve("truststore.jks").toFile().getAbsolutePath(),
+                "badTrustPass",
+                KeystoreType.JKS
+                );
+
+        return SslContextFactory.createSslContext( tlsConfiguration);
+
     }
 
     @Test
@@ -154,17 +169,19 @@ public abstract class AbstractTestSecure extends AbstractTestUnsecure {
         return loadSslContext(username, certificatesDirectory);
     }
 
-    protected SSLContext loadSslContext(String username, Path directory) throws GeneralSecurityException, IOException {
-        char[] keystorePasswd;
+    protected SSLContext loadSslContext(String username, Path directory) throws IOException, TlsException {
+        String keystorePasswd;
         try (InputStream inputStream = Files.newInputStream(directory.resolve("CN=" + username + ".password"))) {
-            keystorePasswd = IOUtils.toString(inputStream, StandardCharsets.UTF_8).toCharArray();
+            keystorePasswd = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
-        return SslContextFactory.createSslContext(
+        TlsConfiguration tlsConfiguration = new StandardTlsConfiguration(
                 directory.resolve("CN=" + username + ".p12").toFile().getAbsolutePath(),
                 keystorePasswd,
-                "PKCS12",
+                KeystoreType.PKCS12,
                 certificatesDirectory.resolve("c2").resolve("truststore.jks").toFile().getAbsolutePath(),
-                "badTrustPass".toCharArray(), "jks", SslContextFactory.ClientAuth.NONE, "TLS");
+                "badTrustPass",
+                KeystoreType.JKS);
+        return SslContextFactory.createSslContext(tlsConfiguration, ClientAuth.NONE);
     }
 
     protected ConfigSchema assertReturnCode(String query, SSLContext sslContext, int expectedReturnCode) throws Exception {

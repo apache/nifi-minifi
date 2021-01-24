@@ -57,6 +57,10 @@ limitations under the License.
             <groupId>org.apache.nifi.minifi</groupId>
             <artifactId>minifi-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

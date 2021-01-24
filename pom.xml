@@ -26,7 +26,7 @@ limitations under the License.
 
     <groupId>org.apache.nifi.minifi</groupId>
     <artifactId>minifi</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Apache NiFi - MiNiFi is a child project effort to aid in the collection and transmission of data close to where it is created.</description>
 
@@ -98,15 +98,16 @@ limitations under the License.
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <inceptionYear>2016</inceptionYear>
         <org.slf4j.version>1.7.25</org.slf4j.version>
-        <org.apache.nifi.version>1.8.0</org.apache.nifi.version>
+        <org.apache.nifi.version>1.12.1</org.apache.nifi.version>
         <logback.version>1.2.3</logback.version>
         <jetty.version>9.4.19.v20190610</jetty.version>
-        <jersey.version>2.29</jersey.version>
+        <jersey.version>2.33</jersey.version>
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
         <spring.version>4.3.25.RELEASE</spring.version>
         <spring.security.version>4.2.13.RELEASE</spring.security.version>
         <system.rules.version>1.16.1</system.rules.version>
         <aws.sdk.version>1.11.172</aws.sdk.version>
+        <nifi.security.version>1.11.4</nifi.security.version>
     </properties>
 
     <dependencies>
@@ -361,6 +362,11 @@ limitations under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
+                <artifactId>nifi-framework-nar-utils</artifactId>
+                <version>${org.apache.nifi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-utils</artifactId>
                 <version>${org.apache.nifi.version}</version>
             </dependency>
@@ -562,7 +568,7 @@ limitations under the License.
             <dependency>
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-security</artifactId>
-                <version>${org.apache.nifi.version}</version>
+                <version>${nifi.security.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
@@ -1149,6 +1155,17 @@ limitations under the License.
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-all</artifactId>
                 <version>1.3</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>3.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>1.1.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -131,6 +131,7 @@ public class ConfigMain {
 
     public static ConfigSchema transformTemplateToSchema(InputStream source) throws JAXBException, IOException {
         try {
+
             TemplateDTO templateDTO = (TemplateDTO) JAXBContext.newInstance(TemplateDTO.class).createUnmarshaller().unmarshal(source);
 
             FlowSnippetDTOEnricher enricher = new FlowSnippetDTOEnricher();
